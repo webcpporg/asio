@@ -1,0 +1,151 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+
+project : requirements <library>/webcpp/asio//asio ;
+
+import webcpp ;
+
+webcpp.targets native emscripten ;
+
+webcpp.headers-alone asio : ../include : asio.hpp asio/*.hpp ;
+# The browser's headers name Emscripten's own, and compile on emscripten
+# alone.
+webcpp.headers-alone asio : ../include : asio/browser/*.hpp asio/detail/*.hpp : : emscripten ;
+
+# config.hpp defines WEBCPP_ASIO_NO_EXCEPTIONS exactly when the build has no
+# exceptions, and keeps it when a developer defines it in a build that has
+# them.
+webcpp.compile config : config_test.cpp ;
+webcpp.compile config_developer_defined : config_test.cpp
+  : <define>WEBCPP_ASIO_NO_EXCEPTIONS <define>WEBCPP_TEST_ASIO_DEVELOPER_DEFINED ;
+
+# The names of asio are Boost.Asio's: the io_context derives from Boost's and
+# keeps its options, and the timers are Boost's own.
+webcpp.run names : names_test.cpp ;
+
+# Every test of the browser runs in each variant, with exceptions and without
+# them: jspi, the default, in the emscripten lane; asyncify in the own lane
+# asyncify. A test joins by its name. em_js loads every EM_JS of asio and of
+# browser_values.hpp: a function that does not parse fails it before main.
+local browser-tests = reactor run_family turn_limit bridge bridge_abort em_js ;
+for local test in $(browser-tests)
+{
+    webcpp.run $(test) : $(test)_test.cpp : : emscripten ;
+    webcpp.run $(test)_no_exceptions : $(test)_test.cpp : <exception-handling>off
+      : emscripten ;
+    webcpp.run $(test)_asyncify : $(test)_test.cpp : <webcpp-suspend>asyncify
+      : emscripten ;
+    webcpp.run $(test)_asyncify_no_exceptions : $(test)_test.cpp
+      : <webcpp-suspend>asyncify <exception-handling>off : emscripten ;
+    .asyncify += $(test)_asyncify $(test)_asyncify_no_exceptions ;
+}
+
+# Through the bridge, a program can neither deliver an event outside the
+# count its JavaScript functions keep, deliver being private, nor set what
+# delivering() reads. The control compiles; each refusal must not.
+webcpp.compile bridge_private : bridge_private_test.cpp : : emscripten ;
+webcpp.compile-fail bridge_deliver_refused : bridge_private_test.cpp
+  : <define>WEBCPP_TEST_ASIO_DELIVER : emscripten ;
+webcpp.compile-fail bridge_set_delivering_refused : bridge_private_test.cpp
+  : <define>WEBCPP_TEST_ASIO_SET_DELIVERING : emscripten ;
+
+# The scope that flags a run family call puts back the value its flag had,
+# on every target, with exceptions and without them.
+webcpp.run flag_scope : flag_scope_test.cpp ;
+webcpp.run flag_scope_no_exceptions : flag_scope_test.cpp : <exception-handling>off ;
+
+# The run family refuses a nested call, and one made while the bridge
+# delivers, with assertions on (the handler counts them) and off (it returns
+# 0 and runs nothing), on both variants, with and without exceptions.
+for local suspend in jspi asyncify
+{
+    for local handling in on off
+    {
+        local name = detection_$(suspend)_exceptions_$(handling) ;
+        webcpp.run $(name) : detection_test.cpp
+          : <define>BOOST_ENABLE_ASSERT_HANDLER <webcpp-suspend>$(suspend)
+            <exception-handling>$(handling) : emscripten ;
+        webcpp.run $(name)_disabled : detection_test.cpp
+          : <define>BOOST_DISABLE_ASSERTS <webcpp-suspend>$(suspend)
+            <exception-handling>$(handling) : emscripten ;
+        if $(suspend) = asyncify
+        {
+            .asyncify += $(name) $(name)_disabled ;
+        }
+    }
+}
+
+# The run family keeps Boost's meaning natively too, where it is Boost's own.
+webcpp.run run_family_native : run_family_test.cpp : : native ;
+
+# Throws and catches across a suspension need exceptions, whatever the build
+# asks: WebAssembly's under jspi, JavaScript's under asyncify (the feature's
+# composition), and natively for the twin.
+webcpp.run exceptions : exceptions_test.cpp : <exception-handling>on : native emscripten ;
+webcpp.run exceptions_asyncify : exceptions_test.cpp
+  : <exception-handling>on <webcpp-suspend>asyncify : emscripten ;
+.asyncify += exceptions_asyncify ;
+
+# Each suspension of the run family under Asyncify leaves half of the stack
+# Asyncify saves it in, measured exactly, with exceptions and without them,
+# in each build a program can get: debug; release, compiled with -O3 and
+# linked as b2's emscripten toolset links it, without optimization, which
+# Asyncify instruments unoptimized; and release linked with -O3, as a
+# product's link would be.
+.asyncify-stack-builds = debug release optimized_link ;
+.asyncify-stack-debug = <variant>debug ;
+.asyncify-stack-release = <variant>release ;
+.asyncify-stack-optimized_link = <variant>release <linkflags>-O3 ;
+for local build in $(.asyncify-stack-builds)
+{
+    for local handling in on off
+    {
+        local name = asyncify_stack_$(build)_exceptions_$(handling) ;
+        webcpp.run $(name) : asyncify_stack_test.cpp
+          : <webcpp-suspend>asyncify $(.asyncify-stack-$(build))
+            <exception-handling>$(handling)
+          : emscripten ;
+        .asyncify += $(name) ;
+    }
+}
+
+# The stack Asyncify saves a suspension in is asio's measured size unless a
+# program asks for more with asyncify-stack-size, whose value then ends last
+# on emcc's command line; a size below asio's is refused, and the control
+# with a size above it compiles.
+webcpp.run asyncify_stack_size_default : asyncify_stack_size_test.cpp
+  : <webcpp-suspend>asyncify <define>WEBCPP_TEST_ASIO_STACK_SIZE=8192
+  : emscripten ;
+webcpp.run asyncify_stack_size_raised : asyncify_stack_size_test.cpp
+  : <webcpp-suspend>asyncify <asyncify-stack-size>16384
+    <define>WEBCPP_TEST_ASIO_STACK_SIZE=16384
+  : emscripten ;
+webcpp.compile asyncify_stack_size_control : asyncify_stack_size_test.cpp
+  : <webcpp-suspend>asyncify <asyncify-stack-size>8192
+    <define>WEBCPP_TEST_ASIO_STACK_SIZE=8192
+  : emscripten ;
+webcpp.compile-fail asyncify_stack_size_refused : asyncify_stack_size_test.cpp
+  : <webcpp-suspend>asyncify <asyncify-stack-size>4096
+    <define>WEBCPP_TEST_ASIO_STACK_SIZE=4096
+  : emscripten ;
+.asyncify += asyncify_stack_size_default asyncify_stack_size_raised
+  asyncify_stack_size_control asyncify_stack_size_refused ;
+
+# The two ways a test under node could fail and read as passed, pinned in
+# each variant (doc: #asio-building-exit-status): a main that never
+# finishes, and a main that suspended and returns 1 without
+# webcpp::test::exit_status, whose 1 Asyncify loses and the test support
+# turns back into 1. A run-fail passes on any status but 0, so each
+# program's .output shows the status it gave and the support's line.
+webcpp.run-fail never_finishes : never_finishes_test.cpp : : emscripten ;
+webcpp.run-fail never_finishes_asyncify : never_finishes_test.cpp
+  : <webcpp-suspend>asyncify : emscripten ;
+webcpp.run-fail return_after_suspension : return_after_suspension_test.cpp : : emscripten ;
+webcpp.run-fail return_after_suspension_asyncify : return_after_suspension_test.cpp
+  : <webcpp-suspend>asyncify : emscripten ;
+.asyncify += never_finishes_asyncify return_after_suspension_asyncify ;
+
+webcpp.lane asyncify : $(.asyncify) : emscripten ;

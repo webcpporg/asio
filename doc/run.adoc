@@ -1,0 +1,179 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#asio-run]
+== The run family
+
+The io_context's `run`, `run_one`, `run_for`, `run_until`, `run_one_for`
+and `run_one_until` keep Boost.Asio's meaning on every target: `run`
+returns when the io_context is out of work or stopped, `run_one` after one
+handler, `run_for` and `run_until` at their deadline at most, and each
+returns the number of handlers it ran. `poll` and `poll_one` are Boost's
+everywhere. Natively the six are Boost's own, and the options change
+nothing.
+
+On emscripten the six hide Boost's, and `run` is a composition of Boost's
+own calls, which repeats four steps:
+
+. Call `poll_one` until it returns 0 or `max_handlers_per_turn` handlers
+have run: a turn of the handlers that are ready.
+. If the io_context is stopped, return.
+. If the turn reached the limit, yield to the browser and go to step 1.
+. Otherwise call Boost's `run_one`, which suspends in the reactor's
+`select` until a timer, a post or I/O makes a handler ready, and runs it.
+If it ran none, the io_context being stopped or out of work, return; else
+go to step 1.
+
+`run_for` and `run_until` are the same composition with Boost's
+`run_one_until` in step 4. Like Boost's, they check their deadline before
+each handler, so that a deadline already passed runs nothing, and they
+return once it has passed, even when every turn reaches the limit.
+`run_one` is step 4 alone, and
+`run_one_for` and `run_one_until` are Boost's, each running one handler at
+most. Code that calls `run` through a `boost::asio::io_context&` gets
+Boost's own `run`, which suspends as well but has no limit.
+
+[#asio-run-turn]
+=== A turn at a time
+
+Boost's `run` runs handlers until none is ready, those posted meanwhile
+included, and a `select` whose timeout is zero suspends only to a
+microtask, which never lets the page render. Measured with Emscripten
+6.0.11, a handler that posts itself ran 300,000 times under Boost's `run`
+before a JavaScript `setTimeout(0)` ran, in either suspension variant. Boost's
+`run` is not virtual and cannot be told to yield, hence the composition.
+
+The yield is a suspension, an `EM_ASYNC_JS` import whose promise a
+`MessageChannel` message resolves: a macrotask, never a microtask, so that
+the browser renders, runs its timers and delivers its events before the
+next turn. `MessageChannel` exists in every browser and in node.
+
+[[asio-invariant-3]]*A turn runs at most `max_handlers_per_turn` handlers,
+and the run family yields to the browser after each turn that reaches it.*
+Step 4's one handler belongs to no turn: when it follows a short turn of
+`k` handlers and its wait ends at once, a timer having fallen due
+meanwhile, no macrotask comes between them, so that up to
+`k + 1 + max_handlers_per_turn` handlers, fewer than twice the limit and
+one, can run between two yields. The option is 1000 by default:
+measured with Emscripten 6.0.11, the `setTimeout(0)` above then ran after
+1,000 handlers under JSPI and 999 under Asyncify, against 300,000 without
+the limit, and `run` still ran every handler. It is given at construction,
+`+io_context io(io_context_options{.max_handlers_per_turn = 250})+`, or
+later with `io.max_handlers_per_turn(250)`; 0 is taken as 1. A stop made by
+the handler that reaches the limit returns at once, without a yield first.
+_Held by_ `turn_limit`, which counts the yields of a handler that posts
+itself: one after every `max_handlers_per_turn` handlers under `run` and
+`run_for`, never more handlers between two, and none under Boost's own
+`run`; and a JavaScript `setTimeout(0)` runs at a yield, seen by the first
+handler of a turn. And by `run_family`, in each variant.
+
+[#asio-run-callers]
+=== Who may call it
+
+The run family is called on the stack of `main`, or on the stack of another
+export the program lists for suspension: in `-sJSPI_EXPORTS` under JSPI,
+whose call then returns a promise, and called with
+`+ccall(..., {async: true})+` under Asyncify. Anywhere else its first
+suspension fails: under JSPI it throws a `SuspendError`, and under Asyncify
+it starts an unwind that corrupts a suspended `main`. Nothing calls `run`,
+`poll` or `dispatch` from a JavaScript event: while `run` is suspended, an
+event sees `running_in_this_thread()` true, because the frame `run` pushed
+stays on the stack, and a `dispatch` there runs its handler inside the
+event, on the wrong stack. asio's bridge only posts. Nor does a program
+block the page's thread without suspending, in a busy loop or a blocking
+system call.
+
+[[asio-invariant-6]]*On emscripten, a run family call made while another
+runs, or while the bridge delivers a browser event, asserts and returns 0
+having run nothing.* The io_context keeps a flag while one of its six
+members runs, and the bridge counts the deliveries in progress. A call
+while either is set (a nested call from a handler, a `run` from a
+JavaScript event while `run` waits, a `run` from a registration's
+`deliver`) is a precondition violation, reported by `BOOST_ASSERT_MSG`,
+and with assertions off it is still refused. The run around a refused
+call goes on, still flagged. A handler's {cpp} exception that leaves `run`
+clears the flag on its way, so that the program's `restart(); run();`
+after its `catch` is no nested call. A JavaScript error is another matter
+(see <<asio-browser-errors,a JavaScript error out of a handler>>): where
+it skips destructors it leaves the flag set, as it leaves Boost's own
+state broken, and the context refuses every later call. Each member admits its call once, before any work, and then runs
+only private code or Boost's, never another member of the family, whose
+admission would refuse the call its caller flagged.
+
+Detection is of a call of this run family on the context whose flag or
+bridge is set. Four calls go undetected: a call from an export of the
+program's own that is not listed for suspension, which nothing tells from
+`main` until its first suspension fails; a call through a `boost::asio::io_context&`, which reaches Boost's
+own `run`; `poll`, `poll_one` and `dispatch`, which are Boost's and no
+member of the run family, called from a JavaScript event; and a call on
+another io_context, whose flag and bridge are its own, from a handler or
+a delivery of this one.
+
+_Held by_ `detection`, in each variant, with and without exceptions, with
+an assertion handler counting the assertions and with assertions off: a
+nested `run_for`, `run_one` and the other timed forms nested one after
+another in a single `run`, a `run` from a JavaScript `setTimeout` while
+`run` waits, a `run` from a delivery while no `run` is active and a
+handler is ready, which it leaves for the next `run`, `run` again after a
+{cpp} exception left it, every timed form over several turns and on a
+timer alone with no assertion, and the `poll` of a context with no reactor
+from a handler. And by `flag_scope`, the flag's scope, which puts back the
+value it found.
+
+A library never calls the run family: it is given an executor. webcpp's
+lint refuses a call of `run`, `run_one` or `run_for` on an `io_context`
+whose line does not say why after `lint-run:`, and a program's own says
+it, as
+`+io.run();  // lint-run: the program's event loop, suspended into the browser's+`.
+
+xactor's `asio_driver` drains an `io_context` of its own with `poll`. That
+context makes no timer and no socket, so it has no reactor: its `poll`
+never reaches `select` and never suspends, and calling it from a handler of
+the program's io_context is safe in either variant.
+
+[#asio-run-exceptions]
+=== Exceptions
+
+[[asio-invariant-7]]*A handler's exception propagates out of `run`, as
+Boost's, on both variants.* Handlers run on the stack of `main`, inside the
+run family call, so that a {cpp} exception a handler throws leaves `run`,
+clearing the run family's flag on its way, and reaches the program's
+`catch`, after any number of suspensions and yields. A suspension keeps
+what encloses it: a `try` around `run` catches what a handler throws after
+`run` suspended, and a `run` called inside a `catch` block suspends and
+resumes there. Each variant compiles with the exception model it can
+suspend through (see <<asio-building-variants,the two suspension
+variants>>): WebAssembly exceptions under JSPI, and JavaScript-based
+exceptions under Asyncify, which traps when it suspends inside a `catch`
+block of WebAssembly exceptions. A JavaScript error out of a handler is
+caught by no {cpp} `catch`, and what it leaves depends on the build (see
+<<asio-browser-errors,a JavaScript error out of a handler>>).
+
+_Held by_ `exceptions`, natively and in each variant, built with
+exceptions whatever the build asks: a `try` that encloses a `run` which
+suspends in the reactor's wait catches nothing, a `run` suspends inside a
+`catch` block and resumes there, a handler's exception thrown after `run`
+suspended reaches a `catch` in `main`, and the next `run` after it runs
+its handler, no nested call, and so does one thrown after `run`
+yielded twice to the browser, 2,000 handlers having filled two turns of the
+default limit.
+
+[#asio-run-main]
+=== Before run, and after main
+
+[[asio-invariant-2]]*On emscripten, handlers run only on the stack of a
+run family call*, as natively: work posted before `run` is called waits for
+it, and a browser event that arrives while no `run` is active is posted and
+waits for the next one. _Held by_ `reactor`, where work posted before `run`
+runs only inside it, and a post made from a JavaScript `setTimeout` wakes a
+suspended `run`.
+
+As natively, `run` returns when no operation is pending, even with a
+connection open: a WebSocket with no pending read does not keep `run`
+alive, and its messages queue. After `main` returns, the runtime stays
+alive, since Emscripten keeps it by default, events keep being posted, and
+nothing runs them unless an export listed for suspension calls the run
+family again.

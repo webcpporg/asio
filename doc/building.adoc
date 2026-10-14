@@ -1,0 +1,172 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#asio-building]
+== Building
+
+asio is header-only, and is developed inside the webcpp superproject, as a
+Boost library is developed inside Boost. A b2 program uses it through one
+target, `/webcpp/asio//asio`, on every target:
+
+[listing]
+----
+exe app : app.cpp /webcpp/asio//asio ;
+----
+
+The target adds asio's headers and Boost's, and on emscripten everything
+else a program needs there: the define Asio needs to build, embind, the
+JavaScript functions asio calls, compiled once in `src/browser_src.cpp`,
+the link flags of the program's suspension variant, and the variant in the
+program's name:
+
+[listing]
+----
+include::{library-root}/build.jam[tag=asio]
+----
+
+Asio needs `BOOST_ASIO_DISABLE_THREADS` on emscripten: without it, Asio
+decides it has threads under any compiler that defines `+__GNUC__+` outside
+Linux, Emscripten's among them, and `<boost/asio/io_context.hpp>` stops at
+"Only Windows and POSIX are supported!". The page has no threads, and the
+target defines it for every program that uses it on emscripten. Asio's
+inline namespace differs with and without threads, so a translation unit
+that missed the define fails at link, never silently.
+
+[#asio-building-variants]
+=== The two suspension variants
+
+On emscripten, `run` suspends `main` into the browser's event loop in one of
+two ways, each a variant of the program built from the same sources:
+
+[cols="2,5,2,3,2",options="header"]
+|===
+| Variant | What suspends | Link flags | Exceptions | Browsers
+
+| `jspi`, the default
+| JavaScript Promise Integration: the suspending imports, Emscripten's
+  `+__syscall_poll+` and asio's yield, are wrapped in
+  `WebAssembly.Suspending`, and `main`, on whose stack `run` executes, in
+  `WebAssembly.promising`.
+| `-sJSPI`
+| WebAssembly exceptions, `-fwasm-exceptions`
+| those with JSPI
+
+| `asyncify`
+| Emscripten's Asyncify: the compiler instruments every function that may
+  reach a suspending import, so that the stack unwinds into the browser and
+  is rewound when the program resumes.
+| `-sASYNCIFY`, `-sASYNCIFY_STACK_SIZE`, measured
+| JavaScript-based exceptions, `-fexceptions`
+| every browser
+|===
+
+A build asks for a variant with the feature `webcpp-suspend`, on b2's
+command line, `b2 toolset=emscripten webcpp-suspend=asyncify`, or in a
+program's requirements, `<webcpp-suspend>asyncify`. The feature is
+propagated, so that every library a program uses is built for its variant,
+and composite, since Asyncify does not work with WebAssembly exceptions:
+emcc only warns, and the program traps at run time with
+`RuntimeError: unreachable` when it suspends inside a `catch` block. So
+`asyncify` asks for JavaScript-based exceptions itself, and `jspi` keeps
+b2's WebAssembly ones; a build with `exception-handling=off` compiles with
+`-fno-exceptions` in either:
+
+[listing]
+----
+include::{webcpp-root}/tools/webcpp.jam[tag=suspend]
+----
+
+Emscripten finds the suspending imports itself, so no list of them is
+given. `ASYNCIFY_IGNORE_INDIRECT` is not set, since the path from `main` to
+the reactor's `select` passes a virtual call, Asio's
+`scheduler_task::run`. Asyncify's cost is size: about three times the JSPI
+program's, in a release build.
+
+[#asio-building-asyncify-stack]
+==== Asyncify's stack
+
+Asyncify saves a suspension in a stack of its own, of a fixed size, which
+`ASYNCIFY_STACK_SIZE` sets and Emscripten allocates at every suspension:
+each frame from `main` down to the suspending import writes its locals
+there as it unwinds, and a suspension that does not fit traps with
+`RuntimeError: unreachable`, which Emscripten follows, in a build with
+assertions, with "may be due to ASYNCIFY_STACK_SIZE not being large
+enough". The trap is certain, at every suspension that deep, but only
+there. So asio does not keep Emscripten's default: it sets the size to at
+least twice the deepest suspension its tests reach, measured exactly, as
+the bytes each unwind wrote, read from Asyncify's own data when the unwind
+stops. The deepest build is one compiled with optimization and linked
+without it, which is how b2's `release` variant links on emscripten today:
+its deepest suspension in the tests wrote 3,540 bytes, against 1,272 in a
+`debug` build. Linked with optimization, a suspension writes a sixth or
+less of what it writes linked without: 416 bytes at most in the tests, and 384
+for the run family's deepest path, against 2,404. Half of the stack is so
+left to the program's own frames, whose depth asio cannot know.
+
+A program that calls `run` deep in its code, or whose frames above `run`
+are large, measures its own suspensions the same way and asks for more
+with the feature `asyncify-stack-size`, which asio declares: in its
+requirements, `<asyncify-stack-size>16384`, or on b2's command line,
+`asyncify-stack-size=16384`. Its values are powers of two from 8192, asio's
+size and the default, to 1048576; a smaller one stops the program's
+compilation at an `#error` of `<webcpp/asio/config.hpp>`, which says why.
+asio's usage requirements read the feature, so that its flag ends last on
+emcc's command line, where emcc keeps the last: a `<linkflags>` of the
+program's own would come before asio's and be ignored.
+
+A suspension that does not fit is found when the unwind stops, after its
+frames wrote past Asyncify's stack into the heap; the program aborts there.
+Nothing of the program runs afterwards: no destructor or `atexit` handler,
+no timer or event of asio's; only JavaScript of the page's own that calls
+an export could still enter it.
+
+_Held by_ `asyncify_stack`, with exceptions and without them, in debug,
+in release and in release linked with `-O3`, which measures every
+suspension of the run family, the reactor's wait and the yield under each
+member that makes one, inside a `try` and a `catch` block too, and fails
+when one of them leaves less than half of the stack, or when the reading
+finds no unwind or no byte written; by every test of the asyncify lane,
+which links the same size and traps if a suspension of its own does not
+fit; by `asyncify_stack_size_default` and `asyncify_stack_size_raised`,
+which read the size the program was linked with, and
+`asyncify_stack_size_refused`, which does not compile, beside
+`asyncify_stack_size_control`, which does; and by `bridge_abort`, in each
+variant, where an event called from JavaScript after the runtime aborted
+reaches no registration.
+
+The artifacts are named and placed as Boost's own build names and places
+them: one directory level per toolset, variant and property that is not
+the default, and a file name that carries the program's tags joined by `-`,
+the toolset's version, `60` for Emscripten 6.0.11, `d` for a debug build,
+and the suspension variant. The default variant adds no directory level:
+
+[cols="1,4",options="header"]
+|===
+| Build | The program `app`
+
+| debug, `jspi`
+| `+bin/emscripten-6.0.11/debug/.../app-60-d-jspi.js+`
+
+| debug, `asyncify`
+| `+bin/emscripten-6.0.11/debug/.../webcpp-suspend-asyncify/app-60-d-asyncify.js+`
+
+| release, `jspi`
+| `+bin/emscripten-6.0.11/release/.../app-60-jspi.js+`
+|===
+
+each beside its `.wasm`.
+
+[#asio-building-exit-status]
+=== The exit status
+
+After a suspension, Asyncify loses the value `main` returns: a program
+whose exit status matters, under node, ends with `std::exit`; webcpp's own
+tests end through `webcpp::test::exit_status`, and a test that does not
+fails
+(https://github.com/webcpporg/webcpp/blob/main/AGENTS.md[AGENTS.md]
+chapter 9). asio's tests pin both cases where node would read a failure as
+a pass, in each variant: a `main` that never finishes, and a `main` that
+suspended and then returns 1 without the helper.

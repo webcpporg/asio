@@ -1,0 +1,78 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#asio-testing]
+== Testing
+
+asio's tests are under `test/`, each declared in `test/Jamfile` with
+webcpp's rules, for two targets, native and emscripten:
+{n-tests} tests in all, {n-tests-native} natively and {n-tests-emscripten}
+on emscripten, run by node. Each public header is also compiled alone, as
+the only include of its translation unit, so that a header that leans on an
+include it does not make fails, naming it.
+
+`<webcpp/asio/config.hpp>`, which every public header of asio includes
+first, defines `WEBCPP_ASIO_NO_EXCEPTIONS` when the build has no exceptions,
+and a program may define it itself to turn asio's exceptions off in a build
+that has them, as Boost.Asio's `BOOST_ASIO_NO_EXCEPTIONS` does. The tests
+`config` and `config_developer_defined` check both ways it is defined.
+
+[#asio-testing-lanes]
+=== The lanes
+
+The continuous integration runs asio in four lanes, each built from scratch
+with `b2 -a` and a `--build-dir` of its own. From the root of a webcpp
+checkout:
+
+native::
+Every test and example, natively:
++
+[source,bash]
+----
+b2 libs/asio/test libs/asio/example
+----
+
+emscripten::
+The same on emscripten, in the default suspension variant, JSPI, each
+program run by node:
++
+[source,bash]
+----
+b2 toolset=emscripten libs/asio/test libs/asio/example
+----
+
+asyncify::
+A lane of asio's own, on emscripten: every browser test again under
+Asyncify, the other suspension variant, and the size table of both:
++
+[source,bash]
+----
+b2 toolset=emscripten libs/asio/test//asyncify libs/asio/example//asyncify
+----
+
+browser::
+A lane of asio's own, on emscripten: the loader that picks a variant, under
+node, and in headless Chrome a page program that never polls, a page that
+keeps rendering, and the variant the loader picks:
++
+[source,bash]
+----
+b2 toolset=emscripten libs/asio/test/browser//browser
+----
+
+`b2 libs/asio/test//config` builds and runs one test alone, while working on
+it.
+
+[#asio-testing-report]
+=== The test matrix
+
+Each lane records what b2 built and ran, and webcpp's
+`tools/report/report.py` merges the records of every lane into a matrix: a
+page of the libraries by lanes, and a page of each library's tests and
+examples by lanes, where each cell says whether that program passed in that
+lane, or how it failed, at compile time, at link time or when it ran. The
+matrix is published with the documentation, at
+https://webcpporg.github.io/webcpp/report/.

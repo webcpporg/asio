@@ -1,0 +1,140 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#asio-browser]
+== Browser events
+
+On emscripten every event source of asio and of the libraries built on it,
+a WebSocket's `onmessage`, a `fetch` promise, a WebRTC callback, is a
+JavaScript function made by the io_context's bridge,
+`webcpp::asio::browser::bridge`. The bridge is a service of the io_context,
+Boost.Asio's own mechanism, so that it is made with the context's
+allocator, on first use, and shut down and destroyed with the context.
+From the test `bridge`, where two events delivered before `run` wait for
+it:
+
+[source,cpp]
+----
+include::{library-root}/test/bridge_test.cpp[tag=bridge,indent=0]
+----
+
+A registration is what an event delivered through the bridge reaches: an
+object of a class derived from `webcpp::asio::browser::registration`, owned
+and allocated by whoever adds it, an operation, a stream or a channel. Its
+`deliver` is given the event and returns whether the registration is done,
+in which case the bridge removes it; its `shutdown` is the context's
+shutdown, which destroys what is pending without calling it. The bridge
+keeps a pointer to each, by key, in a map allocated with the context's
+allocator. Natively there is no bridge: `browser/` builds on emscripten
+alone.
+
+[[asio-invariant-4]]*A browser event delivered through the bridge only
+posts; a listener is no outstanding work.* A registration's `deliver` posts
+what the event completes or notifies to the io_context, and does nothing
+else: it never polls, runs or dispatches. The post wakes a suspended `run`
+through the reactor, and an event that arrives while no `run` is active is
+posted and waits for the next one. A registered listener keeps no `run`
+alive: `run` returns when nothing is pending, as natively a socket with no
+pending operation does not keep it.
+
+Posting is the only choice. While `run` is suspended in the reactor's
+`select`, the frame that Boost's scheduler pushed for it stays on the call
+stack, so that an event sees `running_in_this_thread()` true, and
+`boost::asio::dispatch` called there runs its handler at once, inside the
+event and on its stack, rather than on the stack of `run` (measured with
+Emscripten 6.0.11). And calling the run family from an event fails at its
+first suspension: under JSPI it throws a `SuspendError`, and under Asyncify
+it starts an unwind that corrupts the suspended `main` (see
+<<asio-run-callers>>). Under Asyncify a wake must also come from JavaScript
+with no compiled code on the stack, which a post gives. So an event may
+call what returns at once without suspending, which posting is, and no
+member of the run family, nor `poll`, `poll_one` or `dispatch`.
+While it delivers, the bridge says so, `delivering()`, so that the run
+family can refuse a call made from inside a delivery. Only the bridge's own
+JavaScript functions deliver, and they count the deliveries in progress,
+nested ones included, which `delivering()` reads. Through the bridge, a
+program can neither deliver outside that count, `deliver` being private,
+nor change it, `delivering()` taking no value; the export those functions
+call is the JavaScript boundary's, declared in a `detail` header, and
+calling it from {cpp} is outside the contract.
+
+[[asio-invariant-5]]*A registration's key is never reused; an event of a
+removed key, or of a destroyed io_context, finds nothing.* Keys are
+`std::uint64_t` values counted from 1, which JavaScript holds as a
+`BigInt`, so that no count of registrations a program reaches wraps around.
+Each function the bridge makes carries its key and a token that the bridge
+clears at its shutdown: an event of a key the bridge no longer holds
+delivers nothing, and an event that arrives after the io_context was
+destroyed does not reach WebAssembly at all. A registration must outlive
+its key, and is removed before it is destroyed; the context's shutdown
+calls the `shutdown` of each registration still held.
+
+An exception that escapes a delivery, a {cpp} exception from a
+registration's `deliver` or a JavaScript error from a function it calls, is
+caught at the bridge's boundary and reported with the page's `reportError`,
+or `console.error` where there is none, and the event that raised it is
+lost. A {cpp} exception is caught in {cpp}, which frees its object: one
+that reached the page would keep it for good. A JavaScript error passes
+every {cpp} `catch` and leaves WebAssembly without running its frames'
+epilogues, in every build; it runs their destructors in a build with
+WebAssembly exceptions, the JSPI variant's, and skips them with JavaScript
+exceptions, the Asyncify variant's, and without exceptions (measured with
+Emscripten 6.0.11). So the JavaScript side of the boundary keeps what must
+hold however a delivery ends: it puts WebAssembly's stack pointer back
+where it was before the call, puts the count of deliveries in progress
+back, and frees the event's handle, which {cpp} only borrows. Where
+destructors are skipped, what the registration's own frames owned is not
+freed: a registration that calls JavaScript which may throw catches the
+error there.
+
+What the boundary does not catch is the runtime's own. A trap, a
+`WebAssembly.RuntimeError`, which Emscripten's `abort()` throws too, goes
+on to the page after the stack pointer is put back, as it does from any
+other call into WebAssembly, rather than being reported and swallowed as an
+error of the program's; and the `ExitStatus` that `exit()` throws, or
+Emscripten's `+'unwind'+`, ends the delivery without a report, as
+Emscripten's own callbacks do. A handler's exception is another matter: it
+is thrown by a handler that `run` runs, on the stack of `main`, and
+propagates out of `run`, as Boost's does.
+
+[[asio-browser-errors]]A JavaScript error that a handler lets escape
+crosses no boundary of asio's: it leaves `run`, and the page's JavaScript
+may catch it around a call of an export listed for suspension and call
+that export again. With WebAssembly exceptions the frames it leaves run
+their destructors, Boost's and asio's, and the next `run` runs as after a
+{cpp} exception. With JavaScript exceptions, and without exceptions, the
+destructors are skipped and the context is left broken whatever asio
+does. Boost's scheduler keeps the finished handler's work counted, so
+that Boost's own `run`, reached through a `boost::asio::io_context&`,
+never returns once out of work. Boost's call stack keeps the frame `run`
+pushed, so that `running_in_this_thread()` is true outside any `run`, and
+a `dispatch` anywhere runs its handler at once. And the run family's flag
+stays set, so that every later call asserts and returns 0. No boundary
+can put Boost's state back, since the frames that would are the ones the
+error skips, so asio does not put its flag back either: a refusal reports
+the broken context where a `run` that never returns would not. A handler
+that calls JavaScript which may throw catches the error in JavaScript, as
+a registration does. (Measured with Emscripten 6.0.11 in both variants,
+with exceptions and without: an export listed for suspension runs the
+context, a handler's JavaScript error escapes it, the page catches the
+error and calls the export again.)
+
+_Held by_ `bridge`, in each variant, with exceptions and without them: an
+event posts and wakes `run`; events delivered before `run` wait for it; a
+listener and nothing pending let `run` return; a registration that is done
+is removed; an event of a removed key, and one of a destroyed io_context,
+find nothing, and the context's destruction shuts its registrations down;
+3,000 {cpp} exceptions, and 3,000 JavaScript errors, escaping deliveries
+called in a row from JavaScript are each reported, with the stack pointer
+where it was, as many Emval handles as before, and the bridge no longer
+delivering; a delivery dispatched from inside another, ending normally or
+with a JavaScript error, leaves the outer one delivering; and a trap goes
+on to the caller while `+'unwind'+` and an `ExitStatus` pass unreported. By
+`bridge_deliver_refused` and `bridge_set_delivering_refused`, where a
+program that calls the bridge's `deliver`, or gives `delivering()` a value,
+fails to compile, beside `bridge_private`, which compiles. And by `em_js`,
+which loads every JavaScript function of asio and of its tests, so that one
+that does not parse fails before `main`.

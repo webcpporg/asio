@@ -1,0 +1,17 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+
+import webcpp ;
+
+webcpp.doc asio : asio.adoc ;
+
+# No single target builds every header: those of browser/ build only on
+# emscripten, whose own headers hold only for wasm32's types, so the
+# reference reads every header for Emscripten's target, as em++ compiles
+# (/webcpp//emscripten-reference), with the define of build.jam that a
+# requirement conditioned on the emscripten toolset does not give it.
+webcpp.reference asio : <library>/webcpp//emscripten-reference
+  <define>BOOST_ASIO_DISABLE_THREADS ;

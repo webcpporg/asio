@@ -1,0 +1,39 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+= asio: Boost.Asio in the browser's event loop for {cpp}
+:toc: left
+:toclevels: 1
+:idprefix:
+:sectanchors:
+:example-caption!:
+:attribute-missing: warn
+
+asio is Boost.Asio natively, and in the browser Boost.Asio's own
+`io_context` suspended into the page's event loop, in {cpp}20, one of the
+libraries of https://github.com/webcpporg/webcpp[webcpp]. A program written
+against Boost.Asio, `main()` and `io_context::run()` included, runs
+unchanged in a browser: compiled with Emscripten, asio adds only what Boost
+lacks there, the configuration Asio needs to build, what wakes `run` from a
+browser event, and a limit on the handlers one turn runs, so that the page
+keeps rendering.
+
+include::overview.adoc[]
+
+include::names.adoc[]
+
+include::building.adoc[]
+
+include::run.adoc[]
+
+include::browser.adoc[]
+
+include::testing.adoc[]
+
+[#reference]
+== Reference
+
+include::{reference}[leveloffset=+1]

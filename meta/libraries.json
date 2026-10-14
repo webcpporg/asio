@@ -1,0 +1,10 @@
+{
+    "key": "asio",
+    "name": "asio",
+    "authors": ["R"],
+    "description": "Boost.Asio natively, and in the browser Boost.Asio's own io_context suspended into the page's event loop.",
+    "category": ["Concurrent", "IO"],
+    "maintainers": ["R <github.overboard312@passmail.net>"],
+    "cxxstd": "20",
+    "port-of": null
+}
