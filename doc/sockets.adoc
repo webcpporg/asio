@@ -15,7 +15,8 @@ webcpp protocol and socket templates with the supported Boost signatures.
 They do not call SOCKFS or invent IP addresses through getaddrinfo. Browser
 TCP and UDP are unavailable unless a transport supplies the operations.
 
-Opening and closing an object succeeds without acquiring a network resource.
+With the default transport, opening and closing an object succeeds without
+acquiring a network resource.
 Opening an already open object reports `already_open`. With the default
 transport, network operations return `operation_not_supported`: synchronous
 calls return immediately, and asynchronous calls post their completion.
@@ -27,7 +28,12 @@ with exceptions enabled. Queries such as `is_open` describe the local object.
 Specialize `browser::transport<Protocol>` for a protocol to provide its network
 operations. The specialization must be visible before first use in every
 translation unit using that protocol. A relay is a separate transport, not a
-change to an individual socket's error policy. Boost.Beast's `tcp_stream`
+change to an individual socket's error policy. Its `close()` must cancel pending
+operations, release connection resources and return an `error_code`; the socket
+forwards closure and marks itself closed on success. Destruction must release
+resources as well. Move operations must transfer resources while preserving a
+usable executor in the source, so a moved-from socket can be reopened.
+Boost.Beast's `tcp_stream`
 contains a Boost socket; a relay reaches Beast as an explicitly named next layer.
 
 === Reference: supported operations

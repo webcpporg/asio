@@ -12,6 +12,9 @@
 
 #include <webcpp/asio/config.hpp>
 
+#include <webcpp/asio/basic_datagram_socket.hpp>
+#include <webcpp/asio/basic_socket_acceptor.hpp>
+#include <webcpp/asio/basic_stream_socket.hpp>
 #include <webcpp/asio/basic_waitable_timer.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/basic_resolver.hpp>

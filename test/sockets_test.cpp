@@ -327,9 +327,46 @@ void asynchronous_socket_operations() {
     throws_unsupported([&] { const net::ip::tcp::acceptor bound(io, tcp_endpoint); });
 #endif
 }
+
+// Reusing the moved-from object is part of the socket contract.
+// NOLINTBEGIN(bugprone-use-after-move)
+template <class Socket, class Protocol, class Start>
+void moved_sources_remain_usable(Protocol protocol, Start start) {
+    net::io_context io;
+    Socket source(io);
+    error_code ec;
+    source.open(protocol, ec);
+    BOOST_TEST(!ec);
+    Socket destination(std::move(source));
+    BOOST_TEST(!source.is_open());
+    source.open(protocol, ec);
+    BOOST_TEST(!ec);
+    posted(io, [&](auto token) { return start(source, std::move(token)); });
+    destination = std::move(source);
+    BOOST_TEST(!source.is_open());
+    source.open(protocol, ec);
+    BOOST_TEST(!ec);
+    posted(io, [&](auto token) { return start(source, std::move(token)); });
+}
+
+// NOLINTEND(bugprone-use-after-move)
+
+void moved_sockets_keep_their_transport() {
+    moved_sources_remain_usable<net::ip::tcp::socket>(
+        net::ip::tcp::v4(),
+        [](auto& socket, auto token) { return socket.async_connect({}, std::move(token)); });
+    moved_sources_remain_usable<net::ip::udp::socket>(
+        net::ip::udp::v4(),
+        [](auto& socket, auto token) { return socket.async_connect({}, std::move(token)); });
+    moved_sources_remain_usable<net::ip::tcp::acceptor>(
+        net::ip::tcp::v4(),
+        [](auto& socket, auto token) { return socket.async_accept(std::move(token)); });
+}
+
 }  // namespace
 
 int main() {
+    moved_sockets_keep_their_transport();
     all_socket_operations();
     synchronous_datagram_operations();
     synchronous_acceptor_operations();

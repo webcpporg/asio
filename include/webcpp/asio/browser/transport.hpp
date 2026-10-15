@@ -40,6 +40,33 @@ public:
     */
     explicit transport(boost::asio::any_io_executor executor) : executor_(std::move(executor)) {}
 
+    /** Copies the executor so both transports remain usable after a move.
+     @param other The source transport.
+    */
+    // NOLINTNEXTLINE(cert-oop11-cpp,performance-move-constructor-init)
+    transport(transport&& other) noexcept : executor_(other.executor_) {}
+
+    /** Copies the executor, preserving the source transport.
+     @param other The source transport.
+     @return This transport.
+    */
+    transport& operator=(transport&& other) noexcept {
+        executor_ = other.executor_;
+        return *this;
+    }
+
+    /** Not copyable: a specialized transport may own a connection. */
+    transport(const transport&) = delete;
+    /** Not copy-assignable: a specialized transport may own a connection. */
+    transport& operator=(const transport&) = delete;
+    /** Releases the transport state. */
+    ~transport() = default;
+
+    /** Closes the resource-free default transport successfully.
+     @return Success.
+    */
+    boost::system::error_code close() noexcept { return {}; }
+
     /**
      Reports the default transport result without accessing a network.
      @return operation_not_supported.

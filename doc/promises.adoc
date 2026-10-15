@@ -103,3 +103,8 @@ include::{examples}/asio_event.expected[]
 The operation removes its listener before posting completion. To receive another
 event, initiate another wait. Cancelling the wait does not cancel a JavaScript
 timer that might later dispatch an event.
+
+Pending promise and event waits keep both the owning executor and the handler's
+associated executor active. Binding a completion to another context does not
+require restarting that context after settlement. Cancellation transfers the
+completion to it; destroying the owning context releases both work guards.

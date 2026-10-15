@@ -122,10 +122,12 @@ public:
         return ec;
     }
 
-    /** Closes local state successfully. */
+    /** Closes the transport and marks local state closed on success. */
     boost::system::error_code close(boost::system::error_code& ec) {
-        open_ = false;
-        ec.clear();
+        ec = transport_state.close();
+        if (!ec) {
+            open_ = false;
+        }
         return ec;
     }
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS

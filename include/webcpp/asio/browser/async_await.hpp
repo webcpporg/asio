@@ -11,8 +11,10 @@
 #include <boost/asio/append.hpp>  // lint-world: preserve handler associations when posting values
 #include <boost/asio/associated_allocator.hpp>  // lint-world: operation storage belongs to its handler
 #include <boost/asio/associated_cancellation_slot.hpp>  // lint-world: cancel an outstanding operation
-#include <boost/asio/async_result.hpp>                  // lint-world: completion token initiation
-#include <boost/asio/error.hpp>                         // lint-world: Asio's cancellation error
+#include <boost/asio/associated_executor.hpp>  // lint-world: retain the handler executor while pending
+#include <boost/asio/async_result.hpp>         // lint-world: completion token initiation
+#include <boost/asio/error.hpp>                // lint-world: Asio's cancellation error
+#include <boost/asio/executor_work_guard.hpp>  // lint-world: keep both contexts alive until completion
 #include <boost/asio/post.hpp>  // lint-world: completions only post to the event loop
 #include <boost/smart_ptr/allocate_unique.hpp>
 #include <cstdint>
@@ -37,6 +39,7 @@ public:
     await_operation(bridge& owner, const Executor& executor, Handler handler)
         : bridge_(owner),
           work_(boost::asio::prefer(executor, boost::asio::execution::outstanding_work_t::tracked)),
+          completion_work_(boost::asio::get_associated_executor(handler, executor)),
           handler_(std::move(handler)) {}
 
     /** Removes a registered wait, including when initiation throws. */
@@ -98,6 +101,7 @@ private:
         std::unique_ptr<await_operation, decltype(cleanup)> owned(this, cleanup);
         auto handler = std::move(handler_);
         const auto executor = work_;
+        const auto completion_work = completion_work_;
         owned.reset();
         boost::asio::post(executor, boost::asio::append(std::move(handler), ec, std::move(value)));
     }
@@ -111,6 +115,8 @@ private:
     bridge& bridge_;
     decltype(boost::asio::prefer(std::declval<Executor>(),
                                  boost::asio::execution::outstanding_work_t::tracked)) work_;
+    boost::asio::executor_work_guard<boost::asio::associated_executor_t<Handler, Executor>>
+        completion_work_;
     Handler handler_;
     std::uint64_t id_ = 0;
 };

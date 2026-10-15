@@ -6,8 +6,11 @@
 
 #include <boost/asio/deferred.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <chrono>
+#include <memory>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
+#include <webcpp/asio/steady_timer.hpp>
 #include <webcpp/test/exit_status.hpp>
 
 namespace {
@@ -37,6 +40,8 @@ struct observations : boost::asio::execution_context::service {
 
     test_protocol::endpoint peer;
     unsigned calls = 0;
+    unsigned closes = 0;
+    bool delay = false;
 
 private:
     void shutdown() override {}
@@ -61,12 +66,24 @@ public:
 
     template <class Handler>
     void async_connect(const test_protocol::endpoint& peer, Handler&& handler) {
+        if (seen_.delay) {
+            timer_ = std::make_unique<webcpp::asio::steady_timer>(executor_, std::chrono::hours(1));
+            timer_->async_wait(std::forward<Handler>(handler));
+            return;
+        }
         const auto ec = connect(peer);
         webcpp::asio::detail::post_completion(
             executor_, boost::asio::append(std::forward<Handler>(handler), ec));
     }
 
+    boost::system::error_code close() {
+        ++seen_.closes;
+        timer_.reset();
+        return {};
+    }
+
 private:
+    std::unique_ptr<webcpp::asio::steady_timer> timer_;
     boost::asio::any_io_executor executor_;
     observations& seen_;
 };
@@ -75,7 +92,7 @@ private:
 int main() {
     webcpp::asio::io_context io;
     webcpp::asio::basic_stream_socket<test_protocol> socket(io);
-    const auto& seen = boost::asio::use_service<observations>(io);
+    auto& seen = boost::asio::use_service<observations>(io);
     const test_protocol::endpoint peer(boost::asio::ip::address_v4::loopback(), 8080);
     boost::system::error_code ec;
     BOOST_TEST(socket.connect(peer, ec) == ec);
@@ -98,5 +115,19 @@ int main() {
     BOOST_TEST_EQ(completed, 2U);
     BOOST_TEST_EQ(seen.calls, 3U);
     BOOST_TEST(seen.peer == peer);
+    io.restart();
+    seen.delay = true;
+    BOOST_TEST(socket.open(test_protocol::v4(), ec) == ec);
+    BOOST_TEST(!ec);
+    socket.async_connect(peer, [&](boost::system::error_code result) {
+        BOOST_TEST(result == boost::asio::error::operation_aborted);
+        ++completed;
+    });
+    BOOST_TEST(socket.close(ec) == ec);
+    BOOST_TEST(!ec);
+    BOOST_TEST(!socket.is_open());
+    BOOST_TEST_EQ(seen.closes, 1U);
+    io.poll();
+    BOOST_TEST_EQ(completed, 3U);
     return webcpp::test::exit_status(boost::report_errors());
 }

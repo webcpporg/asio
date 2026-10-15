@@ -6,6 +6,7 @@
 
 // Promise values, cancellation and lifetime (doc: #asio-promises).
 #include <boost/asio/bind_cancellation_slot.hpp>
+#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/cancellation_signal.hpp>
 #include <boost/asio/deferred.hpp>
 #include <boost/core/lightweight_test.hpp>
@@ -190,9 +191,71 @@ void boundary_values_are_posted() {
     io.run();  // lint-run: the test's event loop
     BOOST_TEST_EQ(called, 3);
 }
+
+void associated_executor_receives_success() {
+    webcpp::asio::io_context source;
+    webcpp::asio::io_context completion;
+    int called = 0;
+    const auto input = val(7);
+    async_await(source.get_executor(), input,
+                boost::asio::bind_executor(completion.get_executor(),
+                                           [&](boost::system::error_code ec, const val& value) {
+                                               BOOST_TEST(!ec);
+                                               BOOST_TEST_EQ(value.as<int>(), 7);
+                                               ++called;
+                                           }));
+    BOOST_TEST_EQ(completion.poll(), 0U);
+    BOOST_TEST(!completion.stopped());
+
+    source.run();      // lint-run: settle the operation and queue its completion
+    completion.run();  // lint-run: deliver without restarting the associated context
+    BOOST_TEST_EQ(called, 1);
+    BOOST_TEST(completion.stopped());
+}
+
+void associated_executor_keeps_work() {
+    webcpp::asio::io_context completion;
+    int called = 0;
+    {
+        webcpp::asio::io_context source;
+        boost::asio::cancellation_signal signal;
+        const auto input = val::take_ownership(test_never_settles());
+        async_await(source.get_executor(), input,
+                    boost::asio::bind_executor(
+                        completion.get_executor(),
+                        boost::asio::bind_cancellation_slot(
+                            signal.slot(), [&](boost::system::error_code ec, const val&) {
+                                BOOST_TEST(ec == boost::asio::error::operation_aborted);
+                                ++called;
+                            })));
+        BOOST_TEST_EQ(completion.poll(), 0U);
+        BOOST_TEST(!completion.stopped());
+        signal.emit(boost::asio::cancellation_type::total);
+        source.run();      // lint-run: transfer cancellation to the associated executor
+        completion.run();  // lint-run: deliver without restarting the associated context
+        BOOST_TEST_EQ(called, 1);
+    }
+    completion.restart();
+    {
+        webcpp::asio::io_context source;
+        const auto input = val::take_ownership(test_never_settles());
+        async_await(
+            source.get_executor(), input,
+            boost::asio::bind_executor(completion.get_executor(),
+                                       [&](boost::system::error_code, const val&) { ++called; }));
+        BOOST_TEST_EQ(completion.poll(), 0U);
+        BOOST_TEST(!completion.stopped());
+    }
+    BOOST_TEST_EQ(completion.poll(), 0U);
+    BOOST_TEST(completion.stopped());
+    BOOST_TEST_EQ(called, 1);
+}
+
 }  // namespace
 
 int main() {
+    associated_executor_keeps_work();
+    associated_executor_receives_success();
     resolved_and_rejected_promises();
     completion_tokens_work();
     for (const auto kind : {
