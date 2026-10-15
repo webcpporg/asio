@@ -41,7 +41,7 @@ webcpp.compile-fail negative_default_refused : config_test.cpp
 # them: jspi, the default, in the emscripten lane; asyncify in the own lane
 # asyncify. A test joins by its name. em_js loads every EM_JS of asio and of
 # browser_values.hpp: a function that does not parse fails it before main.
-local browser-tests = reactor run_family turn_limit bridge bridge_abort em_js timers allocation promise event sockets transport ;
+local browser-tests = reactor run_family turn_limit bridge bridge_abort em_js timers allocation promise event sockets transport resolver ;
 for local test in $(browser-tests)
 {
     webcpp.run $(test) : $(test)_test.cpp : : emscripten ;

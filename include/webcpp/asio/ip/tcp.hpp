@@ -7,6 +7,8 @@
 #ifndef WEBCPP_ASIO_IP_TCP_HPP
 #define WEBCPP_ASIO_IP_TCP_HPP
 #include <webcpp/asio/config.hpp>
+
+#include <webcpp/asio/ip/basic_resolver.hpp>
 #ifndef __EMSCRIPTEN__
 #include <boost/asio/ip/tcp.hpp>  // lint-world: native protocol alias
 
@@ -26,6 +28,8 @@ class tcp {
 public:
     /** The endpoint type. */
     using endpoint = boost::asio::ip::basic_endpoint<tcp>;
+    /** The resolver type. */
+    using resolver = basic_resolver<tcp>;
     /** The socket type. */
     using socket = basic_stream_socket<tcp>;
     /** The acceptor type. */

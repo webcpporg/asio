@@ -14,6 +14,7 @@
 
 #include <webcpp/asio/basic_waitable_timer.hpp>
 #include <webcpp/asio/io_context.hpp>
+#include <webcpp/asio/ip/basic_resolver.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
 #include <webcpp/asio/ip/udp.hpp>
 #include <webcpp/asio/steady_timer.hpp>  // lint-world: Boost's timers are asio's

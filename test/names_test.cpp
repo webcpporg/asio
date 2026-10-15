@@ -36,6 +36,7 @@ static_assert(std::is_same_v<webcpp::asio::basic_waitable_timer<std::chrono::ste
                              boost::asio::basic_waitable_timer<std::chrono::steady_clock>>);
 
 #ifndef __EMSCRIPTEN__
+static_assert(std::is_same_v<webcpp::asio::ip::tcp::resolver, boost::asio::ip::tcp::resolver>);
 static_assert(std::is_same_v<webcpp::asio::ip::tcp, boost::asio::ip::tcp>);
 static_assert(std::is_same_v<webcpp::asio::ip::udp, boost::asio::ip::udp>);
 static_assert(std::is_same_v<webcpp::asio::ip::tcp::socket, boost::asio::ip::tcp::socket>);

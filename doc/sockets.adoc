@@ -55,3 +55,34 @@ Expected output:
 ----
 include::{examples}/asio_sockets.expected[]
 ----
+
+=== Explanation: the resolver preserves names
+
+On Emscripten, forward resolution constructs one entry with the original host
+and service, an unspecified IPv4 address and the service port. This is not a
+DNS lookup. A browser stream can retain the name without rewriting a client's
+resolve step. A plain socket still refuses connecting to this entry.
+
+An empty service means port 0. Decimal services accept 0 through 65535;
+`http` and `ws` select 80, and `https` and `wss` select 443. Named services
+are refused with `numeric_service`. Other services report `service_not_found`.
+Reverse resolution reports `operation_not_supported`. Async completion is
+posted; cancel does not retract a result already computed at initiation.
+See <<asio-invariant-13>>.
+
+=== Tutorial: retain a WebSocket service name
+
+Build and run `asio_resolver` on Emscripten. The callback receives the retained
+name and service, port 443, and an unspecified address.
+
+[source,cpp]
+----
+include::{examples}/asio_resolver.cpp[tag=program,indent=0]
+----
+
+Expected output:
+
+[listing]
+----
+include::{examples}/asio_resolver.expected[]
+----

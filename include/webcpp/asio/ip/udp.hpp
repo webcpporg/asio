@@ -7,6 +7,8 @@
 #ifndef WEBCPP_ASIO_IP_UDP_HPP
 #define WEBCPP_ASIO_IP_UDP_HPP
 #include <webcpp/asio/config.hpp>
+
+#include <webcpp/asio/ip/basic_resolver.hpp>
 #ifndef __EMSCRIPTEN__
 #include <boost/asio/ip/udp.hpp>  // lint-world: native protocol alias
 
@@ -25,6 +27,8 @@ class udp {
 public:
     /** The endpoint type. */
     using endpoint = boost::asio::ip::basic_endpoint<udp>;
+    /** The resolver type. */
+    using resolver = basic_resolver<udp>;
     /** The socket type. */
     using socket = basic_datagram_socket<udp>;
 
