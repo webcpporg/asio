@@ -88,6 +88,9 @@ EM_JS(void, test_count_reports, (), {
     globalThis.webcppTestReported = 0;
     globalThis.reportError = () => { ++globalThis.webcppTestReported; };
 });
+EM_JS(emscripten::EM_VAL, test_never_settles, (), {
+    return Emval.toHandle(new Promise(() => {}));
+});
 // clang-format on
 
 #endif  // WEBCPP_TEST_ASIO_BROWSER_VALUES_HPP

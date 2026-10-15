@@ -52,3 +52,10 @@ these guarantees describe their behaviour together.
   implicitly supply the other. The named runtime allocations and measurement
   limits in <<asio-allocation-runtime>> remain outside that routing claim.
   See <<asio-allocation>>; checked by `allocation`.
+. [[asio-invariant-10]]A Promise completes its operation through the bridge
+  with its value, or with `promise_rejected` and its reason. Cancellation
+  posts `operation_aborted`; a later settlement cannot complete it again.
+  See <<asio-promises>>; checked by `promise` and `promise_cobalt`.
+. [[asio-invariant-11]]A pending Promise operation owns outstanding work.
+  Destroying the context destroys its pending handler without invoking it.
+  See <<asio-promises>>; checked by `promise`.

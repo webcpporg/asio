@@ -91,3 +91,9 @@ handler. Asio's default handler storage goes through an aligned allocation,
 which counting only `operator new` would miss. A separate negative run
 constructs the context without its allocator and must fail. There is no
 allowance for an arbitrary number of extra allocations.
+
+Promise operations allocate their state through the handler's allocator.
+The allocation test covers resolution and rejection with a concrete context
+executor and a bound allocator, including the completion post. Explicitly
+erasing an executor into `any_io_executor` can introduce Boost-owned dispatch
+allocations that its handler allocator does not control; see <<asio-promises>>.
