@@ -42,6 +42,7 @@
 #include <poll.h>
 #include <sys/select.h>
 #include <webcpp/asio/browser/async_await.hpp>
+#include <webcpp/asio/browser/async_wait_event.hpp>
 #include <webcpp/asio/browser/bridge.hpp>
 #elif defined(__APPLE__)
 #include <malloc/malloc.h>
@@ -477,6 +478,7 @@ void the_user_s_allocator_takes_everything() {
 #ifdef __EMSCRIPTEN__
     std::size_t received = 0;
     std::size_t promised = 0;
+    std::size_t events = 0;
     bool values_correct = true;
 #endif
     {
@@ -499,6 +501,16 @@ void the_user_s_allocator_takes_everything() {
         const emscripten::val deliver = bridge.function(key);
         deliver(1);
         deliver(2);
+        const auto target = emscripten::val::global("EventTarget").new_();
+        webcpp::asio::browser::async_wait_event(
+            io.get_executor(), target, "message",
+            boost::asio::bind_allocator(counted<void>(&given),
+                                        [&](boost::system::error_code ec, const emscripten::val&) {
+                                            values_correct = values_correct && !ec;
+                                            ++events;
+                                        }));
+        target.call<bool>("dispatchEvent",
+                          emscripten::val::global("Event").new_(emscripten::val("message")));
         for (bool rejected : {false, true}) {
             auto promise = emscripten::val::global("Promise").call<emscripten::val>(
                 rejected ? "reject" : "resolve", 42);
@@ -526,6 +538,7 @@ void the_user_s_allocator_takes_everything() {
 #ifdef __EMSCRIPTEN__
     BOOST_TEST_EQ(received, 2U);
     BOOST_TEST_EQ(promised, 2U);
+    BOOST_TEST_EQ(events, 1U);
     BOOST_TEST(values_correct);
 #endif
     BOOST_TEST_GT(given, 0U);

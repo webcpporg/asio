@@ -6,7 +6,7 @@
 
 
 [#asio-promises]
-== Await JavaScript promises
+== Promises and events
 
 === Tutorial: receive a value and a rejection
 
@@ -69,3 +69,37 @@ JavaScript delivers the settlement through <<asio-browser>>. The bridge
 posts completion so application code runs on the event-loop stack, where
 suspension is supported. It never calls the handler inline from a Promise
 reaction. See guarantees <<asio-invariant-10>> and <<asio-invariant-11>>.
+
+[#asio-events]
+=== Await one browser event
+
+`browser::async_wait_event(executor, target, type, token)` completes with the
+next event of the requested type. It uses a one-shot listener and posts the
+event to the executor. The event type is copied into a JavaScript string,
+including when initiation is deferred; the view needs no terminating null.
+A pending wait owns work. Terminal, partial or total cancellation removes
+the listener and posts `operation_aborted` with `undefined`; `none` does nothing.
+Context destruction removes the listener and destroys the handler silently.
+Storage follows the same allocator and executor rules as Promise waits.
+
+==== Tutorial: receive a message
+
+This example creates an EventTarget, waits for its next message, and schedules
+a JavaScript timer to send it. Build with `b2 toolset=emscripten
+libs/asio/example//asio_event.output`.
+
+[source]
+----
+include::{examples}/asio_event.cpp[tag=program,indent=0]
+----
+
+Expected output:
+
+[listing]
+----
+include::{examples}/asio_event.expected[]
+----
+
+The operation removes its listener before posting completion. To receive another
+event, initiate another wait. Cancelling the wait does not cancel a JavaScript
+timer that might later dispatch an event.

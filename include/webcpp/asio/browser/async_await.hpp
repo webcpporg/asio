@@ -149,7 +149,7 @@ struct initiate_await {
  @param promise A Promise or a value normalized by JavaScript Promise.resolve.
  @param token The completion token.
  @return The result determined by token.
- @see "Await JavaScript promises", in the guide.
+ @see "Promises and events", in the guide.
 */
 template <class CompletionToken, class Executor = boost::asio::any_io_executor>
 auto async_await(const Executor& executor, emscripten::val promise, CompletionToken&& token) {

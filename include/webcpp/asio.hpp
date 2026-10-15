@@ -19,6 +19,7 @@
 
 #ifdef __EMSCRIPTEN__
 #include <webcpp/asio/browser/async_await.hpp>
+#include <webcpp/asio/browser/async_wait_event.hpp>
 #include <webcpp/asio/browser/bridge.hpp>
 #include <webcpp/asio/browser/error.hpp>
 #endif
