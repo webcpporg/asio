@@ -222,8 +222,8 @@ in the local raw-data archive identified in the README.
 
 The run used 442 sequential fresh-page cases in deterministic shuffled order
 (seed 20261015), totaling 970,139,132 operations and 9,429,856 timing pairs.
-Primary cases had seven repetitions; secondary controls had three. Each Wasm
-case first warmed 512 actual yields, and chain cases additionally warmed
+Primary cases had seven repetitions; secondary controls had three. Direct and chain
+Wasm cases first warmed 512 actual yields, and chain cases additionally warmed
 10,001 posted handlers. Builds completed before measurement started. There
 was no polling timer in the measured page. The machine was not isolated from
 all other OS activity, and this headless, otherwise idle-page experiment does
