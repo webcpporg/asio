@@ -29,8 +29,8 @@ webcpp.run names : names_test.cpp ;
 # Compiler configuration selects the default. Explicit context options
 # still win.
 webcpp.run names_custom_default : names_test.cpp
-  : <define>WEBCPP_ASIO_DEFAULT_MAX_HANDLERS_PER_TURN=100
-    <define>WEBCPP_TEST_TURN_LIMIT=100 ;
+  : <define>WEBCPP_ASIO_DEFAULT_MAX_HANDLERS_PER_TURN=1000
+    <define>WEBCPP_TEST_TURN_LIMIT=1000 ;
 webcpp.run names_zero_default : names_test.cpp
   : <define>WEBCPP_ASIO_DEFAULT_MAX_HANDLERS_PER_TURN=0
     <define>WEBCPP_TEST_TURN_LIMIT=1 ;

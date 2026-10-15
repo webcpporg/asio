@@ -23,7 +23,7 @@
 
 // The build supplies an independent expectation for configuration regressions.
 #ifndef WEBCPP_TEST_TURN_LIMIT
-#define WEBCPP_TEST_TURN_LIMIT 1000
+#define WEBCPP_TEST_TURN_LIMIT 100
 #endif
 
 static_assert(std::is_base_of_v<boost::asio::io_context, webcpp::asio::io_context>);
