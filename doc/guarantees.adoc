@@ -60,3 +60,7 @@ these guarantees describe their behaviour together.
   Destroying the context destroys its pending handler without invoking it.
   An event wait also removes its listener. See <<asio-promises>>;
   checked by `promise` and `event`.
+. [[asio-invariant-12]]On Emscripten, network operations on a socket or acceptor
+  fail with `operation_not_supported` unless a transport supplies them. Open
+  and close manage local state; synchronous failures never block and asynchronous
+  failures are posted. See <<asio-sockets>>; checked by `sockets` and `transport`.

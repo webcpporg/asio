@@ -1,0 +1,57 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+
+[#asio-sockets]
+== Sockets and transports
+
+=== Explanation: native sockets and browser capabilities
+
+Native builds use Boost.Asio's socket types directly. Emscripten builds use
+webcpp protocol and socket templates with the supported Boost signatures.
+They do not call SOCKFS or invent IP addresses through getaddrinfo. Browser
+TCP and UDP are unavailable unless a transport supplies the operations.
+
+Opening and closing an object succeeds without acquiring a network resource.
+Opening an already open object reports `already_open`. With the default
+transport, network operations return `operation_not_supported`: synchronous
+calls return immediately, and asynchronous calls post their completion.
+The `error_code&` overloads do not throw; throwing overloads are present only
+with exceptions enabled. Queries such as `is_open` describe the local object.
+
+=== How-to: provide a transport
+
+Specialize `browser::transport<Protocol>` for a protocol to provide its network
+operations. The specialization must be visible before first use in every
+translation unit using that protocol. A relay is a separate transport, not a
+change to an individual socket's error policy. Boost.Beast's `tcp_stream`
+contains a Boost socket; a relay reaches Beast as an explicitly named next layer.
+
+=== Reference: supported operations
+
+Stream sockets support connect, read/write_some, send/receive, shutdown,
+options, endpoint queries and non-blocking settings. Datagram sockets add
+bind, send_to and receive_from. Acceptors support bind, listen and accept,
+including asynchronous acceptance into an existing or returned socket.
+Callbacks and deferred tokens use the same asynchronous initiation.
+See <<asio-invariant-12>> and the generated API reference for overloads.
+
+=== Tutorial: observe an unsupported connection
+
+Build and run `asio_sockets` on Emscripten. The object opens locally; connecting
+reports a value without attempting a network connection. Closing succeeds.
+
+[source,cpp]
+----
+include::{examples}/asio_sockets.cpp[tag=program,indent=0]
+----
+
+Expected output:
+
+[listing]
+----
+include::{examples}/asio_sockets.expected[]
+----

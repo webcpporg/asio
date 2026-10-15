@@ -59,6 +59,8 @@ include::timers.adoc[]
 
 include::cobalt.adoc[]
 
+include::sockets.adoc[]
+
 include::allocation.adoc[]
 
 include::guarantees.adoc[]

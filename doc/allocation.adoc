@@ -97,3 +97,8 @@ The allocation test covers resolution and rejection with a concrete context
 executor and a bound allocator, including the completion post. Explicitly
 erasing an executor into `any_io_executor` can introduce Boost-owned dispatch
 allocations that its handler allocator does not control; see <<asio-promises>>.
+
+The default browser socket transport preserves an ordinary context executor's
+associated allocation policy even when stored as `any_io_executor`. The same
+measurement includes an unsupported asynchronous connection with a bound
+allocator. Custom executors, including strands, keep their own dispatch policy.

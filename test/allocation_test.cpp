@@ -44,6 +44,7 @@
 #include <webcpp/asio/browser/async_await.hpp>
 #include <webcpp/asio/browser/async_wait_event.hpp>
 #include <webcpp/asio/browser/bridge.hpp>
+#include <webcpp/asio/ip/tcp.hpp>
 #elif defined(__APPLE__)
 #include <malloc/malloc.h>
 #endif
@@ -479,6 +480,7 @@ void the_user_s_allocator_takes_everything() {
     std::size_t received = 0;
     std::size_t promised = 0;
     std::size_t events = 0;
+    std::size_t connected = 0;
     bool values_correct = true;
 #endif
     {
@@ -495,6 +497,14 @@ void the_user_s_allocator_takes_everything() {
                 io, boost::asio::bind_allocator(counted<void>(&given), [&posted] { ++posted; }));
         }
 #ifdef __EMSCRIPTEN__
+        webcpp::asio::ip::tcp::socket socket(io);
+        socket.async_connect(
+            {boost::asio::ip::address_v4::loopback(), 80},
+            boost::asio::bind_allocator(counted<void>(&given), [&](boost::system::error_code ec) {
+                ++connected;
+                values_correct =
+                    values_correct && ec == boost::asio::error::operation_not_supported;
+            }));
         counted_registration listener(io, &given, &received);
         auto& bridge = boost::asio::use_service<webcpp::asio::browser::bridge>(io);
         const std::uint64_t key = bridge.add(listener);
@@ -539,6 +549,7 @@ void the_user_s_allocator_takes_everything() {
     BOOST_TEST_EQ(received, 2U);
     BOOST_TEST_EQ(promised, 2U);
     BOOST_TEST_EQ(events, 1U);
+    BOOST_TEST_EQ(connected, 1U);
     BOOST_TEST(values_correct);
 #endif
     BOOST_TEST_GT(given, 0U);
