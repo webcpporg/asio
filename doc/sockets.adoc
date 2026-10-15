@@ -86,3 +86,36 @@ Expected output:
 ----
 include::{examples}/asio_resolver.expected[]
 ----
+
+=== Explanation: TLS settings
+
+Native `ssl` names are Boost's, with OpenSSL explicitly linked as described
+in <<asio-tls>>. In the browser, `ssl::context` records method, verification,
+options, additional roots and client-credential requests. It does not read
+files, parse certificates, implement TLS or execute verification callbacks.
+A browser stream adapter must check this record against its capabilities
+before use; recording a request successfully does not mean the browser honors it.
+The future webcpp::beast integration consumes these settings.
+
+A `host_name_verification` request owns its input string. The context copies
+that name into its own `std::pmr::string`, using the resource given to its
+constructor. The allocation test verifies that recorded copy separately from
+the request object's standard string allocation. Other callbacks record the
+`other` kind and clear a previously recorded host.
+
+=== Tutorial: configure peer verification on both targets
+
+Build and run the `tls` example. Natively this configures an OpenSSL context;
+on Emscripten it records the same request for a browser adapter.
+
+[source,cpp]
+----
+include::{examples}/tls/asio_tls.cpp[tag=program,indent=0]
+----
+
+Expected output on either target:
+
+[listing]
+----
+include::{examples}/tls/asio_tls.expected[]
+----

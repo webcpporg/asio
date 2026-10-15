@@ -11,7 +11,9 @@ import webcpp ;
 webcpp.targets native emscripten ;
 webcpp.original node : browser ;
 
-webcpp.headers-alone asio : ../include : asio.hpp asio/*.hpp asio/ip/*.hpp ;
+webcpp.headers-alone asio : ../include : asio.hpp asio/basic_datagram_socket.hpp asio/basic_socket_acceptor.hpp
+  asio/basic_stream_socket.hpp asio/basic_waitable_timer.hpp asio/config.hpp
+  asio/io_context.hpp asio/steady_timer.hpp asio/system_timer.hpp asio/ip/*.hpp ;
 # The browser's headers name Emscripten's own, and compile on emscripten
 # alone.
 webcpp.headers-alone asio : ../include : asio/browser/*.hpp asio/detail/*.hpp : : emscripten ;
@@ -227,4 +229,25 @@ for local handling in on off
     .asyncify += $(name)_asyncify ;
 }
 
+.asyncify += ssl_asyncify ssl_asyncify_no_exceptions ;
 webcpp.lane asyncify : $(.asyncify) : emscripten ;
+
+webcpp.run ssl : ssl_test.cpp : <library>/webcpp/asio//openssl-tests ;
+webcpp.run ssl_no_exceptions : ssl_test.cpp
+  : <library>/webcpp/asio//openssl-tests <exception-handling>off ;
+webcpp.run ssl_asyncify : ssl_test.cpp
+  : <library>/webcpp/asio//openssl-tests <webcpp-suspend>asyncify : emscripten ;
+webcpp.run ssl_asyncify_no_exceptions : ssl_test.cpp
+  : <library>/webcpp/asio//openssl-tests <webcpp-suspend>asyncify <exception-handling>off : emscripten ;
+webcpp.compile-diagnostic ssl_without_openssl : ssl_without_openssl_test.cpp : : native ;
+
+webcpp.compile-diagnostic openssl_on_webassembly : openssl_on_webassembly_test.cpp
+  : <define>WEBCPP_TEST_ASIO_AS_WEBASSEMBLY : native ;
+webcpp.compile-fail openssl_named_on_emscripten : openssl_named_test.cpp
+  : <library>/webcpp/asio//openssl : emscripten ;
+
+webcpp.headers-alone asio : ../include : asio/ssl.hpp
+  : <library>/webcpp/asio//openssl-tests ;
+
+webcpp.compile-fail openssl_named_c_on_emscripten : openssl_named_c_test.c
+  : <library>/webcpp/asio//openssl : emscripten ;

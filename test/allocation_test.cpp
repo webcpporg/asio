@@ -45,6 +45,7 @@
 #include <webcpp/asio/browser/async_wait_event.hpp>
 #include <webcpp/asio/browser/bridge.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
+#include <webcpp/asio/ssl.hpp>
 #elif defined(__APPLE__)
 #include <malloc/malloc.h>
 #endif
@@ -449,6 +450,57 @@ void report(const char* name, std::size_t given = 0) {
 }
 
 #ifdef __EMSCRIPTEN__
+/** A host-storage resource using the same uncounted backing as counted<T>. */
+class counted_resource final : public std::pmr::memory_resource {
+public:
+    explicit counted_resource(std::size_t& allocations) : allocations_(allocations) {}
+
+private:
+    void* do_allocate(std::size_t bytes, std::size_t alignment) override {
+        void* result = allocate_storage(bytes, alignment);
+        if (result == nullptr) {
+            boost::throw_exception(std::bad_alloc());
+        }
+        ++allocations_;
+        return result;
+    }
+
+    void do_deallocate(void* pointer, std::size_t /*bytes*/, std::size_t /*alignment*/) override {
+        release(pointer);
+    }
+
+    bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override {
+        return this == &other;
+    }
+
+    std::size_t& allocations_;
+};
+
+void tls_host_storage_uses_the_resource() {
+    namespace ssl = webcpp::asio::ssl;
+    // The request object owns its input independently of the context's recorded copy.
+    // Construct it before measuring the context, then transfer it without another copy.
+    ssl::host_name_verification verification(
+        "a-long-host-name-that-exceeds-small-string-storage.example.com");
+    std::size_t given = 0;
+    counted_resource resource(given);
+    bool recorded = false;
+    {
+        const allocation_window window;
+        ssl::context context(ssl::context::tlsv12_client, &resource);
+        boost::system::error_code ec;
+        context.set_verify_callback(std::move(verification), ec);
+        recorded = !ec && context.verification_host() ==
+                              "a-long-host-name-that-exceeds-small-string-storage.example.com";
+    }
+    report("TLS host allocator", given);
+    BOOST_TEST(recorded);
+    BOOST_TEST_EQ(given, 1U);
+    BOOST_TEST_EQ(operator_new_calls, 0U);
+    BOOST_TEST_EQ(c_allocations, 0U);
+    BOOST_TEST_EQ(aligned_allocations, 0U);
+}
+
 /** Each delivered event posts through its associated allocator, never runs inline. */
 class counted_registration final : public webcpp::asio::browser::registration {
 public:
@@ -806,6 +858,9 @@ int main() {
     the_counters_see_c_and_aligned_allocations();
     the_counters_separate_runtime_allocations(asyncify);
     the_user_s_allocator_takes_everything();
+#ifdef __EMSCRIPTEN__
+    tls_host_storage_uses_the_resource();
+#endif
     the_counters_see_an_unbound_handler();
 #if defined(WEBCPP_TEST_ASIO_COUNTS_C_ALLOCATIONS) && defined(__APPLE__) && !defined(__EMSCRIPTEN__)
     malloc_logger = previous_logger;
