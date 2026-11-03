@@ -12,6 +12,11 @@ project /webcpp/asio ;
 
 import feature ;
 import numbers ;
+import errors ;
+import webcpp ;
+import webcpp-target ;
+
+use-project /webcpp/asio-wasip3 : ../../tools/boost/asio-wasip3 ;
 
 # The stack Asyncify saves a suspension in, in bytes: 8192 unless a program
 # asks for more with <asyncify-stack-size>, propagated so that asio's usage
@@ -74,13 +79,86 @@ explicit browser-src ;
 # scheduler_task::run. ASYNCIFY_STACK_SIZE is asyncify-stack-size's, above.
 # The tag names every program on asio Boost's way, with its variant:
 # reactor-60-d-jspi.js.
+# EM_JS_DEPS is read after the native link in Emscripten 6.0.11. Keep the
+# bridge's stack helpers exported even when an optimized JSPI runtime does
+# not otherwise need them; JavaScript calls both through stackSave/Restore.
 # tag::asio[]
 alias asio : : : : <include>include <library>/boost//headers
+  <toolset>clang-wasip3:<library>/webcpp/asio-wasip3//headers
   <toolset>emscripten:<define>BOOST_ASIO_DISABLE_THREADS
   <toolset>emscripten:<linkflags>-lembind
+  <toolset>emscripten:<linkflags>-Wl,--export=emscripten_stack_get_current
+  <toolset>emscripten:<linkflags>-Wl,--export=_emscripten_stack_restore
   <toolset>emscripten:<source>browser-src
   <toolset>emscripten,<webcpp-suspend>jspi:<linkflags>-sJSPI
   <toolset>emscripten,<webcpp-suspend>asyncify:<linkflags>-sASYNCIFY
   <conditional>@asyncify-stack
   <toolset>emscripten:<tag>@webcpp%suspend-tag ;
 # end::asio[]
+
+# WASIp3 uses the checked Cobalt/Asio overlays; WASIp2 has no async port.
+rule cobalt-platform ( properties * )
+{
+    if [ webcpp-target.target-of $(properties) ] = wasip2
+    {
+        errors.user-error "webcpp::asio: Cobalt requires native, Emscripten or WASIp3." ;
+    }
+}
+
+# Cobalt's entry point, with webcpp's bounded application event loop.
+# tag::cobalt[]
+lib cobalt-main : src/cobalt_main.cpp
+  : <link>static <library>asio <library>/webcpp//boost_cobalt ;
+explicit cobalt-main ;
+# Boost omits main_promise::unhandled_exception without exceptions. Clang
+# diagnoses the entry coroutine anyway; suppress only that diagnostic, and
+# only in the explicitly exception-free Cobalt consumer configuration.
+alias cobalt : : <conditional>@cobalt-platform : : <library>asio <library>cobalt-main <library>/webcpp//boost_cobalt
+  <toolset>clang,<exception-handling>off:<cxxflags>-Wno-coroutine-missing-unhandled-exception
+  <toolset>emscripten,<exception-handling>off:<cxxflags>-Wno-coroutine-missing-unhandled-exception ;
+# end::cobalt[]
+
+# tag::openssl[]
+rule openssl-required ( properties * )
+{
+    if [ webcpp-target.target-of $(properties) ] = wasip2
+    {
+        errors.user-error "webcpp::asio: OpenSSL requires native or WASIp3; WASIp2 is not supported." ;
+    }
+}
+
+rule openssl-linked ( properties * )
+{
+    if [ webcpp-target.target-of $(properties) ] in native wasip3
+    {
+        return <library>/webcpp/third_party//openssl
+            <define>WEBCPP_ASIO_HAS_OPENSSL=1 ;
+    }
+}
+
+# Refused on WebAssembly: every source of a program built for emscripten
+# that names it stops at the forced include, whose message says what to
+# write. Quoted, as the Jamroot quotes Boost's directory, for a path that
+# holds a space.
+path-constant WEBCPP_ASIO_ROOT : . ;
+alias openssl : : <conditional>@openssl-required
+  : : <conditional>@openssl-linked
+    <toolset>emscripten:<cflags>"-include \"$(WEBCPP_ASIO_ROOT)/src/openssl_on_webassembly.hpp\""
+    <toolset>emscripten:<cxxflags>"-include \"$(WEBCPP_ASIO_ROOT)/src/openssl_on_webassembly.hpp\"" ;
+# end::openssl[]
+
+# Browser tests exercise the settings adapter without linking OpenSSL.
+alias openssl-tests : : <conditional>@openssl-required
+  : : <conditional>@openssl-linked ;
+explicit openssl-tests ;
+
+# An explicit portable trust policy, separate from the raw OpenSSL context.
+# tag::tls[]
+alias tls : : : : <library>asio <library>openssl
+  <library>/webcpp/third_party//ca_certificates ;
+# end::tls[]
+
+# tag::cobalt-ssl[]
+alias cobalt_ssl : : : : <library>cobalt <library>tls
+  <library>/webcpp//boost_cobalt_io_ssl ;
+# end::cobalt-ssl[]

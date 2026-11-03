@@ -31,16 +31,16 @@ struct io_context_options {
      At most this many handlers run in one turn of the run family, which yields to the browser
      after a turn that reaches it.
 
-     0 is taken as 1.
+     Defaults to WEBCPP_ASIO_DEFAULT_MAX_HANDLERS_PER_TURN. 0 is taken as 1.
     */
-    std::size_t max_handlers_per_turn = 1000;
+    std::size_t max_handlers_per_turn = WEBCPP_ASIO_DEFAULT_MAX_HANDLERS_PER_TURN;
 };
 
 /**
  Boost.Asio's io_context, whose run family on emscripten suspends into the browser's event loop
  and yields to it after every turn of max_handlers_per_turn handlers.
 
- Natively it is Boost's, and its options change nothing.
+ Natively and on WASIp3 it uses Boost's run family, and its options change nothing.
 
  @see "The run family", in the guide.
 */
