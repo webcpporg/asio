@@ -12,12 +12,12 @@
 #ifndef __EMSCRIPTEN__
 #ifndef WEBCPP_ASIO_HAS_OPENSSL
 #error \
-    "webcpp::asio: <webcpp/asio/ssl.hpp> needs OpenSSL natively, and it is not linked. In the program's Jamfile, add /webcpp/asio//openssl beside /webcpp/asio//asio, as in: exe app : app.cpp /webcpp/asio//asio /webcpp/asio//openssl ; b2 links it when it finds OpenSSL 3 (-sOPENSSL_ROOT=<dir> names it). (without b2: define WEBCPP_ASIO_HAS_OPENSSL=1 and link libssl and libcrypto)"
+    "webcpp::asio: <webcpp/asio/ssl.hpp> needs OpenSSL on native and WASIp3 targets, and it is not linked. In the program's Jamfile, add /webcpp/asio//openssl beside /webcpp/asio//asio, as in: exe app : app.cpp /webcpp/asio//asio /webcpp/asio//openssl ; b2 builds the pinned OpenSSL sources (git submodule update --init third_party/libs/openssl). (without b2: define WEBCPP_ASIO_HAS_OPENSSL=1 and link libssl and libcrypto)"
 #else
 #include <boost/asio/ssl.hpp>  // lint-world: native TLS with explicitly linked OpenSSL
 
 namespace webcpp::asio {
-/** Boost's native TLS types, with OpenSSL explicitly linked by the program. */
+/** Boost's TLS types on native and WASIp3 targets, with OpenSSL explicitly linked. */
 namespace ssl = boost::asio::ssl;
 }  // namespace webcpp::asio
 #endif

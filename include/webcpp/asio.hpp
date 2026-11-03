@@ -5,7 +5,8 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 /**
- Every public header of asio but <webcpp/asio/ssl.hpp>, which natively brings OpenSSL.
+ Every public header except ssl.hpp and tls_client_context.hpp, which bring optional TLS
+ dependencies.
 */
 #ifndef WEBCPP_ASIO_HPP
 #define WEBCPP_ASIO_HPP

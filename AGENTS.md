@@ -153,3 +153,81 @@ with a driver; run-fail alone would also accept a trap. Debug Asyncify's explici
 std::exit can emit Emscripten's runtime-retained notice under EXIT_RUNTIME=0.
 The driver permits exactly that notice, not arbitrary stderr. This adapter
 preserves the configured runtime lifetime instead of forcing shutdown.
+
+On WASIp3 the runner must not include or instantiate the POSIX signal service.
+Initialize the upstream promise's `signal_set` pointer to null and omit its
+cleanup there. Keep the executor, initial post, return status and internal
+cancellation machinery. Automatic SIGINT/SIGTERM cancellation is unavailable;
+host-driven graceful shutdown requires a separate application protocol.
+The runner-only compile test is supplemented by public-target runtime tests:
+`cobalt_wasi`, `cobalt_network_wasi`, `cobalt_io`, the `cobalt_wasip3` status
+lane and explicit `cobalt_thread` in the cooperative profile.
+
+## WASIp3 port
+
+`/webcpp/asio//asio` applies the superproject's checked Boost 1.92 patch from
+`tools/boost/asio-wasip3` to private build headers. Never edit installed Boost.
+Native/browser consumers must not see this overlay. Rebase and verify the
+patch and its hash manifest explicitly when changing Boost versions.
+
+`threading=single` disables Asio threads and accepts exceptions on/off.
+`threading=multi` selects wasi-sdk's experimental cooperative sysroot with
+`-pthread`; SDK 34.0 provides only its no-exceptions C++ runtime. Use Wasmtime
+49.0.3 for the recorded local tests; 47.0.3 cannot load the cooperative binary.
+Cooperative threads do not promise CPU parallelism.
+
+Preserve datagram boundaries: WASIp3 `send_to` and `async_send_to` concatenate
+multiple nonempty UDP buffers into one datagram until wasi-libc provides
+`sendmsg`. Gather before Asio's native iovec limit, use the context allocator
+for synchronous storage and the handler's associated allocator for asynchronous
+storage, and release operation storage before invoking the handler. Multiple
+nonempty receive buffers and connected `send`/`async_send` remain unsupported.
+The scalar/empty-buffer path must work without heap scratch buffers. TCP
+partial transfers remain valid. Single-thread async DNS posts an unsupported
+result; it must not try to construct a null thread or abort initiation.
+
+Keep `doc/capabilities.adoc` current for every feature/target/variant change.
+`/webcpp/asio//cobalt` supports WASIp3 through the superproject's checked
+`tools/boost/cobalt-wasip3` overlay. Headers and compiled sources must receive
+the same Asio configuration. Unsupported signal, serial and seqpacket APIs are
+omitted; `boost::cobalt::thread` is available only with Asio thread support.
+The exception-free issue-287 warning remains non-fatal. TLS uses Asio/OpenSSL
+streams with Cobalt tokens and `/webcpp/asio//tls`. The optional
+`/webcpp/asio//cobalt_ssl` target adds Cobalt's own SSL wrapper and the CA factory.
+Its shared private patch in `tools/boost/cobalt-ssl` fixes handshake state and
+verification callbacks and adds the borrowed `native_ssl_handle()` accessor.
+Plaintext is allowed only before the first TLS attempt; handshake failure or
+cancellation and completed shutdown block application I/O. Preserve handler associations.
+Run `cobalt_ssl_client` and `cobalt_ssl_state` with `tools/openssl/test/tls.py`
+for normal/buffered TLS, SNI, peer rejection, STARTTLS and coroutine cancellation.
+Run `cobalt_ssl_cancel` with the same `--state-test` harness for pending
+read_some/write_some, partial composed read/write, truncated TLS shutdown and
+shutdown cancellation. The shared `tools/boost/cobalt-common` patch connects
+composition cancellation to the caller for compiled code and public headers.
+The separate WASIp3 endpoint/acceptor object targets must explicitly depend on
+the common overlay: free include flags on their parent archive do not propagate.
+Keep `cobalt_accept_cancel` as the end-to-end witness for composed `accept()`.
+Transfer cancellation is terminal in these checks: close the connection, do not
+infer rollback of transmitted bytes or safe reuse from `secure()` remaining true.
+OpenSSL is built from the pinned superproject source through
+`/webcpp/third_party//openssl`; `/webcpp/asio//openssl` forwards that dependency
+and defines `WEBCPP_ASIO_HAS_OPENSSL`. Native and WASIp3 consumers must use the
+matching generated headers and archives. Browser consumers retain the settings
+adapter and must not link this target. Run `tools/openssl/test/run.py` in the
+superproject for real TLS and entropy checks; never infer entropy quality from
+random-byte uniqueness. Do not add a second OpenSSL copy or a system fallback.
+The commands in `doc/wasip3.adoc` run local tests only.
+
+## Embedded TLS trust
+
+`/webcpp/asio//tls` adds the digest-pinned Mozilla/curl CA data target and the
+`tls_client_context.hpp` factory. The factory returns errors as values, enables
+peer verification and TLS >= 1.2, and never imports system roots. A supplied PEM
+set replaces public roots completely; reject empty, malformed and partially
+invalid sets without returning a usable context. Keep hostname/SNI requirements
+explicit in examples. Emscripten returns `unsupported_target`.
+
+Run `tools/ca_certificates/run.py --fresh` locally for the native/WASIp3 matrix.
+Its WASIp3 clients have no certificate filesystem grants. Preserve that witness.
+Embedded updates require rebuilding and redeploying. Do not silently download
+roots during builds or runtime, or present a PEM export as Firefox's full policy.

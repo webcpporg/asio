@@ -40,7 +40,7 @@ struct io_context_options {
  Boost.Asio's io_context, whose run family on emscripten suspends into the browser's event loop
  and yields to it after every turn of max_handlers_per_turn handlers.
 
- Natively it is Boost's, and its options change nothing.
+ Natively and on WASIp3 it uses Boost's run family, and its options change nothing.
 
  @see "The run family", in the guide.
 */
