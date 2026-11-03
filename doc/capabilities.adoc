@@ -35,8 +35,10 @@ distinguishes public support, isolated probes and unverified combinations.
 | Minimal port; tested with wasi-sdk 34.0's cooperative sysroot and Wasmtime 50.0.1.
 | WASIp3 / `threading=multi` | Experimental cooperative threads | On
 | Unavailable with the tested SDK: its cooperative sysroot has no {cpp} exception runtime.
-| WASIp2 | Neither profile provided | Not applicable
-| This library does not declare WASIp2 support.
+| WASIp2 / `threading=single` | Disabled | On or off
+| Core, timers, TCP/UDP, forward DNS and CLI streams tested; see <<asio-wasip2>>.
+| WASIp2 / `threading=multi` | Unavailable | On or off
+| Rejected by the build; no cross-thread reactor wakeup is provided.
 |===
 
 `variant=debug` and `variant=release` select build optimization, not different
@@ -53,7 +55,7 @@ include::feature-matrix.adoc[]
 
 In the following tables, *browser* covers both JSPI and Asyncify. Their API
 capabilities are the same; their suspension and exception implementations differ.
-WASIp2 supports none of these features through this library's declared targets.
+The separate <<asio-feature-wasip2>> table records the P2 profile.
 
 [cols="3,2,2,2,2",options="header"]
 |===

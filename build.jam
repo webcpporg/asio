@@ -17,6 +17,7 @@ import webcpp ;
 import webcpp-target ;
 
 use-project /webcpp/asio-wasip3 : ../../tools/boost/asio-wasip3 ;
+use-project /webcpp/asio-wasip2 : ../../tools/boost/asio-wasip2 ;
 use-project /webcpp/asio-windows : ../../tools/boost/asio-windows ;
 
 # The stack Asyncify saves a suspension in, in bytes: 8192 unless a program
@@ -88,6 +89,8 @@ explicit browser-src ;
 alias asio : : : : <include>include <library>/boost//headers
   <library>/webcpp/config//config
   <target-os>windows:<library>/webcpp/asio-windows//headers
+  <toolset>clang-wasip2:<library>/webcpp/asio-wasip2//headers
+  <toolset>clang-wasip2:<source>/webcpp/asio-wasip2//pollable
   <toolset>clang-wasip3:<library>/webcpp/asio-wasip3//headers
   <toolset>emscripten:<define>BOOST_ASIO_DISABLE_THREADS
   <toolset>emscripten:<linkflags>-lembind
@@ -100,7 +103,8 @@ alias asio : : : : <include>include <library>/boost//headers
   <toolset>emscripten:<tag>@webcpp%suspend-tag ;
 # end::asio[]
 
-# WASIp3 uses the checked Cobalt/Asio overlays; WASIp2 has no async port.
+# WASIp3 uses the checked Cobalt/Asio overlays.
+# The Cobalt integration is not validated on WASIp2.
 rule cobalt-platform ( properties * )
 {
     if [ webcpp-target.target-of $(properties) ] = wasip2

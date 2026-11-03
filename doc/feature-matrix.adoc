@@ -66,7 +66,8 @@ it does not conceal a requirement for exceptions.
 | WASIp3 | M, cooperative | on | X | X | SDK 34.0 lacks the cooperative {cpp} EH runtime.
 | WASIp3 | M, cooperative | off | T | L | Public Cobalt target, including its
 thread coroutine; SDK cooperative runtime and Cobalt issue 287 apply.
-| WASIp2 | S or M | on/off | X | X | Neither library target declares WASIp2 support.
+| WASIp2 | S | on/off | T | B | Core, socket, forward DNS and supplied-stream consumers.
+| WASIp2 | M | on/off | B | B | The current reactor profile supports one application thread.
 |===
 
 *Native S is not a promise of no threads.* The native build does not set
@@ -160,6 +161,37 @@ The run family must execute on a stack configured for suspension. A browser
 yield gives the host an opportunity to run; it does not guarantee a timer
 deadline or a rendered frame. EH on uses Wasm exceptions with JSPI and the
 configured JavaScript exception mechanism with Asyncify.
+
+[#asio-feature-wasip2]
+==== Asio on WASIp2
+
+Both columns use `threading=single`, SDK 34.0 and Wasmtime 50.0.1.
+Multiple threads are rejected before compilation. T is limited to the stated
+consumer contracts, not every Boost.Asio overload.
+
+[cols="4,1,1",options="header"]
+|===
+| Feature | EH on | EH off
+| Run/poll family, timers and timer cancellation | T | T
+| TCP connect/accept, partial transfer and shutdown | T | T
+| UDP scalar, empty datagrams and gathered send_to | T | T
+| Pending socket cancellation | T | T
+| Async forward DNS, deferred initiation and associated executor | T | T
+| Resolver-wide and per-operation cancellation | T | T
+| Numeric synchronous resolution | T | T
+| Canonical name, mapped-address policy and async reverse DNS | X | X
+| Asio timer coroutine | T | T
+| CLI stream pending read cancellation, allocator and executor | T | T
+| CLI stream WebSocket client/server, text/binary and close | T | T
+| UDP multiple-buffer receive and connected multiple-buffer send | X | X
+| POSIX signals, local sockets and serial ports | X | X
+| Cobalt runner/wrappers and guest OpenSSL | B | B
+| Parallel threads, thread pools and cross-thread post | X | X
+|===
+
+See <<asio-wasip2-dns>> for resolver flag/allocation limits and
+<<asio-wasip2-streams>> for the host-import blocking boundary. Pollable-based
+waiting does not make an independently blocking host import preemptible.
 
 [#asio-feature-wasip3]
 ==== Asio: WASIp3

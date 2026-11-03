@@ -166,6 +166,22 @@ The runner-only compile test is supplemented by public-target runtime tests:
 `cobalt_wasi`, `cobalt_network_wasi`, `cobalt_io`, the `cobalt_wasip3` status
 lane and the recurring `threads` lane in the cooperative profile.
 
+## WASIp2 port
+
+The owner approved P2 Asio core and supplied-stream WebSocket on 2026-11-03.
+`/webcpp/asio//asio` supports `threading=single`, EH on/off, through the shared
+checked Boost overlay. Never infer P2 TLS/Cobalt/thread support from core support.
+The P2 reactor reuses libc select/poll and omits the unavailable pipe interrupter.
+`tools/boost/asio-wasip2` owns the checked SDK 34.0 private descriptor-table bridge
+and the asynchronous DNS extension. Revalidate its libc ABI before changing SDKs.
+Preserve deferred initiation, handler associations, operation cancellation and
+resource cleanup. DNS must not start a worker or block inside async initiation.
+The P2 CLI stream requests output flush before switching protocol direction;
+keep the real large-frame regression. Cancellation cannot preempt blocking host
+imports. Run `libs/asio/test/wasip2` and its `supplied-stream` lane in both exception
+profiles, plus native/P3 regressions. Keep the feature matrix and AsciiDoc guide
+consistent with actual runtime evidence.
+
 ## WASIp3 port
 
 `/webcpp/asio//asio` applies the superproject's checked Boost 1.92 patch from
