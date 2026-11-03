@@ -407,9 +407,12 @@ EH-off tests do not remove the pending-task move restriction in issue 287.
 | Cobalt `io::ssl::stream` via `cobalt_ssl` | T | T | X | T
 |===
 
-Async resolution without threads completes with `operation_not_supported`;
-that negative behavior is tested. The cooperative resolver test uses a numeric
-IPv4 address. It does not establish arbitrary external DNS access.
+Numeric asynchronous resolution is tested through Cobalt's compiled resolver
+in the supported profiles above. WASIp3's single-thread and cooperative profiles
+use the native asynchronous forward resolver; the Asio consumers test localhost
+lookup, deferred initiation, progress and cancellation. Arbitrary external DNS
+access depends on host policy and is not established by localhost or numeric
+consumers.
 
 [#asio-feature-cobalt-build-block]
 ===== How the Cobalt source integration works
@@ -618,7 +621,9 @@ and the `cobalt_wasip3` status lane, all through the public target
 | Cobalt SSL wrapper
 | `tools/openssl/test//cobalt_ssl_client` with `tls.py --embedded --require-sni`,
 including `--client-arg=buffered`; `cobalt_ssl_state` and `cobalt_ssl_cancel`
-with `--state-test`, for TLS 1.2/1.3 in all seven supported profiles
+with `--state-test`, for TLS 1.2/1.3 in the recorded native/WASIp3 profiles.
+WASIp2 has separate peer, state and cancellation evidence from
+`test/wasip2_tls_cobalt//wasip2-tls` in S with EH on/off
 | Native/WASIp3 TLS
 | Superproject `tools/openssl/test/run.py`: verified TLS 1.2/1.3 handshakes,
 application data, shutdown and rejected peer identities in the recorded profiles

@@ -33,7 +33,8 @@ real peer, trust, transfer/shutdown and cancellation consumers with:
 [source,bash]
 ----
 b2 -a toolset=clang-wasip2 variant=release exception-handling=on,off \
-  testing.launcher=tools/boost/asio-wasip2/run.sh libs/asio/test/wasip2_tls_cobalt
+  testing.launcher=tools/boost/asio-wasip2/run.sh \
+  libs/asio/test/wasip2_tls_cobalt libs/asio/test/wasip2_tls_cobalt//wasip2-tls
 ----
 
 The first command exercises timers, the run/poll family, TCP and UDP exchanges,
