@@ -112,7 +112,9 @@ inline boost::system::result<ssl::context> make_tls_client_context(std::string_v
             return make_error_code(tls_context_error::invalid_ca_bundle);
         }
         const auto length = finish + end.size();
-        if (length > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+        // Parentheses prevent the Windows max macro from expanding this function name.
+        // NOLINTNEXTLINE(readability-redundant-parentheses)
+        if (length > static_cast<std::size_t>((std::numeric_limits<int>::max)())) {
             return make_error_code(tls_context_error::invalid_ca_bundle);
         }
         const std::unique_ptr<BIO, decltype(&BIO_free)> input(

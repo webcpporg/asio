@@ -5,10 +5,22 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 #include <openssl/ssl.h>
 #include <boost/core/lightweight_test.hpp>
+#include <boost/system/result.hpp>
+#include <limits>
 #include <string>
 #include <string_view>
-#include <webcpp/asio/tls_client_context.hpp>
+#include <webcpp/asio/ssl.hpp>
 #include <webcpp/test/exit_status.hpp>
+
+// Windows callers can define this before including the public TLS factory.
+#ifdef max
+#undef max
+#endif
+// The lowercase name reproduces the Windows SDK macro.
+// NOLINTNEXTLINE(readability-identifier-naming)
+#define max(left, right) ((left) > (right) ? (left) : (right))
+#include <webcpp/asio/tls_client_context.hpp>
+#undef max
 
 int main() {
     auto defaults = webcpp::asio::make_tls_client_context();
