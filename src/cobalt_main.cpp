@@ -21,7 +21,7 @@
 #include <csignal>
 #endif
 
-#ifdef __EMSCRIPTEN__
+#ifdef WEBCPP_TARGET_EMSCRIPTEN
 #include <emscripten/emscripten.h>
 #endif
 
@@ -84,7 +84,7 @@ int main_promise::run_main(::boost::cobalt::main mn) {
         asio::post(ctx.get_executor(), [coroutine] { coroutine.resume(); });
         ctx.run();  // lint-run: Cobalt's application event loop
     }
-#ifdef __EMSCRIPTEN__
+#ifdef WEBCPP_TARGET_EMSCRIPTEN
     // Destroy the context before exiting; a suspended Asyncify main loses a returned status.
     if (emscripten_has_asyncify() == 1) {
         std::exit(result);

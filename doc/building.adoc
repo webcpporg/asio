@@ -7,16 +7,21 @@
 [#asio-building]
 == Building
 
-asio is header-only, and is developed inside the webcpp superproject, as a
-Boost library is developed inside Boost. A b2 program uses it through one
-target, `/webcpp/asio//asio`, on every target:
+asio is developed inside the webcpp superproject, as a Boost library is
+developed inside Boost. Its headers share Boost's executor model; the browser
+bridge and optional Cobalt entry point have compiled support units. A b2
+program uses `/webcpp/asio//asio` on native, Emscripten and WASIp3:
 
 [listing]
 ----
 exe app : app.cpp /webcpp/asio//asio ;
 ----
 
-The target adds asio's headers and Boost's, and on emscripten everything
+The target adds asio's headers, Boost's and the webcpp configuration dependency.
+`<webcpp/asio/config.hpp>` includes `<webcpp/config.hpp>` first;
+`WEBCPP_NO_EXCEPTIONS` disables asio's throwing APIs even when the compiler
+supports exceptions. An explicit `WEBCPP_ASIO_NO_EXCEPTIONS` remains supported.
+On emscripten the target also supplies everything
 else a program needs there: the define Asio needs to build, embind, the
 JavaScript functions asio calls, compiled once in `src/browser_src.cpp`,
 the link flags of the program's suspension variant, and the variant in the
@@ -289,8 +294,10 @@ Flags retain normal B2 scope: dependency-specific `cflags` belong on the OpenSSL
 target, not only on its consumer. Independent concurrent B2 processes should use
 separate `--build-dir` directories.
 `threading=single` builds OpenSSL with `no-threads`; `threading=multi` enables
-its pthread implementation. Source-built native TLS currently requires
-Clang/GCC on macOS/Linux. Windows/MSVC needs an additional nmake recipe.
+its platform threading implementation. Native recipes support Clang/GCC on
+macOS/Linux and MSVC on Windows. MSVC uses upstream Configure and nmake,
+static archives and the B2 runtime/debug settings; the initial Windows recipe
+uses portable C without requiring NASM.
 
 For a program built both natively and for the browser, use the condition below.
 It also selects OpenSSL for WASIp3; browser builds retain the settings adapter:
@@ -318,9 +325,14 @@ Correct configuration errors as follows:
 The built-in default and base providers are linked statically. Loading provider
 modules is disabled; this configuration is not a FIPS build. WASIp3 also disables
 assembly, dynamic loading, QUIC, Unix-domain sockets and the OpenSSL thread pool.
-Native builds retain upstream assembly optimizations. The recipe uses function
-and data sections plus platform dead stripping. Do not link another copy of
-OpenSSL into the same program, including through another native dependency.
+Native Clang/GCC builds retain upstream assembly optimizations; the initial
+MSVC recipe uses portable C. The recipe uses function and data sections plus
+platform dead stripping. A program has one OpenSSL provider. Native Trystero's
+`/webcpp/trystero//native` target builds pinned static libdatachannel and its
+required nested sources against this same provider, so it can coexist with
+Asio and Beast. Such a program selects `threading=multi` and exceptions for
+Trystero's worker-thread backend. Libsecp256k1 remains externally provisioned;
+`OPENSSL_ROOT` and `LIBDATACHANNEL_ROOT` do not select alternate providers.
 
 The configured certificate directory is `/etc/ssl`. A source-built library does
 not install a system trust store or import the macOS keychain. Use the embedded
@@ -346,6 +358,17 @@ program only to create short-lived server fixtures. The client links the
 source-built library. `WASMTIME` selects the runtime executable; the recorded
 WASIp3 checks use wasi-sdk 34.0 and Wasmtime 50.0.1. See
 <<asio-capabilities-network>> for the target/variant matrix.
+
+The recurring own lane `b2 libs/asio/test/tls//tls-integration` drives those
+TLS, embedded-CA, state, cancellation and entropy fixtures on native and WASIp3
+profiles. `b2 libs/asio/test/tls//openssl-upstream` is native only: it requests
+`webcpp-openssl-tests=on`, builds and runs upstream's full `alltests` suite,
+then links a TLS consumer against those exact archives. The
+`openssl-upstream-msvc-14.3` and `openssl-upstream-msvc-14.5` aliases exercise
+that suite with the corresponding Windows CI toolsets. Ordinary consumers do
+not run that suite. The upstream harness is unavailable on WASIp3; the separate
+integration tests give narrower evidence and do not claim upstream-suite parity.
+A lane declaration is not evidence that the current candidate passed CI.
 
 The library's targets implement that distinction:
 
@@ -429,8 +452,9 @@ and repeat it. Run only one updater per output directory.
 
 ==== Using installed headers
 
-`b2 install --prefix=DIR` includes the generated `webcpp_ca_certificates.hpp`
-at `DIR/include/`, alongside the installed library headers. The matching PEM
+`b2 install --prefix=DIR` includes the generated
+`webcpp/asio/detail/ca_certificates.hpp` under `DIR/include/`. Its private
+namespace is `webcpp::asio::detail::ca_certificates`. The matching PEM
 source, manifest and MPL notices are under `DIR/include/webcpp/ca_certificates/`.
 The CA package is generated locally without compiling OpenSSL. A consumer of
 the installed TLS header must still configure Boost, define

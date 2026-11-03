@@ -39,7 +39,8 @@ include it does not make fails, naming it.
 first, defines `WEBCPP_ASIO_NO_EXCEPTIONS` when the build has no exceptions,
 and a program may define it itself to turn asio's exceptions off in a build
 that has them, as Boost.Asio's `BOOST_ASIO_NO_EXCEPTIONS` does. The tests
-`config` and `config_developer_defined` check both ways it is defined.
+`config`, `config_developer_defined` and `config_all_off` check compiler,
+library-specific and global WebCPP settings.
 
 [#asio-testing-lanes]
 === The lanes
@@ -405,3 +406,28 @@ small differences are not evidence that a flag makes application code faster.
 | `-Oz -flto` | on | 3.34 (3.21 to 3.39) | 10.93 (10.46 to 11.06) | 2.94 (2.90 to 3.11) | 14.75 (14.21 to 14.96)
 | `-Oz -flto` | off | 3.17 (3.09 to 3.19) | 10.27 (10.10 to 10.34) | 2.80 (2.74 to 2.99) | 11.25 (11.07 to 11.86)
 |===
+
+threads::
+The `threads` lane runs Cobalt worker/post/join, multiple Asio context runners
+and the WASIp3 allocator witness. The cooperative SDK profile uses exceptions
+off and remains distinct from simultaneous native CPU execution.
++
+[source,bash]
+----
+b2 -a libs/asio/test//threads
+b2 -a toolset=clang-wasip3 libs/asio/test//threads
+----
+
+tls-integration::
+Real peers exercise trusted/rejected certificates, SNI, embedded/replacement
+roots, Cobalt TLS state, encrypted transfer cancellation, and shutdown errors
+and cancellation. Native single/multi profiles run with exceptions on/off;
+WASIp3 runs single with exceptions on/off and cooperative with exceptions off.
+The WASIp3 entropy control verifies that host randomness failure prevents
+random output and key generation. It does not measure entropy quality.
++
+[source,bash]
+----
+b2 -a libs/asio/test/tls//tls-integration
+b2 -a toolset=clang-wasip3 libs/asio/test/tls//tls-integration
+----

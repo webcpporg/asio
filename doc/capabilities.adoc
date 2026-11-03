@@ -63,8 +63,8 @@ WASIp2 supports none of these features through this library's declared targets.
 | Steady/system timers, expiry changes and cancellation
 | Supported | Supported | Supported | Supported
 | Context and associated-handler allocators
-| Boost contract | Supported | Boost contract; dedicated allocation counters unverified
-| Boost contract; dedicated allocation counters unverified
+| Boost contract | Supported | Context/timer/post counters tested
+| Context/timer/post counters tested; named libc pipe allocations separate
 | Multiple threads posting or running a context
 | Boost contract | Unavailable | Unavailable | Tested: wakeup and two runners
 | {cpp}20 Boost.Asio `awaitable` / `co_spawn`

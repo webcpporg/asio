@@ -7,7 +7,8 @@
 [#asio-feature-matrix]
 === Feature matrix by library and build profile
 
-This is a snapshot of the WebCPP integration reviewed on 2026-10-16, using
+This records the WebCPP integration of 2026-10-16 with the allocation and
+thread-lane follow-up verified on 2026-11-03, using
 Boost 1.92.0, Emscripten 6.0.11 and wasi-sdk 34.0. The project now selects
 Wasmtime 50.0.1 for its regression suites; the original isolated probes used
 Wasmtime 49.0.3. It is not a
@@ -174,7 +175,7 @@ runtime, including rows that do not otherwise need exceptions.
 | Strands | A | A | X | A
 | Thread pools | X | X | X | U
 | Asio `awaitable`, `co_spawn`, result-based timer wait | T | T | X | T
-| Context/handler allocators with dedicated allocation counters | U | U | X | U
+| Context/timer/post allocators with dedicated allocation counters | T | T | X | T
 | Allocation routing in UDP gather operations | T | T | X | T
 | IPv4 TCP connect/accept, read/write, EOF and cancellation | T | T | X | T
 | TCP composed read/write with multiple buffers | T | T | X | T
@@ -203,8 +204,10 @@ host policy or destination.
 
 UDP gather concatenates into one datagram and uses the caller-associated
 allocator; this does not add scatter receive or connected multi-buffer send.
-The other allocation-counter row remains U because the UDP test is narrower
-than a complete allocation audit. Socket-option limits are in
+The separate context/timer/post counters now cover all three supported WASIp3
+profiles; narrowly attributed libc wakeup-pipe allocations remain outside the
+Asio allocator contract. These scenarios are not a complete audit of every
+operation. Socket-option limits are in
 <<asio-wasip3-contract>>. TLS support does not automatically validate a Cobalt
 TLS completion token or `boost::cobalt::io::ssl::stream`.
 
@@ -441,9 +444,6 @@ exception propagation or concurrent coroutine composition.
 | Exercise native scatter receive/connected multi-buffer UDP, resolver variants,
 IPv6 traffic, multicast and supported socket options. For WASIp3, record host
 network/DNS grants and test both permitted and denied operations.
-| WASIp3 general allocation routing
-| Run dedicated context/handler allocation counters for timers and posting
-in S/EH on, S/EH off and M/EH off. UDP gather counters cover only that operation.
 | Cobalt coroutine families
 | Add lifecycle, result/error, cancellation and cleanup cases for tasks,
 promises, generators, channels, wait groups and composition; measure PMR

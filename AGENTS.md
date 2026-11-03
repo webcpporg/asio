@@ -164,7 +164,7 @@ cancellation machinery. Automatic SIGINT/SIGTERM cancellation is unavailable;
 host-driven graceful shutdown requires a separate application protocol.
 The runner-only compile test is supplemented by public-target runtime tests:
 `cobalt_wasi`, `cobalt_network_wasi`, `cobalt_io`, the `cobalt_wasip3` status
-lane and explicit `cobalt_thread` in the cooperative profile.
+lane and the recurring `threads` lane in the cooperative profile.
 
 ## WASIp3 port
 
@@ -244,3 +244,25 @@ timer thread. It is selected only for target-os=windows and reaches compiled
 Cobalt sources as well as consumers. Keep its original and patched byte hashes
 pinned. Do not replace the allocation regression with a warm-up or an allowance
 for extra global allocations.
+
+## Joint Asio and Beast closure
+
+Preserve deferred initiation and owning resolver input lifetimes. Resolver host
+and service storage uses the initiating token's associated allocator; an allocator
+bound only when a deferred operation is launched cannot retroactively own that
+captured storage. Keep the positive controls for unbound handlers and runtime
+allocation attribution; never replace them with a permitted allocation count.
+
+The owner clarified on 2026-11-03 that Asio and Beast are intended foundations
+for a later Trystero migration. Never ban their combination to avoid a dependency
+conflict. All native consumers, including libdatachannel, use the same pinned
+source-built OpenSSL provider. Trystero's current native backend requires threads.
+
+The `tls-integration` own lane runs real native and WASIp3 TLS peers, state and
+cancellation checks. The native `openssl-upstream` lane additionally requests
+`webcpp-openssl-tests=on` to test the exact source-built archives before use.
+OpenSSL's native Perl harness is not evidence for its WASI configuration.
+
+Use the repository's `webcpp-documentation` skill for Diataxis organization,
+AsciiDoc and generated MrDocs reference. The maintained `doc/changelog.adoc`
+is the final appendix; never edit generated reference or matrix files by hand.

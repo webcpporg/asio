@@ -21,8 +21,8 @@ lacks there, the configuration Asio needs to build, what wakes `run` from a
 browser event, and a limit on the handlers one turn runs, so that the page
 keeps rendering.
 
-WASIp3 additionally provides timers and plain TCP/UDP, with single-thread and
-experimental cooperative-thread profiles. See <<asio-capabilities>> for their
+WASIp3 additionally provides timers, TCP/UDP and optional source-built TLS, with
+single-thread and experimental cooperative-thread profiles. See <<asio-capabilities>> for their
 limits and the features available in each target variant.
 
 [#asio-reading]
@@ -79,3 +79,5 @@ include::testing.adoc[]
 == Reference
 
 include::{reference}[leveloffset=+1]
+
+include::changelog.adoc[]

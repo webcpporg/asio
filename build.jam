@@ -62,6 +62,7 @@ rule asyncify-stack ( properties * )
 # (include/webcpp/asio/browser/src.hpp), linked into every program on
 # emscripten by asio's usage requirements below.
 obj browser-src : src/browser_src.cpp : <include>include <library>/boost//headers
+  <library>/webcpp/config//config
   <toolset>emscripten:<define>BOOST_ASIO_DISABLE_THREADS ;
 explicit browser-src ;
 
@@ -85,6 +86,7 @@ explicit browser-src ;
 # not otherwise need them; JavaScript calls both through stackSave/Restore.
 # tag::asio[]
 alias asio : : : : <include>include <library>/boost//headers
+  <library>/webcpp/config//config
   <target-os>windows:<library>/webcpp/asio-windows//headers
   <toolset>clang-wasip3:<library>/webcpp/asio-wasip3//headers
   <toolset>emscripten:<define>BOOST_ASIO_DISABLE_THREADS
