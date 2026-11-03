@@ -157,7 +157,7 @@ b2 toolset=clang-wasip3 variant=release tools/openssl/test//cobalt_ssl_cancel
 ----
 
 Use each executable path printed by B2's link action. For WASI, put Wasmtime
-49.0.3 on `PATH` or set `WASMTIME` to it. The harness needs Python with TLS 1.3
+50.0.1 on `PATH` or set `WASMTIME` to it. The harness needs Python with TLS 1.3
 and an OpenSSL CLI to generate temporary local certificates; the tested {cpp}
 program still links WebCPP's source-built OpenSSL.
 

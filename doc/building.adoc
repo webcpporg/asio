@@ -344,7 +344,7 @@ The reproducible local test driver is `python3 tools/openssl/test/run.py --fresh
 from the superproject. It needs Python with TLS 1.3 and an OpenSSL 3 command-line
 program only to create short-lived server fixtures. The client links the
 source-built library. `WASMTIME` selects the runtime executable; the recorded
-WASIp3 checks use wasi-sdk 34.0 and Wasmtime 49.0.3. See
+WASIp3 checks use wasi-sdk 34.0 and Wasmtime 50.0.1. See
 <<asio-capabilities-network>> for the target/variant matrix.
 
 The library's targets implement that distinction:

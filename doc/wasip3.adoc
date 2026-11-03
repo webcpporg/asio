@@ -13,7 +13,7 @@ choosing a profile; it records the restrictions that still differ from native.
 
 === Prerequisites
 
-Use Boost 1.92.0, wasi-sdk 34.0 and Wasmtime 49.0.3 for the configuration verified
+Use Boost 1.92.0, wasi-sdk 34.0 and Wasmtime 50.0.1 for the configuration verified
 here. The port pins the exact input headers: a newer or modified Boost requires
 rebasing the patch and rerunning the tests. It is not accepted silently.
 WASIp3 and cooperative threads require runtime support; the previously installed
@@ -154,7 +154,7 @@ wrappers, refused TCP connections, TCP/UDP cancellation, EOF and result-based
 resolver behavior.
 
 The `libs/asio/test//cobalt_wasip3` lane checks successful and unsuccessful
-command completion with an exact-status driver. Put Wasmtime 49.0.3 on `PATH`,
+command completion with an exact-status driver. Put Wasmtime 50.0.1 on `PATH`,
 or set `WASMTIME` to its executable for that driver. The SDK maps nonzero
 coroutine returns to host status 1.
 
@@ -178,4 +178,4 @@ local test commands are described in <<asio-cobalt-ssl>>.
 The underlying platform contracts are documented by
 https://github.com/WebAssembly/wasi-sdk/blob/main/CoopThreading.md[wasi-sdk's cooperative-thread guide]
 and the
-https://github.com/bytecodealliance/wasmtime/releases/tag/v49.0.3[Wasmtime release used here].
+https://github.com/bytecodealliance/wasmtime/releases/tag/v50.0.1[Wasmtime release used here].

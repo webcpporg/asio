@@ -8,7 +8,9 @@
 === Feature matrix by library and build profile
 
 This is a snapshot of the WebCPP integration reviewed on 2026-10-16, using
-Boost 1.92.0, Emscripten 6.0.11, wasi-sdk 34.0 and Wasmtime 49.0.3. It is not a
+Boost 1.92.0, Emscripten 6.0.11 and wasi-sdk 34.0. The project now selects
+Wasmtime 50.0.1 for its regression suites; the original isolated probes used
+Wasmtime 49.0.3. It is not a
 list of everything those upstream projects might support in other builds.
 The Asio target is `/webcpp/asio//asio`; the Cobalt integration is
 `/webcpp/asio//cobalt`, using Boost.Cobalt's names. Do not infer that an Asio

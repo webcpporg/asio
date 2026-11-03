@@ -30,9 +30,9 @@ distinguishes public support, isolated probes and unverified combinations.
 | Emscripten / Asyncify | Disabled in this integration | On or off
 | Existing browser integration; JavaScript exceptions when enabled.
 | WASIp3 / `threading=single` | Disabled | On or off
-| Minimal port; both configurations tested with wasi-sdk 34.0 and Wasmtime 49.0.3.
+| Minimal port; both configurations tested with wasi-sdk 34.0 and Wasmtime 50.0.1.
 | WASIp3 / `threading=multi` | Experimental cooperative threads | Off
-| Minimal port; tested with wasi-sdk 34.0's cooperative sysroot and Wasmtime 49.0.3.
+| Minimal port; tested with wasi-sdk 34.0's cooperative sysroot and Wasmtime 50.0.1.
 | WASIp3 / `threading=multi` | Experimental cooperative threads | On
 | Unavailable with the tested SDK: its cooperative sysroot has no {cpp} exception runtime.
 | WASIp2 | Neither profile provided | Not applicable

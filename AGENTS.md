@@ -175,7 +175,8 @@ patch and its hash manifest explicitly when changing Boost versions.
 `threading=single` disables Asio threads and accepts exceptions on/off.
 `threading=multi` selects wasi-sdk's experimental cooperative sysroot with
 `-pthread`; SDK 34.0 provides only its no-exceptions C++ runtime. Use Wasmtime
-49.0.3 for the recorded local tests; 47.0.3 cannot load the cooperative binary.
+50.0.1, the project-wide runtime; earlier tests found that 47.0.3 cannot load
+the cooperative binary.
 Cooperative threads do not promise CPU parallelism.
 
 Preserve datagram boundaries: WASIp3 `send_to` and `async_send_to` concatenate
