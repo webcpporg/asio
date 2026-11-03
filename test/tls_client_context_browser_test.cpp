@@ -9,7 +9,7 @@
 #include <webcpp/test/exit_status.hpp>
 
 int main() {
-    auto expected =
+    const auto expected =
         webcpp::asio::make_error_code(webcpp::asio::tls_context_error::unsupported_target);
     BOOST_TEST_EQ(webcpp::asio::make_tls_client_context().error(), expected);
     BOOST_TEST_EQ(webcpp::asio::make_tls_client_context("unused").error(), expected);

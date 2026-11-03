@@ -17,7 +17,8 @@ int main(int argc, char** argv) {
     auto prepared = argc == 1 ? webcpp::asio::make_tls_client_context()
                               : webcpp::asio::make_tls_client_context(argv[1]);
     if (!prepared) {
-        (void)std::fprintf(stderr, "%s\n", prepared.error().message().c_str());
+        const auto message = prepared.error().message();
+        (void)std::fprintf(stderr, "%s\n", message.c_str());
         return webcpp::test::exit_status(1);
     }
     // Pass *prepared to TLS streams and keep it alive while those streams exist.

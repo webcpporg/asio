@@ -270,13 +270,19 @@ This forwards `/webcpp/third_party//openssl`, which builds OpenSSL 3.5.9
 (commit `45e844fa2a14ec92d146bd8f5778ac130b6625fb`) from the unmodified
 upstream submodule. No installed OpenSSL or `OPENSSL_ROOT` is used by this target.
 
-Initialize the source checkout with
+In a Git checkout, initialize the source with
 `git submodule update --init third_party/libs/openssl`.
-The build needs Python 3, Git, Perl, Make, and the selected compiler toolchain.
+A WebCPP source distribution already contains the required OpenSSL files and
+does not need Git. The build needs Python 3, Perl, Make, and the selected
+compiler toolchain; Git is also used to verify a source checkout.
 B2 invokes upstream Configure/Make and exports static `libssl.a`, `libcrypto.a`
-and their matching generated headers. It stages an unchanged source copy in a
-temporary directory because upstream Makefiles do not support source paths
-containing spaces. Different toolsets, optimization flags,
+and their matching generated headers. Before Configure, it stages the
+distributable source files in a temporary directory and verifies their paths,
+file modes and content hashes against the pin. Missing, additional or altered
+files fail the build. Dot paths and pinned optional upstream repositories are
+omitted, just as in the source distribution. The temporary source directory
+also avoids upstream Makefiles' restriction on source paths containing spaces.
+Different toolsets, optimization flags,
 exception settings and thread profiles use separate build directories. Effective
 C flags and compiler commands also identify separate archive/header directories.
 Flags retain normal B2 scope: dependency-specific `cflags` belong on the OpenSSL

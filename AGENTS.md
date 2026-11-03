@@ -3,7 +3,9 @@
 webcpp's rules apply here: read the superproject's
 [AGENTS.md](../../AGENTS.md)
 (<https://github.com/webcpporg/webcpp/blob/main/AGENTS.md>) first. This file
-holds only what is specific to asio.
+holds only what is specific to asio. Also read the superproject's
+[CODING-GUIDELINES.md](../../CODING-GUIDELINES.md), which holds the shared
+code and design rules.
 
 ## What asio is
 
