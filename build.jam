@@ -17,6 +17,7 @@ import webcpp ;
 import webcpp-target ;
 
 use-project /webcpp/asio-wasip3 : ../../tools/boost/asio-wasip3 ;
+use-project /webcpp/asio-windows : ../../tools/boost/asio-windows ;
 
 # The stack Asyncify saves a suspension in, in bytes: 8192 unless a program
 # asks for more with <asyncify-stack-size>, propagated so that asio's usage
@@ -84,6 +85,7 @@ explicit browser-src ;
 # not otherwise need them; JavaScript calls both through stackSave/Restore.
 # tag::asio[]
 alias asio : : : : <include>include <library>/boost//headers
+  <target-os>windows:<library>/webcpp/asio-windows//headers
   <toolset>clang-wasip3:<library>/webcpp/asio-wasip3//headers
   <toolset>emscripten:<define>BOOST_ASIO_DISABLE_THREADS
   <toolset>emscripten:<linkflags>-lembind
@@ -110,12 +112,9 @@ rule cobalt-platform ( properties * )
 lib cobalt-main : src/cobalt_main.cpp
   : <link>static <library>asio <library>/webcpp//boost_cobalt ;
 explicit cobalt-main ;
-# Boost omits main_promise::unhandled_exception without exceptions. Clang
-# diagnoses the entry coroutine anyway; suppress only that diagnostic, and
-# only in the explicitly exception-free Cobalt consumer configuration.
-alias cobalt : : <conditional>@cobalt-platform : : <library>asio <library>cobalt-main <library>/webcpp//boost_cobalt
-  <toolset>clang,<exception-handling>off:<cxxflags>-Wno-coroutine-missing-unhandled-exception
-  <toolset>emscripten,<exception-handling>off:<cxxflags>-Wno-coroutine-missing-unhandled-exception ;
+# The checked common Cobalt patch supplies the promise member required even
+# when a compiler builds the coroutine without exception handling.
+alias cobalt : : <conditional>@cobalt-platform : : <library>asio <library>cobalt-main <library>/webcpp//boost_cobalt ;
 # end::cobalt[]
 
 # tag::openssl[]

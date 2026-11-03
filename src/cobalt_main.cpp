@@ -66,11 +66,11 @@ int main_promise::run_main(::boost::cobalt::main mn) {
             asio::basic_signal_set<executor_type>& signals;
             asio::cancellation_signal& cancellation;
 
-            void operator()(system::error_code ec, int signal) const {
-                if (signal == SIGINT) {
+            void operator()(system::error_code ec, int signal_number) const {
+                if (signal_number == SIGINT) {
                     cancellation.emit(asio::cancellation_type::total);
                 }
-                if (signal == SIGTERM) {
+                if (signal_number == SIGTERM) {
                     cancellation.emit(asio::cancellation_type::terminal);
                 }
                 if (!ec) {

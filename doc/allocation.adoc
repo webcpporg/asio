@@ -10,7 +10,10 @@
 The application supplies an allocator to the `io_context` through its
 `std::allocator_arg` constructor. Boost.Asio uses it for the context's
 services and their I/O state. On Emscripten the bridge's registration map
-uses the context's allocator too.
+uses the context's allocator too. On Windows, a checked Boost 1.92 overlay
+forwards that allocator into IOCP's internal worker and timer thread state.
+This includes the first timer operation, without warming up its thread or
+allowing an extra global allocation.
 
 An asynchronous operation uses its completion handler's associated
 allocator. Giving an allocator to the context does not associate it with

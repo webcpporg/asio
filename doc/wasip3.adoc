@@ -69,11 +69,15 @@ and the matching SDK's common libc{plus}{plus} headers. This is an experimental 
 not a promise of CPU parallelism. In the tested SDK, requesting exceptions in
 this profile fails at configuration with a message naming the missing runtime.
 
-The test launcher is for local verification: it enables WASIp3 asynchronous
+The test launcher is for local and CI verification: it enables WASIp3 asynchronous
 components and cooperative-thread support, grants host network and name-lookup
-access for the loopback tests, and bounds execution to 15 seconds. Enabling a
-runtime feature does not create threads in a single-thread binary. Production
-applications should choose their own timeout and network capabilities.
+access for the loopback tests, and bounds each guest's execution to 600 seconds.
+The global lane also runs large finite document and Unicode workloads. Set
+`WEBCPP_WASIP3_TEST_TIMEOUT` to a positive integer number of seconds to choose
+another bound, for example `WEBCPP_WASIP3_TEST_TIMEOUT=15` for focused loopback
+tests. Invalid or zero bounds fail before launch. Enabling a runtime feature
+does not create threads in a single-thread binary. Production applications
+should choose their own timeout and network capabilities.
 
 === Reproduce the local verification
 

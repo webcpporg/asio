@@ -127,9 +127,10 @@ Task 16 supplies `/webcpp/asio//cobalt`: Cobalt's ordinary `co_main` runs on
 webcpp's context. The adapter replaces both `main_promise::run_main` and
 `final_suspend` from Boost 1.92's main.cpp. Do not link the original runner
 beside it. The source target's issue 287 warning still applies without exceptions.
-Clang additionally diagnoses Boost's missing unhandled_exception member in that
-mode; the integration suppresses only that diagnostic for exception-free
-Clang/Emscripten consumers, without changing exception handling.
+The checked Cobalt common overlay supplies the required unhandled_exception
+promise member when exceptions are disabled. Its unreachable exception path
+calls std::terminate, without enabling exception handling or suppressing a
+compiler diagnostic.
 
 The Cobalt stack probe measures real Asyncify unwinds from the runner through
 the yield, a Cobalt timer wait and an Asio timer wait. The timer waits cannot
@@ -234,3 +235,12 @@ Run `tools/ca_certificates/run.py --fresh` locally for the native/WASIp3 matrix.
 Its WASIp3 clients have no certificate filesystem grants. Preserve that witness.
 Embedded updates require rebuilding and redeploying. Do not silently download
 roots during builds or runtime, or present a PEM export as Firefox's full policy.
+
+## Windows context-owned thread allocations
+
+The checked Boost 1.92 overlay in tools/boost/asio-windows forwards the context
+allocator into both IOCP-owned thread constructors, including the lazily started
+timer thread. It is selected only for target-os=windows and reaches compiled
+Cobalt sources as well as consumers. Keep its original and patched byte hashes
+pinned. Do not replace the allocation regression with a warm-up or an allowance
+for extra global allocations.

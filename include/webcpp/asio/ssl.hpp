@@ -238,7 +238,7 @@ public:
      @param ec Receives success.
     */
     template <class VerifyCallback>
-    void set_verify_callback(VerifyCallback callback, boost::system::error_code& ec) {
+    void set_verify_callback(const VerifyCallback& callback, boost::system::error_code& ec) {
         if constexpr (std::is_same_v<std::remove_cvref_t<VerifyCallback>, host_name_verification>) {
             host_ = callback.host();
             callback_ = verify_callback_kind::host_name_verification;
@@ -255,9 +255,9 @@ public:
      @param callback The verification request.
     */
     template <class VerifyCallback>
-    void set_verify_callback(VerifyCallback callback) {
+    void set_verify_callback(const VerifyCallback& callback) {
         boost::system::error_code ec;
-        set_verify_callback(std::move(callback), ec);
+        set_verify_callback(callback, ec);
     }
 #endif
     /**

@@ -25,11 +25,22 @@ namespace io = cobalt::io;
 
 namespace {
 
+// GCC 14 misidentifies Cobalt's placement coroutine allocation and sized delete.
+// Both use the resource stored before the frame; GCC 15 accepts these functions.
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ == 14
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmismatched-new-delete"
+#endif
+
 cobalt::promise<void> accept_stream(io::acceptor& listener) {
     const auto [error, socket] = co_await cobalt::as_tuple(listener.accept());
     BOOST_TEST(error == boost::asio::error::operation_aborted);
     BOOST_TEST(!socket.is_open());
 }
+
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ == 14
+#pragma GCC diagnostic pop
+#endif
 
 }  // namespace
 

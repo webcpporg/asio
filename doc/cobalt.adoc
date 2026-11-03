@@ -70,9 +70,10 @@ Cobalt library or compile Boost's `src/main.cpp`.
 
 Exception handling follows the application. A build without exceptions
 prints the warning linked to https://github.com/boostorg/cobalt/issues/287[Cobalt issue 287].
-Clang's diagnostic about a missing `unhandled_exception` is suppressed only
-for this exception-free target: Boost removes that member in this mode.
-Other compiler warnings and their warnings-as-errors policy are unchanged.
+The checked Boost 1.92 header overlay supplies the coroutine promise's
+required `unhandled_exception` member when exceptions are disabled. It calls
+`std::terminate` if reached; it does not enable exception propagation.
+Compiler warnings and their warnings-as-errors policy are unchanged.
 Result adapters do not repair upstream operations that construct exception
 objects internally. This integration does not establish universal support
 for Cobalt without exceptions.
