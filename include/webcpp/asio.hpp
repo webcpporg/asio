@@ -24,11 +24,14 @@
 #include <webcpp/asio/steady_timer.hpp>  // lint-world: Boost's timers are asio's
 #include <webcpp/asio/system_timer.hpp>  // lint-world: Boost's timers are asio's
 
-#ifdef __EMSCRIPTEN__
+#ifdef WEBCPP_TARGET_EMSCRIPTEN
 #include <webcpp/asio/browser/async_await.hpp>
 #include <webcpp/asio/browser/async_wait_event.hpp>
 #include <webcpp/asio/browser/bridge.hpp>
 #include <webcpp/asio/browser/error.hpp>
+#if WEBCPP_ASIO_HAS_BROWSER_WORKERS
+#include <webcpp/asio/browser/main_thread_context.hpp>
+#endif
 #endif
 
 #endif  // WEBCPP_ASIO_HPP

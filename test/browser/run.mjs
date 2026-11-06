@@ -5,41 +5,28 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 // The real browser checks: idle waits, animation opportunities and variant loading.
-// node run.mjs --mode <idle|render|loader> <program>
+// node run.mjs --mode <idle|render|loader|workers> <program>
 // CHROME names the browser; on macOS the newest cached Playwright headless shell is used.
 // Each invocation owns its loopback server, Chrome process and temporary profile.
 import assert from 'node:assert/strict'
 import {spawn} from 'node:child_process'
 import {once} from 'node:events'
-import {existsSync, mkdtempSync, readFileSync, readdirSync, rmSync} from 'node:fs'
+import {mkdtempSync, readFileSync, rmSync} from 'node:fs'
 import {createServer} from 'node:http'
-import {homedir, tmpdir} from 'node:os'
+import {tmpdir} from 'node:os'
 import {dirname, extname, join, resolve, sep} from 'node:path'
 import {setTimeout as delay} from 'node:timers/promises'
 import {fileURLToPath} from 'node:url'
+import {findChrome, waitForChrome} from './chrome_startup.mjs'
 
 const args = process.argv.slice(2)
-assert.equal(args.length, 3, 'usage: run.mjs --mode <idle|render|loader> <program>')
+assert.equal(args.length, 3, 'usage: run.mjs --mode <idle|render|loader|workers> <program>')
 assert.equal(args[0], '--mode')
 const mode = args[1]
-assert.ok(['idle', 'render', 'loader'].includes(mode), `unknown mode ${mode}`)
+assert.ok(['idle', 'render', 'loader', 'workers'].includes(mode), `unknown mode ${mode}`)
+const workerVariant = args[2].includes('asyncify') ? 'asyncify' : 'jspi'
 const here = dirname(fileURLToPath(import.meta.url))
 const build = dirname(resolve(args[2]))
-const findChrome = () => {
-    if (process.env.CHROME) return process.env.CHROME
-    assert.equal(process.platform, 'darwin', 'set CHROME to the Chrome executable')
-    const cache = join(homedir(), 'Library/Caches/ms-playwright')
-    const shells = existsSync(cache) ? readdirSync(cache)
-        .filter(name => /^chromium_headless_shell-\d+$/.test(name))
-        .sort((a, b) => Number(b.split('-').at(-1)) - Number(a.split('-').at(-1))) : []
-    for (const shell of shells) {
-        for (const arch of ['arm64', 'x64']) {
-            const path = join(cache, shell, `chrome-headless-shell-mac-${arch}`, 'chrome-headless-shell')
-            if (existsSync(path)) return path
-        }
-    }
-    throw new Error('no cached headless Chrome found; set CHROME')
-}
 
 const left = {chrome: null, profile: null, server: null, sockets: new Set()}
 const exited = child => child.exitCode !== null || child.signalCode !== null
@@ -76,7 +63,9 @@ const startServer = async () => {
                 return
             }
             const content = readFileSync(file)
-            response.writeHead(200, {'Content-Type': types[extname(file)] ?? 'application/octet-stream'})
+            response.writeHead(200, {'Content-Type': types[extname(file)] ?? 'application/octet-stream',
+                'Cross-Origin-Opener-Policy': 'same-origin',
+                'Cross-Origin-Embedder-Policy': 'require-corp'})
                 .end(content)
         } catch {
             response.writeHead(404).end()
@@ -98,27 +87,9 @@ const startChrome = async () => {
         '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1', 'about:blank'
     ], {stdio: ['ignore', 'ignore', 'pipe']})
     left.chrome = chrome
-    let error
-    let said = ''
-    chrome.on('error', value => { error = value })
-    chrome.stderr.on('data', data => { said = (said + data).slice(-2000) })
-    const deadline = Date.now() + 10000
-    while (Date.now() < deadline) {
-        if (error) throw error
-        if (exited(chrome)) throw new Error(`Chrome exited during startup: ${said}`)
-        const active = join(left.profile, 'DevToolsActivePort')
-        const port = existsSync(active) ? readFileSync(active, 'utf8').split('\n')[0] : ''
-        if (/^\d+$/.test(port)) {
-            const devtools = `http://127.0.0.1:${port}`
-            try {
-                const version = await (await fetch(`${devtools}/json/version`)).json()
-                console.log(`browser ${mode}: ${version.Browser}`)
-                return devtools
-            } catch {}
-        }
-        await delay(50)
-    }
-    throw new Error(`Chrome startup timed out: ${said}`)
+    const {devtools, version} = await waitForChrome(chrome, left.profile)
+    console.log(`browser ${mode}: ${version.Browser}`)
+    return devtools
 }
 
 // Installed before any program code; only page calls are recorded, not driver polling.
@@ -215,10 +186,12 @@ const openPage = async (devtools, base, program, variant) => {
         await send('Page.addScriptToEvaluateOnNewDocument', {source: 'delete WebAssembly.Suspending'})
     }
     const observer = mode === 'idle' ? observeIdle : observeTurns
-    if (mode !== 'loader') {
+    if (mode !== 'loader' && mode !== 'workers') {
         await send('Page.addScriptToEvaluateOnNewDocument', {source: `(${observer.toString()})()`})
     }
-    await send('Page.navigate', {url: `${base}/page.html?manifest=/build/${program}.variants.json`})
+    await send('Page.navigate', {url: mode === 'workers'
+        ? `${base}/worker_page.html?script=/build/${program}&variant=${variant}`
+        : `${base}/page.html?manifest=/build/${program}.variants.json`})
     const snapshot = async () => {
         const result = await send('Runtime.evaluate', {
             expression: '({report: window.report, timers: window.timers, turns: window.turns})',
@@ -278,13 +251,26 @@ const renderStats = ({report, turns}, limited) => {
 try {
     const base = await startServer()
     const devtools = await startChrome()
-    for (const variant of ['jspi', 'asyncify']) {
+    for (const variant of mode === 'workers' ? [workerVariant] : ['jspi', 'asyncify']) {
         const programs = mode === 'render' ? ['render_program', 'render_unlimited_program']
-            : [mode === 'idle' ? 'idle_program' : 'page_program']
+            : [mode === 'workers' ? resolve(args[2]).split(sep).at(-1)
+                : mode === 'idle' ? 'idle_program' : 'page_program']
         for (const program of programs) {
             const page = await openPage(devtools, base, program, variant)
             try {
-                if (mode === 'loader') {
+                if (mode === 'workers') {
+                    const {report} = await page.waitFor(/^(worker .* complete|cobalt: thread coroutine completed and joined)$/)
+                    assert.equal(report.status, 0, JSON.stringify(report))
+                    assert.equal(report.isolated, true)
+                    if (!program.includes('cobalt') && !program.includes('worker_return') &&
+                        !program.includes('move_failure')) {
+                        const worker = !program.includes('_main-')
+                        assert.ok(report.polls.some(poll => poll.worker === worker && poll.timeout > 0),
+                            `missing ${worker ? 'original worker proxy' : 'main adapter'} wait: ${JSON.stringify(report.polls)}`)
+                    }
+                    console.log(`workers ${variant}: ${program} completed with status 0`)
+                    for (const warning of report.warnings) console.log(`SDK notice: ${warning}`)
+                } else if (mode === 'loader') {
                     const {report} = await page.waitFor(/^ran 3 handlers$/)
                     assert.deepEqual(report.lines.map(entry => entry.line), ['ran 3 handlers'])
                     console.log(`loader ${variant}: ran 3 handlers`)

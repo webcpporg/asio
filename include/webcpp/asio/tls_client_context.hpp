@@ -7,18 +7,19 @@
 #ifndef WEBCPP_ASIO_TLS_CLIENT_CONTEXT_HPP
 #define WEBCPP_ASIO_TLS_CLIENT_CONTEXT_HPP
 
+#include <webcpp/asio/config.hpp>
+
 #include <boost/system/result.hpp>
 #include <string>
 #include <string_view>
-#include <webcpp/asio/config.hpp>
 #include <webcpp/asio/ssl.hpp>
 
-#ifndef __EMSCRIPTEN__
+#ifndef WEBCPP_TARGET_EMSCRIPTEN
 #include <openssl/pem.h>
 #include <openssl/x509v3.h>
 #include <limits>
 #include <memory>
-#include <webcpp_ca_certificates.hpp>
+#include <webcpp/asio/detail/ca_certificates.hpp>
 #endif
 
 namespace webcpp::asio {
@@ -36,6 +37,10 @@ namespace detail {
 /** The stable category for TLS context preparation failures. */
 class tls_context_category final : public boost::system::error_category {
 public:
+    /** Keeps error identity across hidden shared-library boundaries. */
+    constexpr tls_context_category() noexcept
+        : boost::system::error_category(0x6173696f2e746c73ULL) {}
+
     /** Returns the category name. */
     const char* name() const noexcept override { return "webcpp.asio.tls"; }
 
@@ -56,6 +61,10 @@ public:
 
 /**
  Converts a TLS context preparation error to its stable error code.
+
+ Category equality is stable across native shared-library boundaries, including
+ hidden visibility. The library defining a returned category must remain loaded
+ while a caller uses the error code or its category's virtual functions.
  @param value The context preparation error.
  @return The corresponding code in the webcpp.asio.tls category.
 */
@@ -67,7 +76,7 @@ inline boost::system::error_code make_error_code(tls_context_error value) noexce
 /**
  Creates a verifying TLS client context trusting only the supplied authorities.
 
- Native and WASIp3 contexts require TLS 1.2 or newer and enable peer verification.
+ Native and WASIp2/P3 contexts require TLS 1.2 or newer and enable peer verification.
  Input consists of one or more PEM CA certificates separated only by whitespace.
  The certificates are copied into an independent OpenSSL store; input need not
  outlive this call. No system or bundled roots are added. No context is returned
@@ -79,7 +88,7 @@ inline boost::system::error_code make_error_code(tls_context_error value) noexce
  @see "How-to: configure trusted certificate authorities", in the guide.
 */
 inline boost::system::result<ssl::context> make_tls_client_context(std::string_view ca_pem) {
-#ifdef __EMSCRIPTEN__
+#ifdef WEBCPP_TARGET_EMSCRIPTEN
     (void)ca_pem;
     return make_error_code(tls_context_error::unsupported_target);
 #else
@@ -112,7 +121,9 @@ inline boost::system::result<ssl::context> make_tls_client_context(std::string_v
             return make_error_code(tls_context_error::invalid_ca_bundle);
         }
         const auto length = finish + end.size();
-        if (length > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+        // Parentheses prevent the Windows max macro from expanding this function name.
+        // NOLINTNEXTLINE(readability-redundant-parentheses)
+        if (length > static_cast<std::size_t>((std::numeric_limits<int>::max)())) {
             return make_error_code(tls_context_error::invalid_ca_bundle);
         }
         const std::unique_ptr<BIO, decltype(&BIO_free)> input(
@@ -156,10 +167,10 @@ inline boost::system::result<ssl::context> make_tls_client_context(std::string_v
  @see "How-to: configure trusted certificate authorities", in the guide.
 */
 inline boost::system::result<ssl::context> make_tls_client_context() {
-#ifdef __EMSCRIPTEN__
+#ifdef WEBCPP_TARGET_EMSCRIPTEN
     return make_error_code(tls_context_error::unsupported_target);
 #else
-    return make_tls_client_context(webcpp::detail::ca_certificates::pem);
+    return make_tls_client_context(webcpp::asio::detail::ca_certificates::pem);
 #endif
 }
 }  // namespace webcpp::asio

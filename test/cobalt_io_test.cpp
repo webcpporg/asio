@@ -24,6 +24,13 @@ namespace io = cobalt::io;
 
 namespace {
 
+// GCC 14 misidentifies Cobalt's placement coroutine allocation and sized delete.
+// Both use the resource stored before the frame; GCC 15 accepts these functions.
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ == 14
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmismatched-new-delete"
+#endif
+
 cobalt::promise<void> accept_client(io::acceptor& listener, io::stream_socket& peer) {
     const auto [error] = co_await cobalt::as_tuple(listener.accept(peer));
     BOOST_TEST(!error);
@@ -47,6 +54,10 @@ cobalt::task<void> refused_connection(const cobalt::executor& exec) {
     BOOST_TEST_EQ(error,
                   boost::asio::error::make_error_code(boost::asio::error::connection_refused));
 }
+
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ == 14
+#pragma GCC diagnostic pop
+#endif
 
 }  // namespace
 
@@ -122,12 +133,8 @@ cobalt::main co_main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
     io::resolver resolver(exec);
     const auto [resolve_error, endpoints] = co_await cobalt::as_tuple(
         resolver.resolve("127.0.0.1", "443", io::resolver::flags::numeric_host));
-#if defined(__wasip3__) && !defined(BOOST_ASIO_HAS_THREADS)
-    BOOST_TEST(resolve_error == boost::asio::error::operation_not_supported);
-#else
     BOOST_TEST(!resolve_error);
     BOOST_TEST(!endpoints.empty());
-#endif
     watchdog.cancel();
     std::puts("cobalt: compiled I/O, task, TCP, UDP, cancellation, EOF and resolver checked");
     co_return webcpp::test::exit_status(boost::report_errors());

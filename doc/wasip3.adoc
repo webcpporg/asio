@@ -13,7 +13,7 @@ choosing a profile; it records the restrictions that still differ from native.
 
 === Prerequisites
 
-Use Boost 1.92.0, wasi-sdk 34.0 and Wasmtime 49.0.3 for the configuration verified
+Use Boost 1.92.0, wasi-sdk 34.0 and Wasmtime 50.0.1 for the configuration verified
 here. The port pins the exact input headers: a newer or modified Boost requires
 rebasing the patch and rerunning the tests. It is not accepted silently.
 WASIp3 and cooperative threads require runtime support; the previously installed
@@ -69,11 +69,15 @@ and the matching SDK's common libc{plus}{plus} headers. This is an experimental 
 not a promise of CPU parallelism. In the tested SDK, requesting exceptions in
 this profile fails at configuration with a message naming the missing runtime.
 
-The test launcher is for local verification: it enables WASIp3 asynchronous
+The test launcher is for local and CI verification: it enables WASIp3 asynchronous
 components and cooperative-thread support, grants host network and name-lookup
-access for the loopback tests, and bounds execution to 15 seconds. Enabling a
-runtime feature does not create threads in a single-thread binary. Production
-applications should choose their own timeout and network capabilities.
+access for the loopback tests, and bounds each guest's execution to 600 seconds.
+The global lane also runs large finite document and Unicode workloads. Set
+`WEBCPP_WASIP3_TEST_TIMEOUT` to a positive integer number of seconds to choose
+another bound, for example `WEBCPP_WASIP3_TEST_TIMEOUT=15` for focused loopback
+tests. Invalid or zero bounds fail before launch. Enabling a runtime feature
+does not create threads in a single-thread binary. Production applications
+should choose their own timeout and network capabilities.
 
 === Reproduce the local verification
 
@@ -107,11 +111,12 @@ python3 tools/test/cobalt_wasip3_test.py
 ports, tests timer and socket cancellation, scatter/gather TCP, and TCP EOF.
 `wasi_core_threads` adds a cross-thread post into a reactor with a pending timer
 and two runners sharing a context. `wasi_contract` checks empty datagrams,
-unsupported vectored UDP receive without consuming data, IPv6 numeric scopes, socket
+vectored UDP receive with datagram truncation, IPv6 numeric scopes, socket
 option errors and resolver behavior. `wasi_coroutine` waits for a timer using
 Boost.Asio's `co_spawn` and `awaitable` with result-based error handling.
 The existing run-family and timer tests also run on WASIp3.
-`wasi_udp_gather` checks synchronous and asynchronous multi-buffer `send_to`,
+`wasi_udp_gather` and `capability_wasi/datagrams` check synchronous and asynchronous
+multi-buffer sends and receives,
 including complete sequences beyond 64 buffers, allocation routing, empty
 datagrams, oversized input and release of storage before completion.
 
@@ -154,7 +159,7 @@ wrappers, refused TCP connections, TCP/UDP cancellation, EOF and result-based
 resolver behavior.
 
 The `libs/asio/test//cobalt_wasip3` lane checks successful and unsuccessful
-command completion with an exact-status driver. Put Wasmtime 49.0.3 on `PATH`,
+command completion with an exact-status driver. Put Wasmtime 50.0.1 on `PATH`,
 or set `WASMTIME` to its executable for that driver. The SDK maps nonzero
 coroutine returns to host status 1.
 
@@ -178,4 +183,4 @@ local test commands are described in <<asio-cobalt-ssl>>.
 The underlying platform contracts are documented by
 https://github.com/WebAssembly/wasi-sdk/blob/main/CoopThreading.md[wasi-sdk's cooperative-thread guide]
 and the
-https://github.com/bytecodealliance/wasmtime/releases/tag/v49.0.3[Wasmtime release used here].
+https://github.com/bytecodealliance/wasmtime/releases/tag/v50.0.1[Wasmtime release used here].

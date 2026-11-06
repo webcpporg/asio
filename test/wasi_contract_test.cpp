@@ -57,16 +57,16 @@ int main() {
     const auto sent = sender.send_to(pieces, receiver.local_endpoint(), 0, error);
     BOOST_TEST_EQ(error, boost::system::error_code{});
     BOOST_TEST_EQ(sent, 2U);
-#ifdef __wasip3__
-    // A refused vectored receive must not consume even the first byte.
+#if defined(__wasip2__) || defined(__wasip3__)
+    // Scatter the same datagram across every nonempty output buffer.
     const std::array<asio::mutable_buffer, 2> outputs{
         asio::buffer(data.data(), 1),
         asio::buffer(data.data() + 1, 1),
     };
-    BOOST_TEST_EQ(receiver.receive_from(outputs, peer, 0, error), 0U);
-    BOOST_TEST_EQ(error, asio::error::operation_not_supported);
-#endif
+    BOOST_TEST_EQ(receiver.receive_from(outputs, peer, 0, error), 2U);
+#else
     BOOST_TEST_EQ(receiver.receive_from(asio::buffer(data), peer, 0, error), 2U);
+#endif
     BOOST_TEST_EQ(error, boost::system::error_code{});
     BOOST_TEST(std::string(data.data(), 2) == "ab");
 
@@ -78,7 +78,7 @@ int main() {
     BOOST_TEST_EQ(error, boost::system::error_code{});
     BOOST_TEST_EQ(data[0], 'z');
 
-#ifdef __wasip3__
+#if defined(__wasip2__) || defined(__wasip3__)
     // Empty buffers must not hide payload beyond Asio's native iovec limit.
     std::array<asio::const_buffer, 65> distant{};
     distant.front() = asio::buffer("a", 1);
@@ -99,19 +99,16 @@ int main() {
     std::array<asio::mutable_buffer, 65> distant_outputs{};
     distant_outputs.front() = asio::buffer(data.data(), 1);
     distant_outputs.back() = asio::buffer(data.data() + 1, 1);
-    BOOST_TEST_EQ(receiver.receive_from(distant_outputs, peer, 0, error), 0U);
-    BOOST_TEST_EQ(error, asio::error::operation_not_supported);
-    if (error == asio::error::operation_not_supported) {
-        BOOST_TEST_EQ(receiver.receive_from(asio::buffer(data), peer), 2U);
-        BOOST_TEST(std::string(data.data(), 2) == "ab");
-    }
+    BOOST_TEST_EQ(receiver.receive_from(distant_outputs, peer, 0, error), 2U);
+    BOOST_TEST_EQ(error, boost::system::error_code{});
+    BOOST_TEST(std::string(data.data(), 2) == "ab");
 #endif
 
     // Both connected scalar and vectored empty operations keep UDP semantics.
     sender.connect(receiver.local_endpoint());
     BOOST_TEST_EQ(sender.send(asio::const_buffer{}, 0, error), 0U);
     BOOST_TEST_EQ(error, boost::system::error_code{});
-#ifdef __wasip3__
+#if defined(__wasip2__) || defined(__wasip3__)
     BOOST_TEST_EQ(receiver.receive_from(asio::mutable_buffer{}, peer, 0, error), 0U);
 #else
     // macOS may return from a zero-capacity receive before consuming a packet.
@@ -119,19 +116,19 @@ int main() {
 #endif
     BOOST_TEST_EQ(error, boost::system::error_code{});
     const std::array<asio::const_buffer, 2> empty_inputs{};
-#ifdef __wasip3__
+#if defined(__wasip2__) || defined(__wasip3__)
     const std::array<asio::mutable_buffer, 2> empty_outputs{};
 #endif
     BOOST_TEST_EQ(sender.send(empty_inputs, 0, error), 0U);
     BOOST_TEST_EQ(error, boost::system::error_code{});
-#ifdef __wasip3__
+#if defined(__wasip2__) || defined(__wasip3__)
     BOOST_TEST_EQ(receiver.receive_from(empty_outputs, peer, 0, error), 0U);
 #else
     BOOST_TEST_EQ(receiver.receive_from(asio::buffer(data), peer, 0, error), 0U);
 #endif
     BOOST_TEST_EQ(error, boost::system::error_code{});
 
-#ifdef __wasip3__
+#if defined(__wasip2__) || defined(__wasip3__)
     receiver.non_blocking(true);
     BOOST_TEST_EQ(receiver.receive_from(asio::buffer(data), peer, 0, error), 0U);
     BOOST_TEST(error == asio::error::would_block || error == asio::error::try_again);
@@ -153,7 +150,7 @@ int main() {
     context.run();  // lint-run: complete cancellation through the executor
     BOOST_TEST_EQ(cancelled, 1);
 
-#ifdef __wasip3__
+#if defined(__wasip2__) || defined(__wasip3__)
     tcp::socket socket(context, tcp::v4());
     BOOST_TEST_EQ(socket.set_option(asio::socket_base::linger(true, 1), error),
                   asio::error::operation_not_supported);
@@ -179,13 +176,8 @@ int main() {
     resolver.async_resolve(
         "localhost", "80",
         [&](boost::system::error_code ec, const tcp::resolver::results_type& addresses) {
-#if defined(__wasip3__) && !defined(BOOST_ASIO_HAS_THREADS)
-            BOOST_TEST_EQ(ec, asio::error::operation_not_supported);
-            BOOST_TEST(addresses.empty());
-#else
             BOOST_TEST_EQ(ec, boost::system::error_code{});
             BOOST_TEST(!addresses.empty());
-#endif
             ++resolved;
         });
     BOOST_TEST_EQ(resolved, 0);

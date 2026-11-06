@@ -113,7 +113,7 @@ void test_tcp() {
     context.run();  // lint-run: drive both peers without an external server
     BOOST_TEST_EQ(exchanged, 2);
 
-#ifdef __wasip3__
+#if defined(__wasip2__) || defined(__wasip3__)
     // A long empty prefix must not turn a stream operation into a no-op.
     context.restart();
     std::array<asio::const_buffer, 65> late_input{};

@@ -4,7 +4,7 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // https://www.boost.org/LICENSE_1_0.txt)
 
-= asio: Boost.Asio in the browser's event loop for {cpp}
+= asio: Boost.Asio and Cobalt for {cpp} and WebAssembly
 :toc: left
 :toclevels: 1
 :idprefix:
@@ -21,8 +21,11 @@ lacks there, the configuration Asio needs to build, what wakes `run` from a
 browser event, and a limit on the handlers one turn runs, so that the page
 keeps rendering.
 
-WASIp3 additionally provides timers and plain TCP/UDP, with single-thread and
-experimental cooperative-thread profiles. See <<asio-capabilities>> for their
+WASIp2 provides single-threaded timers, TCP/UDP, pollable-driven forward DNS,
+supplied CLI streams, Cobalt and optional source-built TLS.
+See <<asio-wasip2>> for its explicit limitations.
+WASIp3 provides timers, TCP/UDP, waitable-driven forward DNS, Cobalt and the same
+optional TLS provider, with single-thread and experimental cooperative-thread profiles. See <<asio-capabilities>> for their
 limits and the features available in each target variant.
 
 [#asio-reading]
@@ -53,6 +56,8 @@ include::capabilities.adoc[]
 
 include::building.adoc[]
 
+include::wasip2.adoc[]
+
 include::wasip3.adoc[]
 
 include::run.adoc[]
@@ -79,3 +84,5 @@ include::testing.adoc[]
 == Reference
 
 include::{reference}[leveloffset=+1]
+
+include::changelog.adoc[]

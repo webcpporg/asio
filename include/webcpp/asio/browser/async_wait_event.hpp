@@ -7,6 +7,13 @@
 #ifndef WEBCPP_ASIO_BROWSER_ASYNC_WAIT_EVENT_HPP
 #define WEBCPP_ASIO_BROWSER_ASYNC_WAIT_EVENT_HPP
 
+#include <webcpp/asio/config.hpp>
+
+#if !WEBCPP_ASIO_HAS_BROWSER_BRIDGE
+#error \
+    "webcpp::asio::browser::async_wait_event requires the Emscripten browser bridge; use native/WASI Asio operations on this target"
+#else
+
 #include <boost/asio/any_io_executor.hpp>  // lint-world: the operation's executor
 #include <boost/asio/append.hpp>  // lint-world: preserve handler associations when posting values
 #include <boost/asio/associated_allocator.hpp>  // lint-world: operation storage belongs to its handler
@@ -23,7 +30,6 @@
 #include <type_traits>
 #include <utility>
 #include <webcpp/asio/browser/bridge.hpp>
-#include <webcpp/asio/config.hpp>
 
 namespace webcpp::asio::browser {
 namespace detail {
@@ -177,4 +183,5 @@ auto async_wait_event(const Executor& executor, emscripten::val target, std::str
 }
 }  // namespace webcpp::asio::browser
 
+#endif  // WEBCPP_ASIO_HAS_BROWSER_BRIDGE
 #endif  // WEBCPP_ASIO_BROWSER_ASYNC_WAIT_EVENT_HPP

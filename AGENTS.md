@@ -127,9 +127,10 @@ Task 16 supplies `/webcpp/asio//cobalt`: Cobalt's ordinary `co_main` runs on
 webcpp's context. The adapter replaces both `main_promise::run_main` and
 `final_suspend` from Boost 1.92's main.cpp. Do not link the original runner
 beside it. The source target's issue 287 warning still applies without exceptions.
-Clang additionally diagnoses Boost's missing unhandled_exception member in that
-mode; the integration suppresses only that diagnostic for exception-free
-Clang/Emscripten consumers, without changing exception handling.
+The checked Cobalt common overlay supplies the required unhandled_exception
+promise member when exceptions are disabled. Its unreachable exception path
+calls std::terminate, without enabling exception handling or suppressing a
+compiler diagnostic.
 
 The Cobalt stack probe measures real Asyncify unwinds from the runner through
 the yield, a Cobalt timer wait and an Asio timer wait. The timer waits cannot
@@ -163,7 +164,26 @@ cancellation machinery. Automatic SIGINT/SIGTERM cancellation is unavailable;
 host-driven graceful shutdown requires a separate application protocol.
 The runner-only compile test is supplemented by public-target runtime tests:
 `cobalt_wasi`, `cobalt_network_wasi`, `cobalt_io`, the `cobalt_wasip3` status
-lane and explicit `cobalt_thread` in the cooperative profile.
+lane and the recurring `threads` lane in the cooperative profile.
+
+## WASIp2 port
+
+The owner approved P2 Asio core and supplied-stream WebSocket on 2026-11-03.
+`/webcpp/asio//asio` supports `threading=single`, EH on/off, through the shared
+checked Boost overlay. P2 now also supplies the source-built OpenSSL/CA targets,
+Cobalt and its SSL wrapper; preserve their dedicated EH-on/off peer and
+cancellation tests in `test/wasip2_tls_cobalt`. P2 threading remains unavailable
+in the pinned SDK. Never infer new feature support from core support alone.
+The P2 reactor reuses libc select/poll and omits the unavailable pipe interrupter.
+`tools/boost/asio-wasip2` owns the checked SDK 34.0 private descriptor-table bridge
+and the asynchronous DNS extension. Revalidate its libc ABI before changing SDKs.
+Preserve deferred initiation, handler associations, operation cancellation and
+resource cleanup. DNS must not start a worker or block inside async initiation.
+The P2 CLI stream requests output flush before switching protocol direction;
+keep the real large-frame regression. Cancellation cannot preempt blocking host
+imports. Run `libs/asio/test/wasip2` and its `supplied-stream` lane in both exception
+profiles, plus native/P3 regressions. Keep the feature matrix and AsciiDoc guide
+consistent with actual runtime evidence.
 
 ## WASIp3 port
 
@@ -175,18 +195,23 @@ patch and its hash manifest explicitly when changing Boost versions.
 `threading=single` disables Asio threads and accepts exceptions on/off.
 `threading=multi` selects wasi-sdk's experimental cooperative sysroot with
 `-pthread`; SDK 34.0 provides only its no-exceptions C++ runtime. Use Wasmtime
-49.0.3 for the recorded local tests; 47.0.3 cannot load the cooperative binary.
+50.0.1, the project-wide runtime; earlier tests found that 47.0.3 cannot load
+the cooperative binary.
 Cooperative threads do not promise CPU parallelism.
 
 Preserve datagram boundaries: WASIp3 `send_to` and `async_send_to` concatenate
 multiple nonempty UDP buffers into one datagram until wasi-libc provides
 `sendmsg`. Gather before Asio's native iovec limit, use the context allocator
 for synchronous storage and the handler's associated allocator for asynchronous
-storage, and release operation storage before invoking the handler. Multiple
-nonempty receive buffers and connected `send`/`async_send` remain unsupported.
-The scalar/empty-buffer path must work without heap scratch buffers. TCP
-partial transfers remain valid. Single-thread async DNS posts an unsupported
-result; it must not try to construct a null thread or abort initiation.
+storage, and release operation storage before invoking the handler. Connected
+`send`/`async_send` use the same gather path; multi-buffer receives scatter one
+received datagram, retaining truncation semantics. The scalar/empty-buffer path
+must work without heap scratch buffers. TCP partial transfers remain valid.
+Both P3 thread profiles use native asynchronous DNS and the checked private
+waitable-descriptor bridge. Never block initiation or use a polling timer for
+lookup progress. Validate the SDK/libc ABI snapshot before using the bridge.
+Keep deferred initiation, cancellation, associated executors and allocator
+release-before-callback witnesses in `test/capability_wasi`.
 
 Keep `doc/capabilities.adoc` current for every feature/target/variant change.
 `/webcpp/asio//cobalt` supports WASIp3 through the superproject's checked
@@ -233,3 +258,51 @@ Run `tools/ca_certificates/run.py --fresh` locally for the native/WASIp3 matrix.
 Its WASIp3 clients have no certificate filesystem grants. Preserve that witness.
 Embedded updates require rebuilding and redeploying. Do not silently download
 roots during builds or runtime, or present a PEM export as Firefox's full policy.
+
+## Windows context-owned thread allocations
+
+The checked Boost 1.92 overlay in tools/boost/asio-windows forwards the context
+allocator into both IOCP-owned thread constructors, including the lazily started
+timer thread. It is selected only for target-os=windows and reaches compiled
+Cobalt sources as well as consumers. Keep its original and patched byte hashes
+pinned. Do not replace the allocation regression with a warm-up or an allowance
+for extra global allocations.
+
+## Joint Asio and Beast closure
+
+Preserve deferred initiation and owning resolver input lifetimes. Resolver host
+and service storage uses the initiating token's associated allocator; an allocator
+bound only when a deferred operation is launched cannot retroactively own that
+captured storage. Keep the positive controls for unbound handlers and runtime
+allocation attribution; never replace them with a permitted allocation count.
+
+The owner clarified on 2026-11-03 that Asio and Beast are intended foundations
+for a later Trystero migration. Never ban their combination to avoid a dependency
+conflict. All native consumers, including libdatachannel, use the same pinned
+source-built OpenSSL provider. Trystero's current native backend requires threads.
+
+The `tls-integration` own lane runs real native and WASIp3 TLS peers, state and
+cancellation checks. The native `openssl-upstream` lane additionally requests
+`webcpp-openssl-tests=on` to test the exact source-built archives before use.
+OpenSSL's native Perl harness is not evidence for its WASI configuration.
+
+Use the repository's `webcpp-documentation` skill for Diataxis organization,
+AsciiDoc and generated MrDocs reference. The maintained `doc/changelog.adoc`
+is the final appendix; never edit generated reference or matrix files by hand.
+
+## Capability completion and browser workers (2026-11-03)
+
+`config.hpp` owns read-only numeric `WEBCPP_ASIO_HAS_*` capabilities. Optional
+`WEBCPP_ASIO_REQUIRE_*` switches assert compile-visible requirements without
+banning portable headers. Selected `WEBCPP_ASIO_HAS_OPENSSL=1` remains distinct
+from platform `HAS_OPENSSL_BACKEND`. Runtime network grants, TLS identities,
+page isolation and blocking host imports are not compile-time facts.
+
+Emscripten explicitly supports S and M with JSPI/Asyncify and both EH choices.
+Only S disables Asio threads. The M poll wrapper preserves suspension on the
+actual main thread; do not silently enable PROXY_TO_PTHREAD. Run a browser
+context only on its creator thread, post between threads, and keep DOM values
+on main. `browser::main_thread_context` callbacks are nonsuspending. Its context
+must outlive executor calls. See the public worker guide and the real-browser
+`browser-workers` lane. The versioned raw pthread-return probe documents the
+pinned Asyncify SDK limitation; it is not a passing feature test.

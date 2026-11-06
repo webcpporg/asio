@@ -5,10 +5,22 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 #include <openssl/ssl.h>
 #include <boost/core/lightweight_test.hpp>
+#include <boost/system/result.hpp>
+#include <limits>
 #include <string>
 #include <string_view>
-#include <webcpp/asio/tls_client_context.hpp>
+#include <webcpp/asio/ssl.hpp>
 #include <webcpp/test/exit_status.hpp>
+
+// Windows callers can define this before including the public TLS factory.
+#ifdef max
+#undef max
+#endif
+// The lowercase name reproduces the Windows SDK macro.
+// NOLINTNEXTLINE(readability-identifier-naming)
+#define max(left, right) ((left) > (right) ? (left) : (right))
+#include <webcpp/asio/tls_client_context.hpp>
+#undef max
 
 int main() {
     auto defaults = webcpp::asio::make_tls_client_context();
@@ -22,10 +34,10 @@ int main() {
     const auto* roots = X509_STORE_get0_objects(SSL_CTX_get_cert_store(handle));
     BOOST_TEST_GT(sk_X509_OBJECT_num(roots), 1);
     BOOST_TEST_EQ(static_cast<std::size_t>(sk_X509_OBJECT_num(roots)),
-                  webcpp::detail::ca_certificates::count);
+                  webcpp::asio::detail::ca_certificates::count);
 
     // Supplying one authority must replace, not append to, public trust.
-    const std::string_view pem = webcpp::detail::ca_certificates::pem;
+    const std::string_view pem = webcpp::asio::detail::ca_certificates::pem;
     constexpr std::string_view end = "-----END CERTIFICATE-----";
     const auto first = pem.substr(0, pem.find(end) + end.size());
     auto replacement = webcpp::asio::make_tls_client_context(first);
