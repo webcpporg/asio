@@ -13,16 +13,16 @@
 
 #include <webcpp/asio/io_context.hpp>
 
-#include "asyncify_watch.hpp"
+#include <webcpp/test/asyncify_watch.hpp>
 
 #include <webcpp/test/exit_status.hpp>
 
 #include <emscripten/em_asm.h>
 #include <emscripten/em_js.h>
 #include <emscripten/eventloop.h>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/executor_work_guard.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <chrono>
 #include <cstddef>
@@ -38,7 +38,7 @@ using webcpp::test::measure;
 /** A context held by work that only a JavaScript macrotask can release, after run waits. */
 struct reactor_wait {
     webcpp::asio::io_context io;
-    boost::asio::executor_work_guard<webcpp::asio::io_context::executor_type> guard{
+    webcpp::asio::executor_work_guard<webcpp::asio::io_context::executor_type> guard{
         io.get_executor()};
     bool fired = false;
     int timeout;
@@ -47,7 +47,7 @@ struct reactor_wait {
         : timeout(emscripten_set_timeout(
               [](void* address) {
                   auto* state = static_cast<reactor_wait*>(address);
-                  boost::asio::post(state->io, [state] {
+                  webcpp::asio::post(state->io, [state] {
                       state->fired = true;
                       state->guard.reset();
                   });
@@ -76,8 +76,8 @@ struct yield_once {
     std::size_t ran = 0;
 
     yield_once() {
-        boost::asio::post(io, [this] { ++ran; });
-        boost::asio::post(io, [this] { ++ran; });
+        webcpp::asio::post(io, [this] { ++ran; });
+        webcpp::asio::post(io, [this] { ++ran; });
     }
 };
 

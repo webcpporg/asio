@@ -13,11 +13,11 @@
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/bind_allocator.hpp>
-#include <boost/asio/deferred.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <boost/throw_exception.hpp>
+#include <webcpp/asio/bind_allocator.hpp>
+#include <webcpp/asio/deferred.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <array>
 #include <atomic>
@@ -618,10 +618,10 @@ void resolver_inputs_use_the_associated_allocator() {
         names.async_resolve(
             "a-host-name-longer-than-small-string-storage.example.com",
             "an-unsupported-service-longer-than-small-string-storage",
-            boost::asio::bind_allocator(
+            webcpp::asio::bind_allocator(
                 counted<void>(&given),
                 [&](boost::system::error_code ec, const resolver::results_type& results) {
-                    correct = ec == boost::asio::error::service_not_found && results.empty();
+                    correct = ec == webcpp::asio::error::service_not_found && results.empty();
                     ++completions;
                 }));
         names.cancel();
@@ -642,7 +642,7 @@ void resolver_inputs_use_the_associated_allocator() {
         const allocation_window window;
         return names.async_resolve(
             host, service,
-            boost::asio::bind_allocator(counted<void>(&given), boost::asio::deferred));
+            webcpp::asio::bind_allocator(counted<void>(&given), webcpp::asio::deferred));
     }();
     report("resolver deferred captures", given - before);
     // No result entry exists yet: Boost's result storage would allocate globally.
@@ -676,8 +676,8 @@ public:
         : io_(io), given_(given), received_(received) {}
 
     bool deliver(const emscripten::val& /*event*/) override {
-        boost::asio::post(
-            io_, boost::asio::bind_allocator(counted<void>(given_), [this] { ++*received_; }));
+        webcpp::asio::post(
+            io_, webcpp::asio::bind_allocator(counted<void>(given_), [this] { ++*received_; }));
         return false;
     }
 
@@ -691,7 +691,7 @@ private:
 #endif
 
 // tag::supplied-allocator[]
-void the_user_s_allocator_takes_everything() {
+void context_operations_use_the_supplied_allocator() {
     std::size_t given = 0;
     std::size_t posted = 0;
     std::size_t timed = 0;
@@ -708,25 +708,25 @@ void the_user_s_allocator_takes_everything() {
         webcpp::asio::io_context io(std::allocator_arg, counted<void>(&given));
         webcpp::asio::steady_timer timer(io, std::chrono::milliseconds(5));
         timer.async_wait(
-            boost::asio::bind_allocator(counted<void>(&given), [&](boost::system::error_code ec) {
+            webcpp::asio::bind_allocator(counted<void>(&given), [&](boost::system::error_code ec) {
                 ++timed;
                 timer_succeeded = !ec;
             }));
         for (std::size_t i = 0; i < 10; ++i) {
-            boost::asio::post(
-                io, boost::asio::bind_allocator(counted<void>(&given), [&posted] { ++posted; }));
+            webcpp::asio::post(
+                io, webcpp::asio::bind_allocator(counted<void>(&given), [&posted] { ++posted; }));
         }
 #ifdef __EMSCRIPTEN__
         webcpp::asio::ip::tcp::socket socket(io);
         socket.async_connect(
-            {boost::asio::ip::address_v4::loopback(), 80},
-            boost::asio::bind_allocator(counted<void>(&given), [&](boost::system::error_code ec) {
+            {webcpp::asio::ip::address_v4::loopback(), 80},
+            webcpp::asio::bind_allocator(counted<void>(&given), [&](boost::system::error_code ec) {
                 ++connected;
                 values_correct =
-                    values_correct && ec == boost::asio::error::operation_not_supported;
+                    values_correct && ec == webcpp::asio::error::operation_not_supported;
             }));
         counted_registration listener(io, &given, &received);
-        auto& bridge = boost::asio::use_service<webcpp::asio::browser::bridge>(io);
+        auto& bridge = webcpp::asio::use_service<webcpp::asio::browser::bridge>(io);
         const std::uint64_t key = bridge.add(listener);
         const emscripten::val deliver = bridge.function(key);
         deliver(1);
@@ -734,11 +734,11 @@ void the_user_s_allocator_takes_everything() {
         const auto target = emscripten::val::global("EventTarget").new_();
         webcpp::asio::browser::async_wait_event(
             io.get_executor(), target, "message",
-            boost::asio::bind_allocator(counted<void>(&given),
-                                        [&](boost::system::error_code ec, const emscripten::val&) {
-                                            values_correct = values_correct && !ec;
-                                            ++events;
-                                        }));
+            webcpp::asio::bind_allocator(counted<void>(&given),
+                                         [&](boost::system::error_code ec, const emscripten::val&) {
+                                             values_correct = values_correct && !ec;
+                                             ++events;
+                                         }));
         target.call<bool>("dispatchEvent",
                           emscripten::val::global("Event").new_(emscripten::val("message")));
         for (const bool rejected : {false, true}) {
@@ -746,7 +746,7 @@ void the_user_s_allocator_takes_everything() {
                 rejected ? "reject" : "resolve", 42);
             webcpp::asio::browser::async_await(
                 io.get_executor(), promise,
-                boost::asio::bind_allocator(
+                webcpp::asio::bind_allocator(
                     counted<void>(&given),
                     [&, rejected](boost::system::error_code ec, const emscripten::val& value) {
                         ++promised;
@@ -773,7 +773,16 @@ void the_user_s_allocator_takes_everything() {
     BOOST_TEST(values_correct);
 #endif
     BOOST_TEST_GT(given, 0U);
+#if defined(WEBCPP_TARGET_NATIVE) && defined(BOOST_ASIO_HAS_IOCP)
+    // Native identity retains Boost 1.92's IOCP timer-thread allocation.
+    // This negative witness must stop passing when upstream fixes routing.
+    BOOST_TEST_GT(operator_new_calls, 0U);
+    std::puts(
+        "UPSTREAM-LIMITATION: native Boost IOCP uses global new for thread state; "
+        "this is not a zero-global-allocation result");
+#else
     BOOST_TEST_EQ(operator_new_calls, 0U);
+#endif
     BOOST_TEST_EQ(c_allocations, 0U);
     BOOST_TEST_EQ(aligned_allocations, 0U);
 }
@@ -838,7 +847,7 @@ void the_counters_see_an_unbound_handler() {
     webcpp::asio::io_context io(std::allocator_arg, counted<void>(&given));
     {
         const allocation_window window;
-        boost::asio::post(io, [&ran] { ++ran; });
+        webcpp::asio::post(io, [&ran] { ++ran; });
     }
     report("unbound handler");
     BOOST_TEST_EQ(operator_new_calls, 0U);
@@ -1047,7 +1056,7 @@ int main() {
     // Darwin's first access to Asio's thread-call-stack TLS asks dyld for storage. Initialize
     // that thread runtime explicitly; the measured context and every operation are still new.
     {
-        boost::asio::io_context startup;
+        webcpp::asio::io_context startup;
         BOOST_TEST(!startup.get_executor().running_in_this_thread());
     }
 #endif
@@ -1055,7 +1064,7 @@ int main() {
     the_counters_see_every_new_form();
     the_counters_see_c_and_aligned_allocations();
     the_counters_separate_runtime_allocations(asyncify);
-    the_user_s_allocator_takes_everything();
+    context_operations_use_the_supplied_allocator();
 #ifdef __EMSCRIPTEN__
     tls_host_storage_uses_the_resource();
     resolver_inputs_use_the_associated_allocator();

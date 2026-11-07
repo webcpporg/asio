@@ -5,12 +5,12 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 #include <array>
-#include <boost/asio/deferred.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <boost/system/system_error.hpp>
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <webcpp/asio/deferred.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/basic_resolver.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
@@ -66,20 +66,20 @@ void services_and_errors() {
             BOOST_TEST(!ec);
             check_entry(results, "example.com", entry.service, entry.port);
         } else {
-            BOOST_TEST(ec == boost::asio::error::service_not_found);
+            BOOST_TEST(ec == webcpp::asio::error::service_not_found);
             BOOST_TEST(results.empty());
         }
     }
     BOOST_TEST(r.resolve("h", "https", resolver::numeric_service, ec).empty());
-    BOOST_TEST(ec == boost::asio::error::service_not_found);
+    BOOST_TEST(ec == webcpp::asio::error::service_not_found);
     check_entry(r.resolve("h", "443", resolver::numeric_service, ec), "h", "443", 443);
     BOOST_TEST(!ec);
     const auto entry = r.resolve("example.com", "https", ec);
     webcpp::asio::ip::tcp::socket socket(io);
-    BOOST_TEST(socket.connect(*entry.begin(), ec) == boost::asio::error::operation_not_supported);
-    const webcpp::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address_v4::loopback(), 80);
+    BOOST_TEST(socket.connect(*entry.begin(), ec) == webcpp::asio::error::operation_not_supported);
+    const webcpp::asio::ip::tcp::endpoint endpoint(webcpp::asio::ip::address_v4::loopback(), 80);
     BOOST_TEST(r.resolve(endpoint, ec).empty());
-    BOOST_TEST(ec == boost::asio::error::operation_not_supported);
+    BOOST_TEST(ec == webcpp::asio::error::operation_not_supported);
     webcpp::asio::ip::udp::resolver udp(io);
     const auto datagram = udp.resolve("example.com", "53", ec);
     BOOST_TEST(!ec);
@@ -89,7 +89,7 @@ void services_and_errors() {
     try {
         (void)r.resolve("h", "nope");
     } catch (const boost::system::system_error& error) {
-        caught = error.code() == boost::asio::error::service_not_found;
+        caught = error.code() == webcpp::asio::error::service_not_found;
     }
     BOOST_TEST(caught);
 #endif
@@ -110,22 +110,22 @@ void asynchronous_results() {
     r.async_resolve("example.com", "https", handler);
     std::string host = "example.com";
     std::string service = "https";
-    auto deferred = r.async_resolve(host, service, boost::asio::deferred);
+    auto deferred = r.async_resolve(host, service, webcpp::asio::deferred);
     host = "changed";
     service = "nope";
     std::move(deferred)(handler);
     r.async_resolve("h", "https", resolver::numeric_service,
                     [&](boost::system::error_code ec, const resolver::results_type& results) {
                         BOOST_TEST(returned);
-                        BOOST_TEST(ec == boost::asio::error::service_not_found);
+                        BOOST_TEST(ec == webcpp::asio::error::service_not_found);
                         BOOST_TEST(results.empty());
                         ++calls;
                     });
-    const webcpp::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address_v4::loopback(), 80);
-    auto reverse = r.async_resolve(endpoint, boost::asio::deferred);
+    const webcpp::asio::ip::tcp::endpoint endpoint(webcpp::asio::ip::address_v4::loopback(), 80);
+    auto reverse = r.async_resolve(endpoint, webcpp::asio::deferred);
     std::move(reverse)([&](boost::system::error_code ec, const resolver::results_type& results) {
         BOOST_TEST(returned);
-        BOOST_TEST(ec == boost::asio::error::operation_not_supported);
+        BOOST_TEST(ec == webcpp::asio::error::operation_not_supported);
         BOOST_TEST(results.empty());
         ++calls;
     });

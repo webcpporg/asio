@@ -4,7 +4,7 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // https://www.boost.org/LICENSE_1_0.txt)
 
-= asio: Boost.Asio and Cobalt for {cpp} and WebAssembly
+= asio: Boost.Asio for native {cpp} and WebAssembly
 :toc: left
 :toclevels: 1
 :idprefix:
@@ -12,21 +12,32 @@
 :example-caption!:
 :attribute-missing: warn
 
-asio is Boost.Asio natively, and in the browser Boost.Asio's own
-`io_context` suspended into the page's event loop, in {cpp}20, one of the
-libraries of https://github.com/webcpporg/webcpp[webcpp]. A program written
-against Boost.Asio, `main()` and `io_context::run()` included, runs
-unchanged in a browser: compiled with Emscripten, asio adds only what Boost
-lacks there, the configuration Asio needs to build, what wakes `run` from a
-browser event, and a limit on the handlers one turn runs, so that the page
-keeps rendering.
+`webcpp::asio` makes Boost-style asynchronous {cpp} programs usable in WebAssembly:
+Emscripten for browsers, and WASIp2 or WASIp3 for component runtimes such as
+Wasmtime. JSPI and Asyncify are separate Emscripten suspension choices.
+The capability matrix also distinguishes exceptions, threads and runtime prerequisites.
+
+Native equivalents are actual Boost.Asio types. Wasm selects a versioned
+implementation shipped under WebCPP's own headers, using the same source
+contract with B2 or another build system. Use `webcpp::asio` consistently for
+contexts, executors, timers, sockets and completion tokens. See
+<<asio-distribution>> for the compiled runtime sources and dependencies.
+
+In the browser, `io_context::run()` can suspend into the page's event loop.
+Browser events wake it, and a configurable handler-count budget offers the
+browser opportunities to process other work. A long handler can still block
+the page. Native and WASI contexts use their target's reactor instead.
 
 WASIp2 provides single-threaded timers, TCP/UDP, pollable-driven forward DNS,
-supplied CLI streams, Cobalt and optional source-built TLS.
+supplied CLI streams and optional source-built TLS.
 See <<asio-wasip2>> for its explicit limitations.
-WASIp3 provides timers, TCP/UDP, waitable-driven forward DNS, Cobalt and the same
+WASIp3 provides timers, TCP/UDP, waitable-driven forward DNS and the same
 optional TLS provider, with single-thread and experimental cooperative-thread profiles. See <<asio-capabilities>> for their
 limits and the features available in each target variant.
+
+The separate link:{webcpp-libs}/cobalt/{webcpp-page}#cobalt-tutorial[Cobalt library]
+uses this executor and operation model for coroutine applications. Its compiled
+core, runner and optional SSL wrapper belong to Cobalt, not Asio.
 
 [#asio-reading]
 == Find your way through the guide
@@ -56,11 +67,15 @@ include::capabilities.adoc[]
 
 include::building.adoc[]
 
+include::distribution.adoc[]
+
 include::wasip2.adoc[]
 
 include::wasip3.adoc[]
 
 include::run.adoc[]
+
+include::yield-current.adoc[]
 
 include::yield-cost.adoc[]
 

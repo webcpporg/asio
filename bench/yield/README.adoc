@@ -7,8 +7,9 @@
 = Manual browser-yield benchmark
 
 This benchmark measures the actual asio yield and callback-boundary gaps,
-not callback batch duration. See `../../doc/yield-cost.adoc` for methodology,
-results and limitations. It is a manual target, with no CI lane.
+not callback batch duration. See `../../doc/yield-current.adoc` for the shipped
+implementation and `../../doc/yield-cost.adoc` for the historical experiment.
+It is a manual target, with no CI lane.
 
 == Build and run
 
@@ -71,7 +72,27 @@ Nearest-rank percentiles avoid interpolating nonexistent clock precision.
 Summary means/percentiles use independent-run medians; trace component means
 use arithmetic means so their sum matches the traced arithmetic mean.
 
-== Recorded run
+== Current evidence
+
+`results/2026-11-07/` retains the fresh `runs.csv`, `summary.json`, case manifest,
+environment and build metadata. Its `raw-evidence.tar.gz` and sibling `.sha256`
+file retain the timestamp arrays, commands, implementation sources and hashes.
+The companion Cobalt Release report records the same machine and SDK versions.
+The analyzer validates all 442 cases before `report.py` generates the current
+guide section. Generate that section and its figures from the saved results:
+
+[source,shell]
+----
+python3 -B libs/asio/bench/yield/plot_results.py \
+  libs/asio/bench/yield/results/2026-11-07 \
+  libs/asio/bench/yield/results/2026-11-07/figures
+python3 -B libs/asio/bench/yield/report.py \
+  libs/asio/bench/yield/results/2026-11-07 \
+  libs/asio/doc/yield-current.adoc \
+  --data-path bench/yield/results/2026-11-07
+----
+
+== Historical recorded run
 
 `results/2026-10-15/` contains `runs.csv`, `summary.json` and `build.json`.
 The first two are outputs of the analyzer; regenerate them from timestamp
@@ -90,7 +111,9 @@ There are seven primary repetitions and three secondary-control repetitions.
 All 442 cases passed, totaling 970,139,132 operations and 9,429,856 pairs.
 Measurements are for this warmup protocol and browser/hardware combination.
 There is no assumption that 512 warmup yields establish universal steady state.
-The default turn limit remains 1,000; running this benchmark does not change it.
+The default turn limit was 1,000 when these historical observations were taken.
+The current library default is 100, selected after that experiment. The benchmark
+sets every tested limit explicitly; running it does not change the library default.
 
 == Plot the recorded observations
 

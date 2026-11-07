@@ -1,0 +1,162 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+
+"""Generate the maintained-example matrix from completed local build receipts."""
+import argparse
+from collections import Counter
+import hashlib
+import json
+from pathlib import Path
+
+COMMON = ("asio_quick_start", "asio_timers")
+BROWSER = ("asio_turn_limit", "asio_promise", "asio_event", "asio_sockets", "asio_resolver")
+SOCKET = ("asio_tls_client", "asio_capabilities")
+
+
+def generate(evidence):
+    cells = []
+    for target in ("native", "wasip2", "wasip3", "jspi", "asyncify"):
+        for threads in ("single", "multi"):
+            for eh in ("on", "off"):
+                profile = f"{target}-{threads}-{eh}"
+                blocked = (
+                    "wasi-sdk 34 has no P2 pthread target"
+                    if target == "wasip2" and threads == "multi"
+                    else (
+                        "wasi-sdk 34 has no cooperative P3 C++ exception runtime"
+                        if target == "wasip3" and threads == "multi" and eh == "on"
+                        else None
+                    )
+                )
+                browser = target in ("jspi", "asyncify")
+                applicable = COMMON + (BROWSER if browser else SOCKET)
+                receipt = None
+                if not blocked:
+                    path = evidence / ("asio-" + profile + ".json")
+                    receipt = json.loads(path.read_text())
+                    log = path.with_suffix(".log").read_bytes()
+                    if (
+                        receipt["status"] != 0
+                        or hashlib.sha256(log).hexdigest() != receipt["log_sha256"]
+                    ):
+                        raise ValueError("Unsuccessful or changed build: " + profile)
+                    snapshot = json.loads((evidence / receipt["source_manifest"]).read_text())
+                    expected = (
+                        hashlib.sha256(json.dumps(snapshot, sort_keys=True).encode()).hexdigest()
+                        + ".sources.json"
+                    )
+                    if receipt["source_manifest"] != expected:
+                        raise ValueError("Changed implementation snapshot")
+                    text = log.decode()
+                    for name in applicable:
+                        target_name = "libs/asio/example//" + name + ".output"
+                        expected_file = '--expected "libs/asio/example/' + name + '.expected"'
+                        if target_name not in receipt["command"] or expected_file not in text:
+                            raise ValueError(
+                                "Missing executed output comparison: " + profile + "/" + name
+                            )
+                for name in COMMON + BROWSER + SOCKET:
+                    status = (
+                        "sdk-runtime-blocked"
+                        if blocked
+                        else "passed" if name in applicable else "not-applicable"
+                    )
+                    reason = blocked or "Exact expected-output comparison"
+                    if not blocked and name not in applicable:
+                        reason = (
+                            "Browser-specific interface"
+                            if name in BROWSER
+                            else "Requires guest TLS or socket backend"
+                        )
+                    cells.append(
+                        dict(
+                            profile=profile,
+                            application=name,
+                            status=status,
+                            reason=reason,
+                            host=(
+                                "node"
+                                if browser
+                                else "native" if target == "native" else "wasmtime"
+                            ),
+                            evidence=None if receipt is None else receipt["id"] + ".json",
+                            source_manifest=None if receipt is None else receipt["source_manifest"],
+                        )
+                    )
+    return dict(
+        schema=1,
+        scope=(
+            "Nine maintained Asio guide programs; not the complete upstream Boost.Asio example"
+            " corpus."
+        ),
+        counts=dict(Counter(row["status"] for row in cells)),
+        cells=cells,
+    )
+
+
+def document(data):
+    names = COMMON + BROWSER + SOCKET
+    labels = {"passed": "pass", "sdk-runtime-blocked": "SDK", "not-applicable": "n/a"}
+    lines = [
+        (
+            "// Copyright (c) 2026 WebCpp.org\n//\n// Distributed under the Boost Software License,"
+            " Version 1.0. (See\n// accompanying file LICENSE_1_0.txt or copy at\n//"
+            " https://www.boost.org/LICENSE_1_0.txt)\n"
+        ),
+        "// Generated by test/example_matrix.py. Do not edit.\n",
+        "[#asio-example-matrix]\n=== Current maintained-example matrix\n\n",
+        (
+            "This table covers the nine maintained Asio guide programs, not every original"
+            " Boost.Asio application. Each `pass` is a fresh Release build followed by an exact"
+            " `.expected` output comparison. Emscripten observations here run in Node; the"
+            " real-browser scheduling and worker tests are separate. The Cobalt alias is covered by"
+            " the Cobalt application matrix.\n\n"
+        ),
+        '[cols="3,9*1",options="header"]\n|===\n|Profile'
+        + "".join(" |" + n.removeprefix("asio_") for n in names)
+        + "\n",
+    ]
+    for profile in dict.fromkeys(row["profile"] for row in data["cells"]):
+        selected = {row["application"]: row for row in data["cells"] if row["profile"] == profile}
+        lines += [
+            "|"
+            + profile
+            + "".join(" |" + labels[selected[name]["status"]] for name in names)
+            + "\n"
+        ]
+    lines += [
+        "|===\n\n",
+        (
+            "`n/a` means this particular example demonstrates an interface belonging to another"
+            " target. It is not a failed test. `SDK` records absent P2 pthread or P3 cooperative"
+            " exception support in wasi-sdk 34. The browser socket example deliberately verifies"
+            " `operation_not_supported` for raw TCP; the browser resolver preserves the hostname"
+            " for a host transport rather than performing guest DNS. The TLS example constructs and"
+            " validates a trust context; it does not itself exchange TLS traffic.\n\n"
+        ),
+        (
+            f'The {data["counts"]["passed"]} successful executions retain commands, log hashes and'
+            " implementation snapshots in the accompanying application evidence. No remote CI"
+            " result is inferred.\n"
+        ),
+    ]
+    return "".join(lines)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--evidence", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--document", type=Path, required=True)
+    args = parser.parse_args()
+    data = generate(args.evidence)
+    args.output.write_text(json.dumps(data, indent=2) + "\n")
+    args.document.write_text(document(data))
+    print(json.dumps(data["counts"], sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

@@ -35,22 +35,33 @@ EM_ASYNC_JS(int, join_worker, (pthread_t thread, void** value, int busy), {
 
 // clang-format on
 
-void* worker(void* /*unused*/) {
-    const int result = suspend_worker();
+namespace {
+void* worker(void* argument) {
+    auto& result = *static_cast<int*>(argument);
+    result = suspend_worker();
     std::printf("worker suspended result %d\n", result);
-    return reinterpret_cast<void*>(result);
+    return argument;
 }
+}  // namespace
 
 int main() {
     pthread_t thread{};
-    const int created = pthread_create(&thread, nullptr, worker, nullptr);
+    int result = 0;
+    const int created = pthread_create(&thread, nullptr, worker, &result);
     if (created != 0) {
         return created;
     }
     void* value = nullptr;
     const int joined = join_worker(thread, &value, EBUSY);
-    std::printf("join result %d value %ld\n", joined, reinterpret_cast<long>(value));
-    const int status = joined || reinterpret_cast<long>(value) != 42;
+    // Preserve the raw-return diagnostic separately from explicit result storage.
+    int returned = -1;
+    if (value == nullptr) {
+        returned = 0;
+    } else if (value == &result) {
+        returned = result;
+    }
+    std::printf("join result %d value %d\n", joined, returned);
+    const int status = (joined != 0 || value != &result || result != 42) ? 1 : 0;
     EM_ASM(
         {
             if (Module['webcppTestFinished']) {

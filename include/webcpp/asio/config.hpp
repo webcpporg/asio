@@ -14,8 +14,45 @@
 #ifndef WEBCPP_ASIO_CONFIG_HPP
 #define WEBCPP_ASIO_CONFIG_HPP
 
-#include <boost/asio/detail/config.hpp>  // lint-world: inherit Boost's configured facilities
+#include <webcpp/asio/detail/backend_select.hpp>
 #include <webcpp/config.hpp>
+
+#ifdef WEBCPP_TARGET_NATIVE
+/**
+ Names the completion-handler type for a token and signature on the selected backend.
+
+ Include `webcpp/asio/async_result.hpp` before expanding this macro. Custom
+ completion tokens specialize the selected backend's `async_result` template.
+
+ @param Token The completion token type.
+ @param Signature The completion signature.
+*/
+#define WEBCPP_ASIO_HANDLER_TYPE(Token, Signature) BOOST_ASIO_HANDLER_TYPE(Token, Signature)
+#else
+/**
+ Names the completion-handler type for a token and signature on the selected backend.
+
+ Include `webcpp/asio/async_result.hpp` before expanding this macro.
+
+ @param Token The completion token type.
+ @param Signature The completion signature.
+*/
+#define WEBCPP_ASIO_HANDLER_TYPE(Token, Signature) \
+    WEBCPP_ASIO_BACKEND_HANDLER_TYPE(Token, Signature)
+#endif
+
+#ifdef WEBCPP_ASIO_HAS_CO_AWAIT
+#error "WEBCPP_ASIO_HAS_CO_AWAIT is detected from the selected compiler and backend"
+#elif defined(WEBCPP_TARGET_NATIVE) && defined(BOOST_ASIO_HAS_CO_AWAIT)
+/** 1 when the selected backend supports C++ coroutine completion tokens. */
+#define WEBCPP_ASIO_HAS_CO_AWAIT 1
+#elif !defined(WEBCPP_TARGET_NATIVE) && defined(WEBCPP_ASIO_BACKEND_HAS_CO_AWAIT)
+/** 1 when the selected backend supports C++ coroutine completion tokens. */
+#define WEBCPP_ASIO_HAS_CO_AWAIT 1
+#else
+/** 0 when the selected backend has no C++ coroutine completion tokens. */
+#define WEBCPP_ASIO_HAS_CO_AWAIT 0
+#endif
 
 #ifndef WEBCPP_ASIO_DEFAULT_MAX_HANDLERS_PER_TURN
 /**
@@ -41,15 +78,17 @@
 // the parse goes on with every API that throws in it.
 #ifdef __MRDOCS__
 /**
- Defined when asio is built without exceptions: automatically when the
- collection has none (`WEBCPP_HAS_EXCEPTIONS` is not defined), or by the
- developer to disable them in this library alone. `WEBCPP_NO_EXCEPTIONS`
- disables them throughout the collection.
+ Selects the exception-free interface of WebCPP-owned adapters.
 
- asio raises an exception only where Boost.Asio's own interface throws: the
- throwing overloads of its sockets, resolver and `ssl::context` (an
- `error_code&` overload stands beside each), which are absent while this is
- defined.
+ Defined automatically when `WEBCPP_HAS_EXCEPTIONS` is not defined. A developer
+ may also define it explicitly; `WEBCPP_NO_EXCEPTIONS` selects the corresponding
+ collection-wide policy. These macros do not change the compiler's exception mode.
+
+ Browser socket, resolver and SSL adapters omit their throwing overloads under
+ this policy. Native Boost APIs and the shipped upstream-derived WASI backend
+ retain their overload sets. Without compiler exception support, calling a
+ retained throwing overload on an error can terminate the process. Use explicit
+ `error_code` overloads or asynchronous error/result channels for recovery.
 
  @see "Testing", in the guide.
 */
@@ -116,7 +155,8 @@
 #define WEBCPP_ASIO_HAS_WASI_STDIO 0
 #endif
 
-#ifdef BOOST_ASIO_HAS_THREADS
+#if (defined(WEBCPP_TARGET_NATIVE) && defined(BOOST_ASIO_HAS_THREADS)) || \
+    (!defined(WEBCPP_TARGET_NATIVE) && defined(WEBCPP_ASIO_BACKEND_HAS_THREADS))
 /** 1 when this Boost.Asio configuration enables threads, including cooperative threads. */
 #define WEBCPP_ASIO_HAS_THREADS 1
 #else

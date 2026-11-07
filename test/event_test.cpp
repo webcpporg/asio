@@ -5,21 +5,21 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 // Event waits receive once and release listeners (doc: #asio-events).
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/cancellation_signal.hpp>
-#include <boost/asio/deferred.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <chrono>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
+#include <webcpp/asio/bind_cancellation_slot.hpp>
+#include <webcpp/asio/bind_executor.hpp>
 #include <webcpp/asio/browser/async_wait_event.hpp>
+#include <webcpp/asio/cancellation_signal.hpp>
+#include <webcpp/asio/deferred.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/steady_timer.hpp>
+#include <webcpp/test/browser_values.hpp>
 #include <webcpp/test/exit_status.hpp>
-#include "browser_values.hpp"
 
 namespace {
 using namespace std::chrono_literals;
@@ -53,20 +53,20 @@ void one_event_per_wait() {
     BOOST_TEST_EQ(test_listener_count(target.as_handle()), 0);
 }
 
-void cancellation_removes_the_listener(boost::asio::cancellation_type kind) {
+void cancellation_removes_the_listener(webcpp::asio::cancellation_type kind) {
     webcpp::asio::io_context io;
     const auto target = val::take_ownership(test_event_target());
     BOOST_TEST_EQ(test_listener_count(target.as_handle()), 0);
-    boost::asio::cancellation_signal signal;
+    webcpp::asio::cancellation_signal signal;
     int called = 0;
     async_wait_event(io.get_executor(), target, "message",
-                     boost::asio::bind_cancellation_slot(
+                     webcpp::asio::bind_cancellation_slot(
                          signal.slot(), [&](boost::system::error_code ec, const val& event) {
-                             BOOST_TEST(ec == boost::asio::error::operation_aborted);
+                             BOOST_TEST(ec == webcpp::asio::error::operation_aborted);
                              BOOST_TEST(event.isUndefined());
                              ++called;
                          }));
-    signal.emit(boost::asio::cancellation_type::none);
+    signal.emit(webcpp::asio::cancellation_type::none);
     BOOST_TEST_EQ(test_listener_count(target.as_handle()), 1);
     signal.emit(kind);
     signal.emit(kind);
@@ -85,7 +85,7 @@ void a_deferred_type_owns_its_string() {
     const auto target = val::take_ownership(test_event_target());
     std::string text = "messages and more";
     auto pending = async_wait_event(io.get_executor(), target, std::string_view(text.data(), 7),
-                                    boost::asio::deferred);
+                                    webcpp::asio::deferred);
     text.assign(text.size(), 'x');
     int called = 0;
     std::move(pending)([&](boost::system::error_code ec, const val& event) {
@@ -102,12 +102,12 @@ void destruction_removes_the_listener() {
     const auto target = val::take_ownership(test_event_target());
     BOOST_TEST_EQ(test_listener_count(target.as_handle()), 0);
     const auto held = std::make_shared<int>(0);
-    boost::asio::cancellation_signal signal;
+    webcpp::asio::cancellation_signal signal;
     {
         webcpp::asio::io_context io;
         async_wait_event(
             io.get_executor(), target, "message",
-            boost::asio::bind_cancellation_slot(
+            webcpp::asio::bind_cancellation_slot(
                 signal.slot(), [held](boost::system::error_code, const val&) { ++*held; }));
         BOOST_TEST_EQ(test_listener_count(target.as_handle()), 1);
         BOOST_TEST_GT(held.use_count(), 1);
@@ -117,7 +117,7 @@ void destruction_removes_the_listener() {
     BOOST_TEST_EQ(held.use_count(), 1);
     BOOST_TEST_EQ(test_listener_count(target.as_handle()), 0);
     BOOST_TEST(!signal.slot().has_handler());
-    signal.emit(boost::asio::cancellation_type::total);
+    signal.emit(webcpp::asio::cancellation_type::total);
     webcpp::asio::io_context observer;
     webcpp::asio::steady_timer timer(observer, 50ms);
     timer.async_wait([](boost::system::error_code) {});
@@ -133,12 +133,12 @@ void associated_executor_receives_success() {
     const auto input = val::take_ownership(test_event_target());
     async_wait_event(
         source.get_executor(), input, "message",
-        boost::asio::bind_executor(completion.get_executor(),
-                                   [&](boost::system::error_code ec, const val& value) {
-                                       BOOST_TEST(!ec);
-                                       BOOST_TEST_EQ(value["detail"].as<int>(), 7);
-                                       ++called;
-                                   }));
+        webcpp::asio::bind_executor(completion.get_executor(),
+                                    [&](boost::system::error_code ec, const val& value) {
+                                        BOOST_TEST(!ec);
+                                        BOOST_TEST_EQ(value["detail"].as<int>(), 7);
+                                        ++called;
+                                    }));
     BOOST_TEST_EQ(completion.poll(), 0U);
     BOOST_TEST(!completion.stopped());
     test_dispatch_after(input.as_handle(), 0, 7);
@@ -153,19 +153,19 @@ void associated_executor_keeps_work() {
     int called = 0;
     {
         webcpp::asio::io_context source;
-        boost::asio::cancellation_signal signal;
+        webcpp::asio::cancellation_signal signal;
         const auto input = val::take_ownership(test_event_target());
         async_wait_event(source.get_executor(), input, "message",
-                         boost::asio::bind_executor(
+                         webcpp::asio::bind_executor(
                              completion.get_executor(),
-                             boost::asio::bind_cancellation_slot(
+                             webcpp::asio::bind_cancellation_slot(
                                  signal.slot(), [&](boost::system::error_code ec, const val&) {
-                                     BOOST_TEST(ec == boost::asio::error::operation_aborted);
+                                     BOOST_TEST(ec == webcpp::asio::error::operation_aborted);
                                      ++called;
                                  })));
         BOOST_TEST_EQ(completion.poll(), 0U);
         BOOST_TEST(!completion.stopped());
-        signal.emit(boost::asio::cancellation_type::total);
+        signal.emit(webcpp::asio::cancellation_type::total);
         source.run();      // lint-run: transfer cancellation to the associated executor
         completion.run();  // lint-run: deliver without restarting the associated context
         BOOST_TEST_EQ(called, 1);
@@ -176,8 +176,8 @@ void associated_executor_keeps_work() {
         const auto input = val::take_ownership(test_event_target());
         async_wait_event(
             source.get_executor(), input, "message",
-            boost::asio::bind_executor(completion.get_executor(),
-                                       [&](boost::system::error_code, const val&) { ++called; }));
+            webcpp::asio::bind_executor(completion.get_executor(),
+                                        [&](boost::system::error_code, const val&) { ++called; }));
         BOOST_TEST_EQ(completion.poll(), 0U);
         BOOST_TEST(!completion.stopped());
     }
@@ -193,9 +193,9 @@ int main() {
     associated_executor_receives_success();
     one_event_per_wait();
     for (const auto kind : {
-             boost::asio::cancellation_type::terminal,
-             boost::asio::cancellation_type::partial,
-             boost::asio::cancellation_type::total,
+             webcpp::asio::cancellation_type::terminal,
+             webcpp::asio::cancellation_type::partial,
+             webcpp::asio::cancellation_type::total,
          }) {
         cancellation_removes_the_listener(kind);
     }

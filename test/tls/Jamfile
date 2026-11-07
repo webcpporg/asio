@@ -8,7 +8,7 @@ import webcpp ;
 webcpp.targets native wasip3 ;
 webcpp.original python3 ;
 
-# These are the real OpenSSL/Cobalt fixtures, now part of recurring CI rather
+# These are the real OpenSSL fixtures, now part of recurring CI rather
 # than executables requiring a manual request. Both thread profiles are kept.
 # MSVC's shared CRT forces B2 threading=multi. S fixtures select its static CRT
 # so the provider actually configures no-threads.
@@ -21,16 +21,13 @@ for local threading in single multi
     {
         local targets = native wasip3 ;
         if $(threading) = multi && $(exceptions) = "on" { targets = native ; }
-        for local mode in client embedded cobalt state cancel
+        for local mode in client embedded
         {
             local source ;
             switch $(mode)
             {
                 case client : source = tls_client ;
                 case embedded : source = tls_client_embedded ;
-                case cobalt : source = cobalt_ssl_client ;
-                case state : source = cobalt_ssl_state ;
-                case cancel : source = cobalt_ssl_cancel ;
             }
             local name = $(mode)-$(threading)-$(exceptions) ;
             webcpp.drive $(name) : ../../../../tools/openssl/test//$(source)

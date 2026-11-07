@@ -1,2 +1,9 @@
 * text=auto eol=lf
 *.bat text eol=crlf
+
+# Preserve pinned imports and generated evidence byte for byte.
+*.patch whitespace=-blank-at-eol,-blank-at-eof
+include/webcpp/asio/detail/backend/** -whitespace
+bench/yield/results/**/*.svg whitespace=-blank-at-eol
+bench/yield/results/**/*.csv -text whitespace=cr-at-eol
+doc/yield-current.adoc whitespace=-blank-at-eof

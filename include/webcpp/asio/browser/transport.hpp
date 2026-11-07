@@ -14,9 +14,9 @@
     "webcpp::asio::browser::transport requires the Emscripten browser bridge; use native/WASI Asio operations on this target"
 #else
 
-#include <boost/asio/append.hpp>       // lint-world: preserve completion associations
-#include <boost/asio/error.hpp>        // lint-world: unsupported browser operations
-#include <boost/asio/socket_base.hpp>  // lint-world: socket flags
+#include WEBCPP_ASIO_BACKEND_HEADER(append.hpp)  // lint-world: preserve completion associations
+#include WEBCPP_ASIO_BACKEND_HEADER(error.hpp)   // lint-world: unsupported browser operations
+#include WEBCPP_ASIO_BACKEND_HEADER(socket_base.hpp)  // lint-world: socket flags
 #include <cstddef>
 #include <utility>
 #include <webcpp/asio/detail/post_completion.hpp>
@@ -43,7 +43,8 @@ public:
      Constructs an unsupported transport on executor.
      @param executor The executor.
     */
-    explicit transport(boost::asio::any_io_executor executor) : executor_(std::move(executor)) {}
+    explicit transport(::webcpp::asio_backend::any_io_executor executor)
+        : executor_(std::move(executor)) {}
 
     /** Copies the executor so both transports remain usable after a move.
      @param other The source transport.
@@ -142,7 +143,7 @@ public:
     */
     template <class ConstBufferSequence>
     std::size_t send(const ConstBufferSequence& /*buffers*/,
-                     boost::asio::socket_base::message_flags /*flags*/,
+                     ::webcpp::asio_backend::socket_base::message_flags /*flags*/,
                      boost::system::error_code& ec) {
         ec = not_supported();
         return 0;
@@ -156,7 +157,8 @@ public:
     */
     template <class ConstBufferSequence, class Handler>
     void async_send(const ConstBufferSequence& /*buffers*/,
-                    boost::asio::socket_base::message_flags /*flags*/, Handler&& handler) {
+                    ::webcpp::asio_backend::socket_base::message_flags /*flags*/,
+                    Handler&& handler) {
         fail(std::forward<Handler>(handler), std::size_t{0});
     }
 
@@ -168,7 +170,7 @@ public:
     */
     template <class MutableBufferSequence>
     std::size_t receive(const MutableBufferSequence& /*buffers*/,
-                        boost::asio::socket_base::message_flags /*flags*/,
+                        ::webcpp::asio_backend::socket_base::message_flags /*flags*/,
                         boost::system::error_code& ec) {
         ec = not_supported();
         return 0;
@@ -182,7 +184,8 @@ public:
     */
     template <class MutableBufferSequence, class Handler>
     void async_receive(const MutableBufferSequence& /*buffers*/,
-                       boost::asio::socket_base::message_flags /*flags*/, Handler&& handler) {
+                       ::webcpp::asio_backend::socket_base::message_flags /*flags*/,
+                       Handler&& handler) {
         fail(std::forward<Handler>(handler), std::size_t{0});
     }
 
@@ -194,7 +197,7 @@ public:
     */
     template <class ConstBufferSequence>
     std::size_t send_to(const ConstBufferSequence& /*buffers*/, const endpoint_type& /*endpoint*/,
-                        boost::asio::socket_base::message_flags /*flags*/,
+                        ::webcpp::asio_backend::socket_base::message_flags /*flags*/,
                         boost::system::error_code& ec) {
         ec = not_supported();
         return 0;
@@ -208,7 +211,8 @@ public:
     */
     template <class ConstBufferSequence, class Handler>
     void async_send_to(const ConstBufferSequence& /*buffers*/, const endpoint_type& /*endpoint*/,
-                       boost::asio::socket_base::message_flags /*flags*/, Handler&& handler) {
+                       ::webcpp::asio_backend::socket_base::message_flags /*flags*/,
+                       Handler&& handler) {
         fail(std::forward<Handler>(handler), std::size_t{0});
     }
 
@@ -220,7 +224,7 @@ public:
     */
     template <class MutableBufferSequence>
     std::size_t receive_from(const MutableBufferSequence& /*buffers*/, endpoint_type& /*endpoint*/,
-                             boost::asio::socket_base::message_flags /*flags*/,
+                             ::webcpp::asio_backend::socket_base::message_flags /*flags*/,
                              boost::system::error_code& ec) {
         ec = not_supported();
         return 0;
@@ -234,7 +238,8 @@ public:
     */
     template <class MutableBufferSequence, class Handler>
     void async_receive_from(const MutableBufferSequence& /*buffers*/, endpoint_type& /*endpoint*/,
-                            boost::asio::socket_base::message_flags /*flags*/, Handler&& handler) {
+                            ::webcpp::asio_backend::socket_base::message_flags /*flags*/,
+                            Handler&& handler) {
         fail(std::forward<Handler>(handler), std::size_t{0});
     }
 
@@ -275,7 +280,8 @@ public:
      Reports the default transport result without accessing a network.
      @return operation_not_supported.
     */
-    boost::system::error_code shutdown(boost::asio::socket_base::shutdown_type /*what*/) {
+    boost::system::error_code shutdown(
+        ::webcpp::asio_backend::socket_base::shutdown_type /*what*/) {
         return not_supported();
     }
 
@@ -349,7 +355,7 @@ public:
 
 private:
     static boost::system::error_code not_supported() noexcept {
-        return boost::asio::error::operation_not_supported;
+        return ::webcpp::asio_backend::error::operation_not_supported;
     }
 
     /**
@@ -362,11 +368,11 @@ private:
     template <class Handler, class... Values>
     void fail(Handler&& handler, Values... values) {
         webcpp::asio::detail::post_completion(
-            executor_, boost::asio::append(std::forward<Handler>(handler), not_supported(),
-                                           std::move(values)...));
+            executor_, ::webcpp::asio_backend::append(std::forward<Handler>(handler),
+                                                      not_supported(), std::move(values)...));
     }
 
-    boost::asio::any_io_executor executor_;
+    ::webcpp::asio_backend::any_io_executor executor_;
 };
 
 }  // namespace webcpp::asio::browser

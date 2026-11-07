@@ -5,9 +5,9 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 #include <wasi/wasip3.h>
-#include <boost/asio/bind_allocator.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <cstring>
+#include <webcpp/asio/bind_allocator.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
 #include <webcpp/test/exit_status.hpp>
@@ -39,7 +39,7 @@ extern "C" std::uint32_t __wrap_webcpp_asio_wasip3_lookup([[maybe_unused]] const
 }
 
 int main() {
-    namespace asio = boost::asio;
+    namespace asio = webcpp::asio;
     using tcp = webcpp::asio::ip::tcp;
     webcpp::asio::io_context context;
     tcp::resolver resolver(context);

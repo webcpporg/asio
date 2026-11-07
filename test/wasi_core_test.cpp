@@ -9,12 +9,12 @@
 #include <webcpp/asio/ip/udp.hpp>
 #include <webcpp/asio/steady_timer.hpp>
 
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/post.hpp>
-#include <boost/asio/read.hpp>
-#include <boost/asio/write.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/buffer.hpp>
+#include <webcpp/asio/executor_work_guard.hpp>
+#include <webcpp/asio/post.hpp>
+#include <webcpp/asio/read.hpp>
+#include <webcpp/asio/write.hpp>
 #include <webcpp/test/exit_status.hpp>
 
 #include <array>
@@ -23,7 +23,7 @@
 #include <string>
 #include <thread>
 
-namespace asio = boost::asio;
+namespace asio = webcpp::asio;
 using tcp = webcpp::asio::ip::tcp;
 using udp = webcpp::asio::ip::udp;
 using namespace std::chrono_literals;
@@ -187,7 +187,7 @@ void test_udp() {
 
 #ifdef WEBCPP_TEST_WASI_THREADS
 void test_threads() {
-#ifndef BOOST_ASIO_HAS_THREADS
+#if !WEBCPP_ASIO_HAS_THREADS
 #error "The threaded test must compile Asio with thread support"
 #endif
     webcpp::asio::io_context context;

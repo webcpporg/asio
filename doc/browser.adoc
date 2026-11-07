@@ -43,7 +43,7 @@ pending operation does not keep it.
 Posting is the only choice. While `run` is suspended in the reactor's
 `select`, the frame that Boost's scheduler pushed for it stays on the call
 stack, so that an event sees `running_in_this_thread()` true, and
-`boost::asio::dispatch` called there runs its handler at once, inside the
+`webcpp::asio::dispatch` called there runs its handler at once, inside the
 event and on its stack, rather than on the stack of `run` (measured with
 Emscripten 6.0.11). And calling the run family from an event fails at its
 first suspension: under JSPI it throws a `SuspendError`, and under Asyncify
@@ -108,7 +108,7 @@ their destructors, Boost's and asio's, and the next `run` runs as after a
 {cpp} exception. With JavaScript exceptions, and without exceptions, the
 destructors are skipped and the context is left broken whatever asio
 does. Boost's scheduler keeps the finished handler's work counted, so
-that Boost's own `run`, reached through a `boost::asio::io_context&`,
+that the base `run`, reached through a reference to the shipped backend's context,
 never returns once out of work. Boost's call stack keeps the frame `run`
 pushed, so that `running_in_this_thread()` is true outside any `run`, and
 a `dispatch` anywhere runs its handler at once. And the run family's flag

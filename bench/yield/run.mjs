@@ -10,6 +10,7 @@
 // Each invocation owns its loopback server, Chrome process and temporary profile.
 import assert from 'node:assert/strict'
 import {spawn} from 'node:child_process'
+import {createHash} from 'node:crypto'
 import {once} from 'node:events'
 import {existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, mkdirSync, writeFileSync} from 'node:fs'
 import {createServer} from 'node:http'
@@ -29,6 +30,12 @@ const output = resolve(args[1])
 mkdirSync(output, {recursive: true})
 const here = dirname(fileURLToPath(import.meta.url))
 const build = resolve(config.build_root)
+assert.ok(config.artifacts && config.sources, 'regenerate cases with artifact/source identities')
+const digest = path => createHash('sha256').update(readFileSync(path)).digest('hex')
+for (const [path,expected] of Object.entries(config.artifacts))
+    assert.equal(digest(join(build,path)),expected,'yield artifact changed: '+path)
+for (const [path,expected] of Object.entries(config.sources))
+    assert.equal(digest(resolve(here,'../../../..',path)),expected,'yield source changed: '+path)
 const mode = 'yield benchmark'
 const findChrome = () => {
     if (process.env.CHROME) return process.env.CHROME

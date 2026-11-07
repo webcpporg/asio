@@ -21,7 +21,7 @@ void recorded_settings() {
     BOOST_TEST(context.recorded_callback() == ssl::verify_callback_kind::none);
     BOOST_TEST(!context.roots_added());
     BOOST_TEST(!context.client_credentials());
-    boost::system::error_code ec = boost::asio::error::operation_aborted;
+    boost::system::error_code ec = webcpp::asio::error::operation_aborted;
     context.set_verify_mode(ssl::verify_peer, ec);
     BOOST_TEST(!ec);
     BOOST_TEST_EQ(context.recorded_verify_mode(), ssl::verify_peer);
@@ -36,10 +36,10 @@ void recorded_settings() {
     BOOST_TEST(!ec);
     BOOST_TEST(context.recorded_callback() == ssl::verify_callback_kind::other);
     BOOST_TEST(context.verification_host().empty());
-    context.add_certificate_authority(boost::asio::buffer("root"), ec);
+    context.add_certificate_authority(webcpp::asio::buffer("root"), ec);
     BOOST_TEST(!ec);
     BOOST_TEST(context.roots_added());
-    context.use_private_key(boost::asio::buffer("key"), ssl::context::pem, ec);
+    context.use_private_key(webcpp::asio::buffer("key"), ssl::context::pem, ec);
     BOOST_TEST(!ec);
     BOOST_TEST(context.client_credentials());
     context.set_options(ssl::context::default_workarounds | ssl::context::no_sslv3, ec);
@@ -49,7 +49,7 @@ void recorded_settings() {
     // Every input-setting form records intent without reading a file or parsing a certificate.
     auto succeeds = [&](auto setting) {
         ssl::context current(ssl::context::tls_client);
-        ec = boost::asio::error::operation_aborted;
+        ec = webcpp::asio::error::operation_aborted;
         setting(current, ec);
         BOOST_TEST(!ec);
         return current;
@@ -58,13 +58,13 @@ void recorded_settings() {
         succeeds([](auto& c, auto& e) { c.load_verify_file("missing.pem", e); }).roots_added());
     BOOST_TEST(succeeds([](auto& c, auto& e) { c.add_verify_path("missing", e); }).roots_added());
     BOOST_TEST(succeeds([](auto& c, auto& e) {
-                   c.use_certificate(boost::asio::buffer("cert"), ssl::context::pem, e);
+                   c.use_certificate(webcpp::asio::buffer("cert"), ssl::context::pem, e);
                }).client_credentials());
     BOOST_TEST(succeeds([](auto& c, auto& e) {
                    c.use_certificate_file("missing", ssl::context::pem, e);
                }).client_credentials());
     BOOST_TEST(succeeds([](auto& c, auto& e) {
-                   c.use_certificate_chain(boost::asio::buffer("cert"), e);
+                   c.use_certificate_chain(webcpp::asio::buffer("cert"), e);
                }).client_credentials());
     BOOST_TEST(succeeds([](auto& c, auto& e) {
                    c.use_certificate_chain_file("missing", e);
@@ -76,14 +76,14 @@ void recorded_settings() {
     context.set_verify_mode(ssl::verify_peer);
     context.set_default_verify_paths();
     context.set_verify_callback(ssl::host_name_verification("other.example"));
-    context.add_certificate_authority(boost::asio::buffer("root"));
+    context.add_certificate_authority(webcpp::asio::buffer("root"));
     context.load_verify_file("missing");
     context.add_verify_path("missing");
-    context.use_certificate(boost::asio::buffer("cert"), ssl::context::pem);
+    context.use_certificate(webcpp::asio::buffer("cert"), ssl::context::pem);
     context.use_certificate_file("missing", ssl::context::pem);
-    context.use_certificate_chain(boost::asio::buffer("cert"));
+    context.use_certificate_chain(webcpp::asio::buffer("cert"));
     context.use_certificate_chain_file("missing");
-    context.use_private_key(boost::asio::buffer("key"), ssl::context::pem);
+    context.use_private_key(webcpp::asio::buffer("key"), ssl::context::pem);
     context.use_private_key_file("missing", ssl::context::pem);
     context.set_options(ssl::context::no_tlsv1);
 #endif
@@ -95,8 +95,8 @@ void recorded_settings() {
 }
 }  // namespace
 #else
-static_assert(std::is_same_v<webcpp::asio::ssl::context, boost::asio::ssl::context>);
-static_assert(std::is_same_v<webcpp::asio::ssl::stream_base, boost::asio::ssl::stream_base>);
+static_assert(std::is_same_v<webcpp::asio::ssl::context, webcpp::asio::ssl::context>);
+static_assert(std::is_same_v<webcpp::asio::ssl::stream_base, webcpp::asio::ssl::stream_base>);
 #endif
 int main() {
 #ifdef __EMSCRIPTEN__

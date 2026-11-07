@@ -65,13 +65,19 @@ webcpp.drive browser_worker_main : main_profile_program.cpp
     <library>/webcpp//node-test
   : run.mjs : --mode workers ;
 
-webcpp.drive browser_worker_cobalt : ../cobalt_thread_test.cpp
-  : <threading>multi <webcpp-drive-timeout>60 <library>/webcpp/asio//cobalt
-    <library>/webcpp//node-test <linkflags>-sPTHREAD_POOL_SIZE=1
-  : run.mjs : --mode workers ;
-
 webcpp.lane browser-workers : browser_workers browser_worker_affinity
-  browser_worker_main browser_worker_cobalt : emscripten ;
+  browser_worker_main : emscripten ;
+
+for local mode in hint_one hint_one_allocator
+{
+    local define = WEBCPP_TEST_HINT_ONE ;
+    if $(mode) = hint_one_allocator { define = WEBCPP_TEST_HINT_ONE_ALLOCATOR ; }
+    webcpp.drive browser_$(mode) : main_profile_program.cpp
+      : <threading>multi <webcpp-drive-timeout>60 <library>/webcpp/asio//asio
+        <library>/webcpp//node-test <define>$(define)
+      : run.mjs : --mode workers ;
+}
+webcpp.lane browser-concurrency-hint : browser_hint_one browser_hint_one_allocator : emscripten ;
 
 # This dependency-only probe is compiled for header/tooling coverage. Run its
 # JSPI and Asyncify artifacts explicitly to characterize pthread return values.

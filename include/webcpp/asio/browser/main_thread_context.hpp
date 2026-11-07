@@ -16,8 +16,8 @@
 
 #include <emscripten/proxying.h>
 #include <emscripten/threading.h>
-#include <boost/asio/detail/throw_exception.hpp>  // lint-world: Asio's exception policy
-#include <boost/asio/execution_context.hpp>  // lint-world: owns the main-thread executor service
+#include WEBCPP_ASIO_BACKEND_HEADER(detail/throw_exception.hpp)  // lint-world: Asio's exception policy
+#include WEBCPP_ASIO_BACKEND_HEADER(execution_context.hpp)  // lint-world: owns the main-thread executor service
 #include <boost/assert.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/scope/scope_exit.hpp>
@@ -47,7 +47,7 @@ namespace webcpp::asio::browser {
  queued submissions are discarded. The exception propagates to the browser's
  callback boundary; this context does not promise queue recovery after such a failure.
 */
-class main_thread_context : public boost::asio::execution_context {
+class main_thread_context : public ::webcpp::asio_backend::execution_context {
     struct operation : boost::intrusive::list_base_hook<> {
         void (*finish)(operation*, bool);
 
@@ -92,7 +92,7 @@ class main_thread_context : public boost::asio::execution_context {
     public:
         control() : queue_(em_proxying_queue_create()) {
             if (queue_ == nullptr) {
-                boost::asio::detail::throw_exception(std::bad_alloc());
+                ::webcpp::asio_backend::detail::throw_exception(std::bad_alloc());
             }
         }
 
@@ -118,7 +118,7 @@ class main_thread_context : public boost::asio::execution_context {
                 pending_.erase(pending_.iterator_to(*pending));
                 lock.unlock();
                 pending->finish(pending, false);
-                boost::asio::detail::throw_exception(std::bad_alloc());
+                ::webcpp::asio_backend::detail::throw_exception(std::bad_alloc());
             }
         }
 
@@ -188,14 +188,14 @@ class main_thread_context : public boost::asio::execution_context {
         bool active_ = false;
     };
 
-    class service final : public boost::asio::execution_context::service {
+    class service final : public ::webcpp::asio_backend::execution_context::service {
     public:
         // Boost's service identity has an empty constructor and no dynamic dependencies.
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables,bugprone-throwing-static-initialization,cert-err58-cpp,bugprone-dynamic-static-initializers)
-        static inline boost::asio::execution_context::id id;
+        static inline ::webcpp::asio_backend::execution_context::id id;
 
-        explicit service(boost::asio::execution_context& context)
-            : boost::asio::execution_context::service(context) {}
+        explicit service(::webcpp::asio_backend::execution_context& context)
+            : ::webcpp::asio_backend::execution_context::service(context) {}
 
         template <class Allocator>
         void start(const Allocator& allocator) {
@@ -319,7 +319,7 @@ public:
     };
 
     /** Constructs a queue on the browser's main runtime thread. */
-    main_thread_context() : service_(boost::asio::use_service<service>(*this)) {
+    main_thread_context() : service_(::webcpp::asio_backend::use_service<service>(*this)) {
         service_.start(std::allocator<void>());
         BOOST_ASSERT_MSG(emscripten_is_main_browser_thread(),
                          "main_thread_context must be constructed on the browser main thread");
@@ -336,8 +336,8 @@ public:
     */
     template <class Allocator>
     main_thread_context(std::allocator_arg_t /*tag*/, const Allocator& allocator)
-        : boost::asio::execution_context(std::allocator_arg, allocator),
-          service_(boost::asio::use_service<service>(*this)) {
+        : ::webcpp::asio_backend::execution_context(std::allocator_arg, allocator),
+          service_(::webcpp::asio_backend::use_service<service>(*this)) {
         service_.start(allocator);
         BOOST_ASSERT_MSG(emscripten_is_main_browser_thread(),
                          "main_thread_context must be constructed on the browser main thread");

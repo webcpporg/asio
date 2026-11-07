@@ -9,7 +9,7 @@
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/post.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <cstddef>
 #include <cstdio>
@@ -28,7 +28,7 @@ struct work {
 /** Runs one piece of work and schedules the next without calling it inline. */
 void next(work* state) {
     if (--state->remaining != 0) {
-        boost::asio::post(state->io, std::bind_front(&next, state));
+        webcpp::asio::post(state->io, std::bind_front(&next, state));
     }
 }
 
@@ -37,7 +37,7 @@ void next(work* state) {
 int main() {
     asio::io_context io(asio::io_context_options{.max_handlers_per_turn = 250});
     work state{.io = io, .remaining = 5000};
-    boost::asio::post(io, std::bind_front(&next, &state));
+    webcpp::asio::post(io, std::bind_front(&next, &state));
     std::printf("max_handlers_per_turn: %zu\n", io.max_handlers_per_turn());
     const auto handlers = io.run();  // lint-run: main owns the program's event loop
     std::printf("handlers run: %zu\n", handlers);

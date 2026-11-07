@@ -1,0 +1,25 @@
+{
+  "configuration": "Release O3; JSPI/Asyncify; exceptions on/off",
+  "logs": {
+    "on": {
+      "path": "yield-build-on.log",
+      "sha256": "b601aba7569fba15a9bfaf0743ae79a19d72f741a31fa562e1df63094631e642"
+    },
+    "off": {
+      "path": "yield-build-off.log",
+      "sha256": "717919e3bbcc3b6f68e889650c01cb4857ace37d6f194987c59ea651a457eeb0"
+    }
+  },
+  "artifacts": {
+    "yield-benchmark-on/webcpp/bin/libs/asio/bench/yield/emscripten-6.0.11/release/address-model-32/cxxstd-20-iso/link-static/target-os-none/webcpp-suspend-asyncify/yield_program-60-asyncify.js": "2a133a005d4a5b42ab7fc1644e4a11f5d60609808ac823c0f16eaac98618d0b9",
+    "yield-benchmark-on/webcpp/bin/libs/asio/bench/yield/emscripten-6.0.11/release/address-model-32/cxxstd-20-iso/link-static/target-os-none/webcpp-suspend-asyncify/yield_program-60-asyncify.wasm": "17514dae8eb72a99b33024fc6e1cf97b9f9d4908d25790cdc3715f59a0fed1aa",
+    "yield-benchmark-on/webcpp/bin/libs/asio/bench/yield/emscripten-6.0.11/release/address-model-32/cxxstd-20-iso/link-static/target-os-none/yield_program-60-jspi.js": "af3979a711ed63cbd24454f3057c5a2734e453ef4af4db0262db2b51b1de88ae",
+    "yield-benchmark-on/webcpp/bin/libs/asio/bench/yield/emscripten-6.0.11/release/address-model-32/cxxstd-20-iso/link-static/target-os-none/yield_program-60-jspi.wasm": "c0c8c8d33e107d1066a48c6a277e175e7e6c4241251012ae0699c73e761f21e9",
+    "yield-benchmark-off/webcpp/bin/libs/asio/bench/yield/emscripten-6.0.11/release/address-model-32/cxxstd-20-iso/exception-handling-off/link-static/target-os-none/webcpp-suspend-asyncify/yield_program-60-asyncify.js": "f33052133c12c74fac93fa5fb0a6d2429e1b0f5a2f89649ce6fea3a8694655bc",
+    "yield-benchmark-off/webcpp/bin/libs/asio/bench/yield/emscripten-6.0.11/release/address-model-32/cxxstd-20-iso/exception-handling-off/link-static/target-os-none/webcpp-suspend-asyncify/yield_program-60-asyncify.wasm": "236d39678ae9b7af0141792001099394ec99b3b28eae6d885a843a2ede302ba6",
+    "yield-benchmark-off/webcpp/bin/libs/asio/bench/yield/emscripten-6.0.11/release/address-model-32/cxxstd-20-iso/exception-handling-off/link-static/target-os-none/yield_program-60-jspi.js": "729f1834f4a75da2c9661c92e756d1ef4dccb1e7aead5c4e2771e620e9af8beb",
+    "yield-benchmark-off/webcpp/bin/libs/asio/bench/yield/emscripten-6.0.11/release/address-model-32/cxxstd-20-iso/exception-handling-off/link-static/target-os-none/yield_program-60-jspi.wasm": "d41d31f697c145f7845aa9754bfdead78eb74375ac9304edc0457053d9c0df90"
+  },
+  "source_manifest": "2b6790edd58b9020e58538aeb1741fba8f8b1178c1cf86059e39b16b65e64eae.sources.json",
+  "toolchain_environment": "The companion Cobalt Release environment.json records the same local SDKs and hardware."
+}

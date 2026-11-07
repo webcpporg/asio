@@ -8,7 +8,7 @@
 
 #include <webcpp/asio/config.hpp>
 #if defined(__MRDOCS__) || defined(WEBCPP_ASIO_REFERENCE)
-#include <boost/asio/io_context.hpp>  // lint-world: names the readiness executor
+#include WEBCPP_ASIO_BACKEND_HEADER(io_context.hpp)  // lint-world: names the readiness executor
 #include <boost/system/error_code.hpp>
 #include <cstddef>
 
@@ -23,7 +23,7 @@ namespace webcpp::asio::wasi {
 class stdio_stream {
 public:
     /** The executor used for readiness. */
-    using executor_type = boost::asio::io_context::executor_type;
+    using executor_type = ::webcpp::asio_backend::io_context::executor_type;
     /** This stream is its own lowest layer. */
     using lowest_layer_type = stdio_stream;
     /** Acquires CLI resources using the executor's context allocator.
@@ -103,12 +103,12 @@ void beast_close_socket(stdio_stream& stream);
 #else
 #include <wasi/wasip2.h>
 #include <algorithm>
-#include <boost/asio/append.hpp>      // lint-world: preserve completion associations
-#include <boost/asio/buffer.hpp>      // lint-world: borrow the caller's I/O buffers
-#include <boost/asio/compose.hpp>     // lint-world: compose pollable I/O and preserve associations
-#include <boost/asio/io_context.hpp>  // lint-world: caller-owned readiness context
-#include <boost/asio/posix/stream_descriptor.hpp>  // lint-world: wait on CLI pollables
-#include <boost/asio/post.hpp>                     // lint-world: defer initiation onto the executor
+#include WEBCPP_ASIO_BACKEND_HEADER(append.hpp)  // lint-world: preserve completion associations
+#include WEBCPP_ASIO_BACKEND_HEADER(buffer.hpp)  // lint-world: borrow the caller's I/O buffers
+#include WEBCPP_ASIO_BACKEND_HEADER(compose.hpp)  // lint-world: compose pollable I/O and preserve associations
+#include WEBCPP_ASIO_BACKEND_HEADER(io_context.hpp)  // lint-world: caller-owned readiness context
+#include WEBCPP_ASIO_BACKEND_HEADER(posix/stream_descriptor.hpp)  // lint-world: wait on CLI pollables
+#include WEBCPP_ASIO_BACKEND_HEADER(post.hpp)  // lint-world: defer initiation onto the executor
 #include <boost/system/system_error.hpp>
 #include <boost/throw_exception.hpp>
 #include <cstring>
@@ -129,15 +129,15 @@ namespace webcpp::asio::wasi {
 class stdio_stream {
 public:
     /** Executor that drives stream readiness. */
-    using executor_type = boost::asio::io_context::executor_type;
+    using executor_type = ::webcpp::asio_backend::io_context::executor_type;
     /** This stream has no additional transport layer. */
     using lowest_layer_type = stdio_stream;
 
 private:
     struct state {
         executor_type executor;
-        boost::asio::posix::stream_descriptor input_wait;
-        boost::asio::posix::stream_descriptor output_wait;
+        ::webcpp::asio_backend::posix::stream_descriptor input_wait;
+        ::webcpp::asio_backend::posix::stream_descriptor output_wait;
         detail::wasi_pollable_descriptor input_storage{};
         detail::wasi_pollable_descriptor output_storage{};
         streams_own_input_stream_t input = stdin_get_stdin();
@@ -195,7 +195,7 @@ private:
             static_cast<void>(output_wait.cancel(ignored));
         }
 
-        std::size_t read(boost::asio::mutable_buffer buffer,
+        std::size_t read(::webcpp::asio_backend::mutable_buffer buffer,
                          boost::system::error_code& error) const {
             wasip2_list_u8_t bytes{};
             streams_stream_error_t failure{};
@@ -203,9 +203,9 @@ private:
                                                   std::min<std::size_t>(buffer.size(), 65536),
                                                   &bytes, &failure)) {
                 if (failure.tag == STREAMS_STREAM_ERROR_CLOSED) {
-                    error = boost::asio::error::eof;
+                    error = ::webcpp::asio_backend::error::eof;
                 } else {
-                    error = boost::asio::error::fault;
+                    error = ::webcpp::asio_backend::error::fault;
                 }
                 streams_stream_error_free(&failure);
                 return 0;
@@ -215,21 +215,23 @@ private:
                 std::memcpy(buffer.data(), bytes.ptr, count);
             }
             wasip2_list_u8_free(&bytes);
-            error = (count != 0u) ? boost::system::error_code{} : boost::asio::error::would_block;
+            error = (count != 0u) ? boost::system::error_code{}
+                                  : ::webcpp::asio_backend::error::would_block;
             return count;
         }
 
-        std::size_t write(boost::asio::const_buffer buffer, boost::system::error_code& error) {
+        std::size_t write(::webcpp::asio_backend::const_buffer buffer,
+                          boost::system::error_code& error) {
             std::uint64_t capacity = 0;
             streams_stream_error_t failure{};
             if (!streams_method_output_stream_check_write(streams_borrow_output_stream(output),
                                                           &capacity, &failure)) {
                 streams_stream_error_free(&failure);
-                error = boost::asio::error::broken_pipe;
+                error = ::webcpp::asio_backend::error::broken_pipe;
                 return 0;
             }
             if (capacity == 0) {
-                error = boost::asio::error::would_block;
+                error = ::webcpp::asio_backend::error::would_block;
                 return 0;
             }
             auto const count = std::min(
@@ -241,7 +243,7 @@ private:
             if (!streams_method_output_stream_write(streams_borrow_output_stream(output), &bytes,
                                                     &failure)) {
                 streams_stream_error_free(&failure);
-                error = boost::asio::error::broken_pipe;
+                error = ::webcpp::asio_backend::error::broken_pipe;
                 return 0;
             }
             // Request delivery before the protocol switches from writing to reading.
@@ -249,7 +251,7 @@ private:
             if (!streams_method_output_stream_flush(streams_borrow_output_stream(output),
                                                     &failure)) {
                 streams_stream_error_free(&failure);
-                error = boost::asio::error::broken_pipe;
+                error = ::webcpp::asio_backend::error::broken_pipe;
                 return count;
             }
             error.clear();
@@ -270,16 +272,17 @@ private:
         template <class Self>
         void operator()(Self& self) {
             generation = shared->generation;
-            self.reset_cancellation_state(boost::asio::enable_total_cancellation());
-            boost::asio::post(shared->executor,
-                              boost::asio::append(std::move(self), boost::system::error_code{}));
+            self.reset_cancellation_state(::webcpp::asio_backend::enable_total_cancellation());
+            ::webcpp::asio_backend::post(
+                shared->executor,
+                ::webcpp::asio_backend::append(std::move(self), boost::system::error_code{}));
         }
 
         template <class Self>
         void operator()(Self& self, boost::system::error_code error) {
-            if (self.cancelled() != boost::asio::cancellation_type::none || shared->closed ||
-                generation != shared->generation) {
-                error = boost::asio::error::operation_aborted;
+            if (self.cancelled() != ::webcpp::asio_backend::cancellation_type::none ||
+                shared->closed || generation != shared->generation) {
+                error = ::webcpp::asio_backend::error::operation_aborted;
             }
             if (!error) {
                 error = shared->initialization_error;
@@ -294,30 +297,31 @@ private:
             } else {
                 count = shared->read(first, error);
             }
-            if (error != boost::asio::error::would_block) {
+            if (error != ::webcpp::asio_backend::error::would_block) {
                 self.complete(error, count);
                 return;
             }
             auto& descriptor = Writing ? shared->output_wait : shared->input_wait;
-            descriptor.async_wait(boost::asio::posix::stream_descriptor::wait_read,
+            descriptor.async_wait(::webcpp::asio_backend::posix::stream_descriptor::wait_read,
                                   std::move(self));
         }
     };
 
     template <bool Writing, class Buffers, class Token>
     auto async_some(Buffers const& buffers, Token&& token) {
-        using buffer_type =
-            std::conditional_t<Writing, boost::asio::const_buffer, boost::asio::mutable_buffer>;
+        using buffer_type = std::conditional_t<Writing, ::webcpp::asio_backend::const_buffer,
+                                               ::webcpp::asio_backend::mutable_buffer>;
         buffer_type first;
-        for (auto it = boost::asio::buffer_sequence_begin(buffers),
-                  end = boost::asio::buffer_sequence_end(buffers);
+        for (auto it = ::webcpp::asio_backend::buffer_sequence_begin(buffers),
+                  end = ::webcpp::asio_backend::buffer_sequence_end(buffers);
              it != end; ++it) {
-            if (boost::asio::buffer_size(*it) != 0) {
+            if (::webcpp::asio_backend::buffer_size(*it) != 0) {
                 first = buffer_type(*it);
                 break;
             }
         }
-        return boost::asio::async_compose<Token, void(boost::system::error_code, std::size_t)>(
+        return ::webcpp::asio_backend::async_compose<Token,
+                                                     void(boost::system::error_code, std::size_t)>(
             transfer_operation<Writing, buffer_type>{.shared = state_, .first = first}, token,
             state_->executor);
     }
@@ -325,27 +329,27 @@ private:
     template <bool Writing, class Buffers>
     std::size_t sync_some(Buffers const& buffers, boost::system::error_code& error) {
         if (state_->closed) {
-            error = boost::asio::error::operation_aborted;
+            error = ::webcpp::asio_backend::error::operation_aborted;
             return 0;
         }
         if (state_->initialization_error) {
             error = state_->initialization_error;
             return 0;
         }
-        for (auto it = boost::asio::buffer_sequence_begin(buffers),
-                  end = boost::asio::buffer_sequence_end(buffers);
+        for (auto it = ::webcpp::asio_backend::buffer_sequence_begin(buffers),
+                  end = ::webcpp::asio_backend::buffer_sequence_end(buffers);
              it != end; ++it) {
-            if (boost::asio::buffer_size(*it) == 0) {
+            if (::webcpp::asio_backend::buffer_size(*it) == 0) {
                 continue;
             }
             for (;;) {
                 std::size_t count = 0;
                 if constexpr (Writing) {
-                    count = state_->write(boost::asio::const_buffer(*it), error);
+                    count = state_->write(::webcpp::asio_backend::const_buffer(*it), error);
                 } else {
-                    count = state_->read(boost::asio::mutable_buffer(*it), error);
+                    count = state_->read(::webcpp::asio_backend::mutable_buffer(*it), error);
                 }
-                if (error != boost::asio::error::would_block) {
+                if (error != ::webcpp::asio_backend::error::would_block) {
                     return count;
                 }
                 poll_method_pollable_block(
@@ -360,7 +364,8 @@ public:
     /** Acquires independent CLI resource handles using the executor's context allocator. */
     explicit stdio_stream(const executor_type& executor)
         : state_(std::allocate_shared<state>(
-              boost::asio::execution_context::allocator<state>(executor.context()), executor)) {}
+              ::webcpp::asio_backend::execution_context::allocator<state>(executor.context()),
+              executor)) {}
 
     /** Cancels pending operations without closing the application's descriptors. */
     ~stdio_stream() {
@@ -379,7 +384,7 @@ public:
     [[nodiscard]] executor_type get_executor() const noexcept { return state_->executor; }
 
     /** Returns this stream, which is its own lowest layer. */
-    // lint-std: boost::asio::posix::basic_descriptor::lowest_layer returns itself
+    // lint-std: ::webcpp::asio_backend::posix::basic_descriptor::lowest_layer returns itself
     lowest_layer_type& lowest_layer() noexcept { return *this; }
 
     /** Cancels outstanding operations. Subsequent operations remain usable. */

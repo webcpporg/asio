@@ -11,32 +11,33 @@ The io_context's `run`, `run_one`, `run_for`, `run_until`, `run_one_for`
 and `run_one_until` keep Boost.Asio's meaning on every target: `run`
 returns when the io_context is out of work or stopped, `run_one` after one
 handler, `run_for` and `run_until` after their deadline is observed, and each
-returns the number of handlers it ran. `poll` and `poll_one` are Boost's
-everywhere. Natively the six are Boost's own, and the options change
-nothing.
+returns the number of handlers it ran. `poll` and `poll_one` retain the selected
+backend's behavior. Natively the context and all its operations are Boost's own
+types; there is no browser turn option.
 
-On emscripten the six hide Boost's, and `run` is a composition of Boost's
-own calls, which repeats four steps:
+On Emscripten the six hide the shipped backend's operations. `run` composes
+that backend's calls and repeats four steps:
 
-. Call `poll_one` until it returns 0 or `max_handlers_per_turn` handlers
-have run: a turn of the handlers that are ready.
+. Call `poll_one` until it returns 0 or the current turn has run
+`max_handlers_per_turn` handlers, including handlers from step 4.
 . If the io_context is stopped, return.
-. If the turn reached the limit, yield to the browser and go to step 1.
-. Otherwise call Boost's `run_one`, which suspends in the reactor's
+. If the turn reached the limit, yield to the browser, reset its count and
+go to step 1.
+. Otherwise call the backend's `run_one`, which suspends in the reactor's
 `select` until a timer, a post or I/O makes a handler ready, and runs it.
 If it ran none, the io_context being stopped or out of work, return; else
-go to step 1.
+count its handler in the current turn and go to step 1.
 
-`run_for` and `run_until` are the same composition with Boost's
+`run_for` and `run_until` are the same composition with the backend's
 `run_one_until` in step 4. Like Boost's, they check their deadline before
 each handler, so that a deadline already passed runs nothing, and they
 return once it has passed, even when every turn reaches the limit. A
 running handler cannot be interrupted, and host scheduling can delay
 resumption beyond the deadline.
 `run_one` is step 4 alone, and
-`run_one_for` and `run_one_until` are Boost's, each running one handler at
-most. Code that calls `run` through a `boost::asio::io_context&` gets
-Boost's own `run`, which suspends as well but has no limit.
+`run_one_for` and `run_one_until` are the backend's, each running one handler at
+most. Code that calls `run` through a reference to the shipped backend's base context gets
+the backend's `run`, which suspends as well but has no limit.
 
 [#asio-run-turn]
 === A turn at a time
@@ -55,11 +56,11 @@ not guarantee that any particular work happens before the next turn. `MessageCha
 
 *A turn runs at most `max_handlers_per_turn` handlers,
 and the run family yields to the browser after each turn that reaches it.*
-Step 4's one handler belongs to no turn: when it follows a short turn of
-`k` handlers and its wait ends at once, a timer having fallen due
-meanwhile, no macrotask comes between them, so that up to
-`k + 1 + max_handlers_per_turn` handlers, at most twice the limit,
-can run between two yields. The option is 100 by default.
+Both ready handlers and step 4's handler consume the same turn budget.
+A wait does not reset it: a short timer can make the reactor suspend only
+to microtasks, which cannot deliver browser events or worker proxy messages.
+The budget resets after the explicit macrotask yield, even when an earlier
+wait happened to let browser work run. The option is 100 by default.
 Historically, with a limit of 1000 and Emscripten 6.0.11, the `setTimeout(0)` above ran after
 1,000 handlers under JSPI and 999 under Asyncify, against 300,000 without
 the limit, and `run` still ran every handler. It is given at construction,
@@ -67,8 +68,9 @@ the limit, and `run` still ran every handler. It is given at construction,
 later with `io.max_handlers_per_turn(250)`; 0 is taken as 1. A stop made by
 the handler that reaches the limit returns at once, without a yield first.
 _Held by_ `turn_limit`, which counts the yields of a handler that posts
-itself: one after every `max_handlers_per_turn` handlers under `run` and
-`run_for`, never more handlers between two, and none under Boost's own
+itself and of a chain of timer completions: one after every
+`max_handlers_per_turn` handlers under `run` and
+`run_for`, never more handlers between two, and none under the backend's base
 `run`; and a JavaScript `setTimeout(0)` runs at a yield, seen by the first
 handler of a turn. And by `run_family`, in each variant.
 
@@ -90,7 +92,7 @@ For b2, pass the definition on the command line for the complete build:
 ----
 b2 -a --build-dir=bin/asio-limit-1000 toolset=emscripten \
     define=WEBCPP_ASIO_DEFAULT_MAX_HANDLERS_PER_TURN=1000 \
-    libs/asio/example//asio_cobalt.output
+    libs/cobalt/example//asio_cobalt.output
 ----
 
 Use the same value in every translation unit that uses asio and rebuild all
@@ -148,7 +150,7 @@ admission would refuse the call its caller flagged.
 Detection is of a call of this run family on the context whose flag or
 bridge is set. Four calls go undetected: a call from an export of the
 program's own that is not listed for suspension, which nothing tells from
-`main` until its first suspension fails; a call through a `boost::asio::io_context&`, which reaches Boost's
+`main` until its first suspension fails; a call through a reference to the shipped backend's base context, which reaches Boost's
 own `run`; `poll`, `poll_one` and `dispatch`, which are Boost's and no
 member of the run family, called from a JavaScript event; and a call on
 another io_context, whose flag and bridge are its own, from a handler or

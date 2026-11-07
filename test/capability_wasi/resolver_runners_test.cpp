@@ -6,12 +6,12 @@
 
 #include <wasi/wasip3.h>
 #include <atomic>
-#include <boost/asio/bind_allocator.hpp>
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/cancellation_signal.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <chrono>
 #include <thread>
+#include <webcpp/asio/bind_allocator.hpp>
+#include <webcpp/asio/bind_cancellation_slot.hpp>
+#include <webcpp/asio/cancellation_signal.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
 #include <webcpp/test/exit_status.hpp>
@@ -53,7 +53,7 @@ extern "C" void __wrap_wasip3_waitable_join(std::uint32_t waitable, wasip3_waita
 }
 
 int main() {
-    namespace asio = boost::asio;
+    namespace asio = webcpp::asio;
     using tcp = webcpp::asio::ip::tcp;
     for (bool const per_operation : {false, true}) {
         webcpp::asio::io_context context;

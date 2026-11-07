@@ -10,23 +10,26 @@
 
 #include <webcpp/asio/ip/basic_resolver.hpp>
 #ifndef WEBCPP_TARGET_EMSCRIPTEN
-#include <boost/asio/ip/udp.hpp>  // lint-world: native protocol alias
+#include WEBCPP_ASIO_BACKEND_HEADER(ip/udp.hpp)  // lint-world: native protocol alias
 
 namespace webcpp::asio::ip {
+using namespace ::webcpp::asio_backend::ip;
 /** Boost's native UDP protocol. */
-using boost::asio::ip::udp;
+using ::webcpp::asio_backend::ip::udp;
 }  // namespace webcpp::asio::ip
 #else
-#include <boost/asio/detail/socket_types.hpp>  // lint-world: portable protocol constants
-#include <boost/asio/ip/basic_endpoint.hpp>  // lint-world: Boost endpoint layout for the browser protocol
+#include WEBCPP_ASIO_BACKEND_HEADER(detail/socket_types.hpp)  // lint-world: portable protocol constants
+#include WEBCPP_ASIO_BACKEND_HEADER(ip/basic_endpoint.hpp)  // lint-world: Boost endpoint layout for the browser protocol
 #include <webcpp/asio/basic_datagram_socket.hpp>
 
 namespace webcpp::asio::ip {
+using namespace ::webcpp::asio_backend::ip;
+
 /** The browser UDP protocol, with operations supplied by a transport. */
 class udp {
 public:
     /** The endpoint type. */
-    using endpoint = boost::asio::ip::basic_endpoint<udp>;
+    using endpoint = ::webcpp::asio_backend::ip::basic_endpoint<udp>;
     /** The resolver type. */
     using resolver = basic_resolver<udp>;
     /** The socket type. */
@@ -34,23 +37,23 @@ public:
 
     /** Returns the IPv4 protocol.
      @return The IPv4 protocol. */
-    static udp v4() noexcept { return udp(BOOST_ASIO_OS_DEF(AF_INET)); }
+    static udp v4() noexcept { return udp(WEBCPP_ASIO_BACKEND_OS_DEF(AF_INET)); }
 
     /** Returns the IPv6 protocol.
      @return The IPv6 protocol. */
-    static udp v6() noexcept { return udp(BOOST_ASIO_OS_DEF(AF_INET6)); }
+    static udp v6() noexcept { return udp(WEBCPP_ASIO_BACKEND_OS_DEF(AF_INET6)); }
 
     /** Returns the socket type constant.
      @return The socket type. */
     // Match the InternetProtocol member signature used by Boost.
     // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-    [[nodiscard]] int type() const noexcept { return BOOST_ASIO_OS_DEF(SOCK_DGRAM); }
+    [[nodiscard]] int type() const noexcept { return WEBCPP_ASIO_BACKEND_OS_DEF(SOCK_DGRAM); }
 
     /** Returns the protocol number.
      @return The protocol number. */
     // Match the InternetProtocol member signature used by Boost.
     // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-    [[nodiscard]] int protocol() const noexcept { return BOOST_ASIO_OS_DEF(IPPROTO_UDP); }
+    [[nodiscard]] int protocol() const noexcept { return WEBCPP_ASIO_BACKEND_OS_DEF(IPPROTO_UDP); }
 
     /** Returns the address family.
      @return The address family. */

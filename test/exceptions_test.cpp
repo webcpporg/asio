@@ -14,13 +14,13 @@
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/steady_timer.hpp>
 
-#include "page_timeout.hpp"
+#include <webcpp/test/page_timeout.hpp>
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <boost/system/error_code.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <chrono>
 #include <cstddef>
@@ -72,7 +72,7 @@ void a_handler_s_exception_reaches_main_after_a_suspension() {
     BOOST_TEST(caught);
     // The exception cleared the run family's flag on its way: the next run is no nested call.
     bool again = false;
-    boost::asio::post(io, [&again] { again = true; });
+    webcpp::asio::post(io, [&again] { again = true; });
     io.restart();
     BOOST_TEST_EQ(io.run(), 1U);  // lint-run: the test's event loop, after the catch
     BOOST_TEST(again);
@@ -83,9 +83,9 @@ void a_throw_after_a_yield_reaches_main() {
     const webcpp::test::yield_counter yields;
     std::size_t ran = 0;
     for (std::size_t i = 0; i < 2000; ++i) {
-        boost::asio::post(io, [&ran] { ++ran; });
+        webcpp::asio::post(io, [&ran] { ++ran; });
     }
-    boost::asio::post(io, [] { throw std::runtime_error("after a yield"); });
+    webcpp::asio::post(io, [] { throw std::runtime_error("after a yield"); });
     bool caught = false;
     try {
         io.run();  // lint-run: the test's event loop

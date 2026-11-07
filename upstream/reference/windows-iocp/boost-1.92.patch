@@ -1,0 +1,22 @@
+--- a/boost/asio/detail/impl/win_iocp_io_context.ipp
++++ b/boost/asio/detail/impl/win_iocp_io_context.ipp
+@@ -108,7 +108,8 @@
+   if (own_thread)
+   {
+     ::InterlockedIncrement(&outstanding_work_);
+-    thread_ = thread(thread_function(this));
++    thread_ = thread(std::allocator_arg, execution_context::allocator<void>(ctx),
++        thread_function(this));
+   }
+ }
+ 
+@@ -598,7 +599,8 @@
+   if (!timer_thread_.joinable())
+   {
+     timer_thread_function thread_function = { this };
+-    timer_thread_ = thread(thread_function, 65536);
++    timer_thread_ = thread(std::allocator_arg,
++        execution_context::allocator<void>(this->context()), thread_function, 65536);
+   }
+ }
+ 

@@ -31,7 +31,8 @@ static_assert(WEBCPP_ASIO_HAS_SIGNALS == 0);
 static_assert(WEBCPP_ASIO_HAS_SERIAL_PORT == 0);
 #endif
 
-#ifdef BOOST_ASIO_HAS_THREADS
+#if (defined(WEBCPP_TARGET_NATIVE) && defined(BOOST_ASIO_HAS_THREADS)) || \
+    (!defined(WEBCPP_TARGET_NATIVE) && defined(WEBCPP_ASIO_BACKEND_HAS_THREADS))
 static_assert(WEBCPP_ASIO_HAS_THREADS == 1);
 #else
 static_assert(WEBCPP_ASIO_HAS_THREADS == 0);

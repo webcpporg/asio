@@ -18,18 +18,17 @@
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/steady_timer.hpp>
 
-#include "browser_values.hpp"
+#include <webcpp/test/browser_values.hpp>
 
 #include <webcpp/test/exit_status.hpp>
 
 #include <emscripten/em_asm.h>
 #include <emscripten/em_macros.h>
 #include <emscripten/val.h>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <boost/system/error_code.hpp>
+#include <webcpp/asio/executor_work_guard.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <array>
 #include <chrono>
@@ -38,7 +37,7 @@
 
 namespace {
 
-using guard_type = boost::asio::executor_work_guard<webcpp::asio::io_context::executor_type>;
+using guard_type = webcpp::asio::executor_work_guard<webcpp::asio::io_context::executor_type>;
 
 /** The assertions the run family made, which the program's assertion handler counts. */
 struct assertions {
@@ -76,7 +75,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void test_run_from_an_event(webcpp::asio::io_con
                                                             std::size_t* result,
                                                             guard_type* guard) {
     *result = io->run();  // lint-run: the call the run family refuses
-    boost::asio::post(*io, [guard] { guard->reset(); });
+    webcpp::asio::post(*io, [guard] { guard->reset(); });
 }
 
 namespace {
@@ -98,10 +97,10 @@ void a_nested_run_is_refused() {
     webcpp::asio::io_context io;
     std::size_t nested = untouched;
     bool after = false;
-    boost::asio::post(io, [&] {
+    webcpp::asio::post(io, [&] {
         nested = io.run_for(100ms);  // lint-run: the nested call refused
     });
-    boost::asio::post(io, [&after] { after = true; });
+    webcpp::asio::post(io, [&after] { after = true; });
     const std::size_t before = seen.failed;
     BOOST_TEST_EQ(io.run(), 2U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(nested, 0U);
@@ -119,16 +118,16 @@ void every_nested_member_is_refused_in_turn() {
     results.fill(untouched);
     bool last = false;
     const auto deadline = std::chrono::steady_clock::now() + 100ms;
-    boost::asio::post(io, [&] {
+    webcpp::asio::post(io, [&] {
         results[0] = io.run_one();  // lint-run: the nested call refused
     });
-    boost::asio::post(io, [&] {
+    webcpp::asio::post(io, [&] {
         results[1] = io.run_for(100ms);  // lint-run: the nested call refused
     });
-    boost::asio::post(io, [&] { results[2] = io.run_until(deadline); });
-    boost::asio::post(io, [&] { results[3] = io.run_one_for(100ms); });
-    boost::asio::post(io, [&] { results[4] = io.run_one_until(deadline); });
-    boost::asio::post(io, [&last] { last = true; });
+    webcpp::asio::post(io, [&] { results[2] = io.run_until(deadline); });
+    webcpp::asio::post(io, [&] { results[3] = io.run_one_for(100ms); });
+    webcpp::asio::post(io, [&] { results[4] = io.run_one_until(deadline); });
+    webcpp::asio::post(io, [&last] { last = true; });
     const std::size_t before = seen.failed;
     BOOST_TEST_EQ(io.run(), members + 1);  // lint-run: the test's event loop
     for (const std::size_t result : results) {
@@ -175,9 +174,9 @@ private:
 void a_call_while_the_bridge_delivers_is_refused() {
     webcpp::asio::io_context io;
     runs_inside r(io);
-    auto& bridge = boost::asio::use_service<webcpp::asio::browser::bridge>(io);
+    auto& bridge = webcpp::asio::use_service<webcpp::asio::browser::bridge>(io);
     bool ran = false;
-    boost::asio::post(io, [&ran] { ran = true; });
+    webcpp::asio::post(io, [&ran] { ran = true; });
     const std::size_t before = seen.failed;
     bridge.function(bridge.add(r))(0);
     BOOST_TEST_EQ(r.result, 0U);
@@ -202,7 +201,7 @@ void an_exception_out_of_run_clears_the_flag() {
     }
     BOOST_TEST(caught);
     std::size_t ran = 0;
-    boost::asio::post(io, [&ran] { ++ran; });
+    webcpp::asio::post(io, [&ran] { ++ran; });
     io.restart();
     const std::size_t before = seen.failed;
     BOOST_TEST_EQ(io.run(), 1U);  // lint-run: the test's event loop
@@ -219,7 +218,7 @@ void the_timed_forms_are_not_refused() {
     const std::size_t before = seen.failed;
     std::size_t ran = 0;
     for (std::size_t i = 0; i < 100; ++i) {
-        boost::asio::post(io, [&ran] { ++ran; });
+        webcpp::asio::post(io, [&ran] { ++ran; });
     }
     BOOST_TEST_EQ(io.run_for(5s), 100U);  // lint-run: the test's event loop
     io.restart();
@@ -227,13 +226,13 @@ void the_timed_forms_are_not_refused() {
     timer.async_wait([&ran](boost::system::error_code) { ++ran; });
     BOOST_TEST_EQ(io.run_for(5s), 1U);  // lint-run: the test's event loop
     io.restart();
-    boost::asio::post(io, [&ran] { ++ran; });
+    webcpp::asio::post(io, [&ran] { ++ran; });
     BOOST_TEST_EQ(io.run_until(std::chrono::steady_clock::now() + 5s), 1U);
     io.restart();
-    boost::asio::post(io, [&ran] { ++ran; });
+    webcpp::asio::post(io, [&ran] { ++ran; });
     BOOST_TEST_EQ(io.run_one_for(5s), 1U);
     io.restart();
-    boost::asio::post(io, [&ran] { ++ran; });
+    webcpp::asio::post(io, [&ran] { ++ran; });
     BOOST_TEST_EQ(io.run_one_until(std::chrono::steady_clock::now() + 5s), 1U);
     BOOST_TEST_EQ(ran, 104U);
     BOOST_TEST_EQ(seen.failed, before);
@@ -244,11 +243,11 @@ void the_timed_forms_are_not_refused() {
 // program's context is no call of this run family.
 void a_reactor_less_context_polled_from_a_handler() {
     webcpp::asio::io_context io;
-    boost::asio::io_context driver{1};
+    webcpp::asio::io_context driver{1};
     std::size_t driven = 0;
-    boost::asio::post(driver, [&driven] { ++driven; });
+    webcpp::asio::post(driver, [&driven] { ++driven; });
     std::size_t polled = untouched;
-    boost::asio::post(io, [&] { polled = driver.poll(); });
+    webcpp::asio::post(io, [&] { polled = driver.poll(); });
     const std::size_t before = seen.failed;
     BOOST_TEST_EQ(io.run(), 1U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(polled, 1U);

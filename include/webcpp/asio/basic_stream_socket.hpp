@@ -8,7 +8,7 @@
 #define WEBCPP_ASIO_BASIC_STREAM_SOCKET_HPP
 #include <webcpp/asio/config.hpp>
 #ifndef WEBCPP_TARGET_EMSCRIPTEN
-#include <boost/asio/basic_stream_socket.hpp>  // lint-world: native sockets keep Boost semantics
+#include WEBCPP_ASIO_BACKEND_HEADER(basic_stream_socket.hpp)  // lint-world: native sockets keep Boost semantics
 
 namespace webcpp::asio {
 /**
@@ -16,8 +16,8 @@ namespace webcpp::asio {
  @tparam Protocol The network protocol.
  @tparam Executor The associated executor.
 */
-template <class Protocol, class Executor = boost::asio::any_io_executor>
-using basic_stream_socket = boost::asio::basic_stream_socket<Protocol, Executor>;
+template <class Protocol, class Executor = ::webcpp::asio_backend::any_io_executor>
+using basic_stream_socket = ::webcpp::asio_backend::basic_stream_socket<Protocol, Executor>;
 }  // namespace webcpp::asio
 #else
 #include <webcpp/asio/detail/browser_socket.hpp>
@@ -28,7 +28,7 @@ namespace webcpp::asio {
  @tparam Protocol The network protocol.
  @tparam Executor The associated executor.
 */
-template <class Protocol, class Executor = boost::asio::any_io_executor>
+template <class Protocol, class Executor = ::webcpp::asio_backend::any_io_executor>
 class basic_stream_socket : public detail::browser_socket<Protocol, Executor> {
     using base = detail::browser_socket<Protocol, Executor>;
     using base::transport_state;
@@ -74,7 +74,7 @@ public:
     */
     template <class Token>
     auto async_connect(const endpoint_type& endpoint, Token&& token) {
-        return boost::asio::async_initiate<Token, void(boost::system::error_code)>(
+        return ::webcpp::asio_backend::async_initiate<Token, void(boost::system::error_code)>(
             [this](auto handler, const endpoint_type& endpoint) {
                 transport_state.async_connect(endpoint, std::move(handler));
             },
@@ -87,7 +87,7 @@ public:
      @param ec Receives the transport error, or success.
      @return The result; ec receives any error.
     */
-    boost::system::error_code shutdown(boost::asio::socket_base::shutdown_type what,
+    boost::system::error_code shutdown(::webcpp::asio_backend::socket_base::shutdown_type what,
                                        boost::system::error_code& ec) {
         ec = transport_state.shutdown(what);
         return ec;
@@ -97,7 +97,7 @@ public:
      Forwards shutdown, throwing on error.
      @param what The what.
     */
-    void shutdown(boost::asio::socket_base::shutdown_type what) {
+    void shutdown(::webcpp::asio_backend::socket_base::shutdown_type what) {
         boost::system::error_code ec;
         shutdown(what, ec);
         detail::throw_socket_error(ec);
@@ -139,7 +139,8 @@ public:
     */
     template <class Buffers, class Token>
     auto async_read_some(const Buffers& buffers, Token&& token) {
-        return boost::asio::async_initiate<Token, void(boost::system::error_code, std::size_t)>(
+        return ::webcpp::asio_backend::async_initiate<Token,
+                                                      void(boost::system::error_code, std::size_t)>(
             [this](auto handler, const Buffers& buffers) {
                 transport_state.async_read_some(buffers, std::move(handler));
             },
@@ -182,7 +183,8 @@ public:
     */
     template <class Buffers, class Token>
     auto async_write_some(const Buffers& buffers, Token&& token) {
-        return boost::asio::async_initiate<Token, void(boost::system::error_code, std::size_t)>(
+        return ::webcpp::asio_backend::async_initiate<Token,
+                                                      void(boost::system::error_code, std::size_t)>(
             [this](auto handler, const Buffers& buffers) {
                 transport_state.async_write_some(buffers, std::move(handler));
             },
@@ -198,7 +200,8 @@ public:
      @return The result; ec receives any error.
     */
     template <class Buffers>
-    std::size_t send(const Buffers& buffers, boost::asio::socket_base::message_flags flags,
+    std::size_t send(const Buffers& buffers,
+                     ::webcpp::asio_backend::socket_base::message_flags flags,
                      boost::system::error_code& ec) {
         return transport_state.send(buffers, flags, ec);
     }
@@ -211,7 +214,8 @@ public:
      @return The operation result.
     */
     template <class Buffers>
-    std::size_t send(const Buffers& buffers, boost::asio::socket_base::message_flags flags) {
+    std::size_t send(const Buffers& buffers,
+                     ::webcpp::asio_backend::socket_base::message_flags flags) {
         boost::system::error_code ec;
         const auto result = send(buffers, flags, ec);
         detail::throw_socket_error(ec);
@@ -228,11 +232,12 @@ public:
      @return The completion token result.
     */
     template <class Buffers, class Token>
-    auto async_send(const Buffers& buffers, boost::asio::socket_base::message_flags flags,
-                    Token&& token) {
-        return boost::asio::async_initiate<Token, void(boost::system::error_code, std::size_t)>(
+    auto async_send(const Buffers& buffers,
+                    ::webcpp::asio_backend::socket_base::message_flags flags, Token&& token) {
+        return ::webcpp::asio_backend::async_initiate<Token,
+                                                      void(boost::system::error_code, std::size_t)>(
             [this](auto handler, const Buffers& buffers,
-                   boost::asio::socket_base::message_flags flags) {
+                   ::webcpp::asio_backend::socket_base::message_flags flags) {
                 transport_state.async_send(buffers, flags, std::move(handler));
             },
             token, buffers, flags);
@@ -283,7 +288,8 @@ public:
      @return The result; ec receives any error.
     */
     template <class Buffers>
-    std::size_t receive(const Buffers& buffers, boost::asio::socket_base::message_flags flags,
+    std::size_t receive(const Buffers& buffers,
+                        ::webcpp::asio_backend::socket_base::message_flags flags,
                         boost::system::error_code& ec) {
         return transport_state.receive(buffers, flags, ec);
     }
@@ -296,7 +302,8 @@ public:
      @return The operation result.
     */
     template <class Buffers>
-    std::size_t receive(const Buffers& buffers, boost::asio::socket_base::message_flags flags) {
+    std::size_t receive(const Buffers& buffers,
+                        ::webcpp::asio_backend::socket_base::message_flags flags) {
         boost::system::error_code ec;
         const auto result = receive(buffers, flags, ec);
         detail::throw_socket_error(ec);
@@ -313,11 +320,12 @@ public:
      @return The completion token result.
     */
     template <class Buffers, class Token>
-    auto async_receive(const Buffers& buffers, boost::asio::socket_base::message_flags flags,
-                       Token&& token) {
-        return boost::asio::async_initiate<Token, void(boost::system::error_code, std::size_t)>(
+    auto async_receive(const Buffers& buffers,
+                       ::webcpp::asio_backend::socket_base::message_flags flags, Token&& token) {
+        return ::webcpp::asio_backend::async_initiate<Token,
+                                                      void(boost::system::error_code, std::size_t)>(
             [this](auto handler, const Buffers& buffers,
-                   boost::asio::socket_base::message_flags flags) {
+                   ::webcpp::asio_backend::socket_base::message_flags flags) {
                 transport_state.async_receive(buffers, flags, std::move(handler));
             },
             token, buffers, flags);

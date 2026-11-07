@@ -13,14 +13,14 @@
 #include <emscripten.h>
 #include <emscripten/threading.h>
 #include <pthread.h>
-#include <boost/asio/bind_allocator.hpp>
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/cancellation_signal.hpp>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/post.hpp>
-#include <boost/asio/steady_timer.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/bind_allocator.hpp>
+#include <webcpp/asio/bind_cancellation_slot.hpp>
+#include <webcpp/asio/bind_executor.hpp>
+#include <webcpp/asio/cancellation_signal.hpp>
+#include <webcpp/asio/executor_work_guard.hpp>
+#include <webcpp/asio/post.hpp>
+#include <webcpp/asio/steady_timer.hpp>
 
 #include <atomic>
 #include <cerrno>
@@ -72,10 +72,10 @@ struct results {
 void* run_worker(void* pointer) {
     auto& result = *static_cast<results*>(pointer);
     webcpp::asio::io_context io;
-    auto work = boost::asio::make_work_guard(io);
+    auto work = webcpp::asio::make_work_guard(io);
     int returned = 0;
     const auto return_to_worker = [&] {
-        boost::asio::post(io, [&] {
+        webcpp::asio::post(io, [&] {
             if (emscripten_is_main_browser_thread()) {
                 ++result.errors;
             }
@@ -84,20 +84,20 @@ void* run_worker(void* pointer) {
             }
         });
     };
-    boost::asio::cancellation_signal signal;
-    boost::asio::steady_timer cancelled(io, std::chrono::hours(1));
-    cancelled.async_wait(boost::asio::bind_cancellation_slot(
-        signal.slot(), boost::asio::bind_executor(result.main.get_executor(), [&](auto ec) {
-            if (ec != boost::asio::error::operation_aborted ||
+    webcpp::asio::cancellation_signal signal;
+    webcpp::asio::steady_timer cancelled(io, std::chrono::hours(1));
+    cancelled.async_wait(webcpp::asio::bind_cancellation_slot(
+        signal.slot(), webcpp::asio::bind_executor(result.main.get_executor(), [&](auto ec) {
+            if (ec != webcpp::asio::error::operation_aborted ||
                 !emscripten_is_main_browser_thread()) {
                 ++result.errors;
             }
             ++result.cancellations;
             return_to_worker();
         })));
-    signal.emit(boost::asio::cancellation_type::all);
-    boost::asio::steady_timer timer(io, std::chrono::milliseconds(30));
-    timer.async_wait(boost::asio::bind_executor(result.main.get_executor(), [&](auto ec) {
+    signal.emit(webcpp::asio::cancellation_type::all);
+    webcpp::asio::steady_timer timer(io, std::chrono::milliseconds(30));
+    timer.async_wait(webcpp::asio::bind_executor(result.main.get_executor(), [&](auto ec) {
         if (ec || !emscripten_is_main_browser_thread()) {
             ++result.errors;
         }
@@ -152,11 +152,11 @@ int main() {
 
     allocation_counts allocations;
     int allocated_calls = 0;
-    boost::asio::post(result.main.get_executor(),
-                      boost::asio::bind_allocator(tracking_allocator<void>(allocations), [&] {
-                          BOOST_TEST_EQ(allocations.live, 0);
-                          ++allocated_calls;
-                      }));
+    webcpp::asio::post(result.main.get_executor(),
+                       webcpp::asio::bind_allocator(tracking_allocator<void>(allocations), [&] {
+                           BOOST_TEST_EQ(allocations.live, 0);
+                           ++allocated_calls;
+                       }));
     BOOST_TEST_EQ(allocated_calls, 0);
     BOOST_TEST(allocations.allocated > 0);
     settle();
@@ -168,9 +168,9 @@ int main() {
         webcpp::asio::browser::main_thread_context shutdown;
         const auto kept = std::make_shared<int>(42);
         lifetime = kept;
-        boost::asio::post(shutdown.get_executor(),
-                          boost::asio::bind_allocator(tracking_allocator<void>(allocations),
-                                                      [kept, &discarded] { ++discarded; }));
+        webcpp::asio::post(shutdown.get_executor(),
+                           webcpp::asio::bind_allocator(tracking_allocator<void>(allocations),
+                                                        [kept, &discarded] { ++discarded; }));
     }
     BOOST_TEST(lifetime.expired());
     BOOST_TEST_EQ(allocations.live, 0);
@@ -189,9 +189,9 @@ int main() {
     std::weak_ptr<int> discarded_lifetime;
     auto reentrant = std::make_unique<webcpp::asio::browser::main_thread_context>(
         std::allocator_arg, tracking_allocator<void>(reentrant_context_allocations));
-    boost::asio::post(
+    webcpp::asio::post(
         reentrant->get_executor(),
-        boost::asio::bind_allocator(tracking_allocator<void>(reentrant_handler_allocations), [&] {
+        webcpp::asio::bind_allocator(tracking_allocator<void>(reentrant_handler_allocations), [&] {
             ++reentrant_calls;
             reentrant.reset();
             BOOST_TEST(discarded_lifetime.expired());
@@ -200,10 +200,10 @@ int main() {
     {
         const auto held = std::make_shared<int>(42);
         discarded_lifetime = held;
-        boost::asio::post(
+        webcpp::asio::post(
             reentrant->get_executor(),
-            boost::asio::bind_allocator(tracking_allocator<void>(reentrant_handler_allocations),
-                                        [held, &reentrant_calls] { ++reentrant_calls; }));
+            webcpp::asio::bind_allocator(tracking_allocator<void>(reentrant_handler_allocations),
+                                         [held, &reentrant_calls] { ++reentrant_calls; }));
     }
     settle();
     BOOST_TEST_EQ(reentrant_calls, 1);

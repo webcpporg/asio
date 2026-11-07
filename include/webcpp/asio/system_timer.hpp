@@ -9,7 +9,7 @@
 
 #include <webcpp/asio/config.hpp>
 
-#include <boost/asio/system_timer.hpp>  // lint-world: Boost's timers are asio's
+#include WEBCPP_ASIO_BACKEND_HEADER(system_timer.hpp)  // lint-world: Boost's timers are asio's
 
 namespace webcpp::asio {
 
@@ -17,7 +17,7 @@ namespace webcpp::asio {
  Boost.Asio's timer on the system's wall clock, Boost's own: on emscripten it waits in the
  reactor's timer queue, which the run family waits on.
 */
-using boost::asio::system_timer;  // lint-world: Boost's timers are asio's
+using ::webcpp::asio_backend::system_timer;  // lint-world: Boost's timers are asio's
 
 }  // namespace webcpp::asio
 

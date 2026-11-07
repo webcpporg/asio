@@ -6,21 +6,21 @@
 
 // Browser socket operations fail as values unless a transport supplies them (doc: #asio-sockets).
 #include <array>
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/deferred.hpp>
-#include <boost/asio/socket_base.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <boost/system/system_error.hpp>
 #include <utility>
+#include <webcpp/asio/buffer.hpp>
+#include <webcpp/asio/deferred.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
 #include <webcpp/asio/ip/udp.hpp>
+#include <webcpp/asio/socket_base.hpp>
 #include <webcpp/test/exit_status.hpp>
 
 namespace {
 namespace net = webcpp::asio;
 using boost::system::error_code;
-const auto unsupported = boost::asio::error::operation_not_supported;
+const auto unsupported = webcpp::asio::error::operation_not_supported;
 
 template <class Start>
 void posted(net::io_context& io, Start start) {
@@ -46,7 +46,7 @@ void posted(net::io_context& io, Start start) {
     io.run();  // lint-run: drain the callback completion
     BOOST_TEST_EQ(called, 1);
     initiated = false;
-    auto pending = start(boost::asio::deferred);
+    auto pending = start(webcpp::asio::deferred);
     std::move(pending)(handler);
     BOOST_TEST_EQ(called, 1);
     initiated = true;
@@ -75,8 +75,8 @@ void common(Socket& socket, Protocol protocol) {
     BOOST_TEST(!ec);
     BOOST_TEST(socket.is_open());
     BOOST_TEST(socket.open(protocol, ec) == ec);
-    BOOST_TEST(ec == boost::asio::error::already_open);
-    boost::asio::socket_base::reuse_address option;
+    BOOST_TEST(ec == webcpp::asio::error::already_open);
+    webcpp::asio::socket_base::reuse_address option;
     BOOST_TEST(socket.cancel(ec) == ec);
     BOOST_TEST(ec == unsupported);
     BOOST_TEST(socket.set_option(option, ec) == ec);
@@ -117,18 +117,18 @@ void all_socket_operations() {
     common(udp, net::ip::udp::v6());
     common(acceptor, net::ip::tcp::v4());
     std::array<char, 8> bytes{};
-    const auto buffer = boost::asio::buffer(bytes);
-    const net::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address_v4::loopback(), 80);
+    const auto buffer = webcpp::asio::buffer(bytes);
+    const net::ip::tcp::endpoint tcp_endpoint(webcpp::asio::ip::address_v4::loopback(), 80);
     error_code ec;
     BOOST_TEST(tcp.connect(tcp_endpoint, ec) == ec);
     BOOST_TEST(ec == unsupported);
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
     throws_unsupported([&] { tcp.connect(tcp_endpoint); });
 #endif
-    BOOST_TEST(tcp.shutdown(boost::asio::socket_base::shutdown_both, ec) == ec);
+    BOOST_TEST(tcp.shutdown(webcpp::asio::socket_base::shutdown_both, ec) == ec);
     BOOST_TEST(ec == unsupported);
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
-    throws_unsupported([&] { tcp.shutdown(boost::asio::socket_base::shutdown_both); });
+    throws_unsupported([&] { tcp.shutdown(webcpp::asio::socket_base::shutdown_both); });
 #endif
     tcp.read_some(buffer, ec);
     BOOST_TEST(ec == unsupported);
@@ -176,8 +176,8 @@ void synchronous_datagram_operations() {
     net::io_context io;
     net::ip::udp::socket udp(io);
     std::array<char, 8> bytes{};
-    const auto buffer = boost::asio::buffer(bytes);
-    net::ip::udp::endpoint udp_endpoint(boost::asio::ip::address_v4::loopback(), 53);
+    const auto buffer = webcpp::asio::buffer(bytes);
+    net::ip::udp::endpoint udp_endpoint(webcpp::asio::ip::address_v4::loopback(), 53);
     error_code ec;
     BOOST_TEST(udp.connect(udp_endpoint, ec) == ec);
     BOOST_TEST(ec == unsupported);
@@ -189,10 +189,10 @@ void synchronous_datagram_operations() {
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
     throws_unsupported([&] { udp.bind(udp_endpoint); });
 #endif
-    BOOST_TEST(udp.shutdown(boost::asio::socket_base::shutdown_both, ec) == ec);
+    BOOST_TEST(udp.shutdown(webcpp::asio::socket_base::shutdown_both, ec) == ec);
     BOOST_TEST(ec == unsupported);
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
-    throws_unsupported([&] { udp.shutdown(boost::asio::socket_base::shutdown_both); });
+    throws_unsupported([&] { udp.shutdown(webcpp::asio::socket_base::shutdown_both); });
 #endif
     udp.send(buffer, ec);
     BOOST_TEST(ec == unsupported);
@@ -250,7 +250,7 @@ void synchronous_acceptor_operations() {
     net::io_context io;
     net::ip::tcp::acceptor acceptor(io);
     net::ip::tcp::socket peer(io);
-    const net::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address_v4::loopback(), 80);
+    const net::ip::tcp::endpoint tcp_endpoint(webcpp::asio::ip::address_v4::loopback(), 80);
     error_code ec;
     BOOST_TEST(acceptor.bind(tcp_endpoint, ec) == ec);
     BOOST_TEST(ec == unsupported);
@@ -286,9 +286,9 @@ void asynchronous_socket_operations() {
     net::ip::tcp::acceptor acceptor(io);
     net::ip::tcp::socket peer(io);
     std::array<char, 8> bytes{};
-    const auto buffer = boost::asio::buffer(bytes);
-    const net::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address_v4::loopback(), 80);
-    net::ip::udp::endpoint udp_endpoint(boost::asio::ip::address_v4::loopback(), 53);
+    const auto buffer = webcpp::asio::buffer(bytes);
+    const net::ip::tcp::endpoint tcp_endpoint(webcpp::asio::ip::address_v4::loopback(), 80);
+    net::ip::udp::endpoint udp_endpoint(webcpp::asio::ip::address_v4::loopback(), 53);
     posted(io, [&](auto token) { return tcp.async_connect(tcp_endpoint, std::move(token)); });
     posted(io, [&](auto token) { return tcp.async_read_some(buffer, std::move(token)); });
     posted(io, [&](auto token) { return tcp.async_write_some(buffer, std::move(token)); });

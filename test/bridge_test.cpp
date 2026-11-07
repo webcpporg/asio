@@ -18,15 +18,15 @@
 #include <webcpp/asio/browser/bridge.hpp>
 #include <webcpp/asio/io_context.hpp>
 
-#include "browser_values.hpp"
+#include <webcpp/test/browser_values.hpp>
 
 #include <webcpp/test/exit_status.hpp>
 
 #include <emscripten/stack.h>
 #include <emscripten/val.h>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/executor_work_guard.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -35,10 +35,10 @@
 
 namespace {
 
-using guard_type = boost::asio::executor_work_guard<webcpp::asio::io_context::executor_type>;
+using guard_type = webcpp::asio::executor_work_guard<webcpp::asio::io_context::executor_type>;
 
 webcpp::asio::browser::bridge& bridge_of(webcpp::asio::io_context& io) {
-    return boost::asio::use_service<webcpp::asio::browser::bridge>(io);
+    return webcpp::asio::use_service<webcpp::asio::browser::bridge>(io);
 }
 
 /** A registration that posts a count of the events it receives, until it is done. */
@@ -49,7 +49,7 @@ public:
     bool deliver(const emscripten::val& event) override {
         delivering = bridge_of(io_).delivering();
         const int value = event.as<int>();
-        boost::asio::post(io_, [this, value] {
+        webcpp::asio::post(io_, [this, value] {
             ++received;
             last = value;
             if (release != nullptr) {
@@ -80,7 +80,7 @@ void an_event_posts_and_wakes_run() {
     auto& bridge = bridge_of(io);
     const std::uint64_t key = bridge.add(listener);
     BOOST_TEST(key >= 1);
-    auto guard = boost::asio::make_work_guard(io);
+    auto guard = webcpp::asio::make_work_guard(io);
     listener.release = &guard;
     test_call_after(bridge.function(key).as_handle(), 20, 7);
     BOOST_TEST_EQ(io.run(), 1U);  // lint-run: the test's event loop
@@ -94,7 +94,7 @@ void events_before_run_wait_for_it() {
     // tag::bridge[]
     webcpp::asio::io_context io;
     counter listener(io, 0);  // a registration, which posts each event it receives
-    auto& bridge = boost::asio::use_service<webcpp::asio::browser::bridge>(io);
+    auto& bridge = webcpp::asio::use_service<webcpp::asio::browser::bridge>(io);
     const std::uint64_t key = bridge.add(listener);
     const emscripten::val deliver = bridge.function(key);  // for JavaScript to call
     deliver(1);

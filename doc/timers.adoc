@@ -29,7 +29,7 @@ JavaScript `setTimeout` of at most 300 seconds. This bounds one reactor
 wait, not the duration a program may give a timer.
 
 Cancelling a timer completes its pending waits with
-`boost::asio::error::operation_aborted`. An operation already ready for
+`webcpp::asio::error::operation_aborted`. An operation already ready for
 completion cannot be cancelled retroactively. To cancel a particular wait,
 bind a cancellation slot to its completion handler. A terminal signal on
 that slot cancels that wait without cancelling another wait on the same

@@ -4,18 +4,18 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // https://www.boost.org/LICENSE_1_0.txt)
 #include <array>
-#include <boost/asio/bind_allocator.hpp>
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/cancellation_signal.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <string>
+#include <webcpp/asio/bind_allocator.hpp>
+#include <webcpp/asio/bind_cancellation_slot.hpp>
+#include <webcpp/asio/cancellation_signal.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/udp.hpp>
 #include <webcpp/test/exit_status.hpp>
 #include "../wasip2/counting_allocator.hpp"
 
 namespace {
-namespace asio = boost::asio;
+namespace asio = webcpp::asio;
 using udp = webcpp::asio::ip::udp;
 #if defined(__wasip2__) || defined(__wasip3__)
 constexpr std::size_t buffer_count = 80;

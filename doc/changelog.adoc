@@ -14,6 +14,11 @@ Changes prepared for the first WebCPP release.
 === Unreleased
 
 // tag::unreleased[]
+* Fixed browser turn budgets across timer waits so worker proxy messages can run.
+* Fixed browser and WASIp2 timer test dependencies and the unbounded backend control.
+* Improved exception analysis of system executor initialization without changing fatal behavior.
+* Fixed posted completions after JavaScript reentry with concurrency hint one.
+* Added current example coverage and Release performance, memory and yield measurements.
 // end::unreleased[]
 
 [#asio-changelog-0-1-0]

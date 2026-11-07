@@ -11,12 +11,12 @@
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/io_context.hpp>
+#include <webcpp/asio/executor_work_guard.hpp>
+#include <webcpp/asio/io_context.hpp>
 
 int main() {
-    boost::asio::io_context io;
-    const auto guard = boost::asio::make_work_guard(io);
+    webcpp::asio::io_context io;
+    const auto guard = webcpp::asio::make_work_guard(io);
     io.run();  // lint-run: the event loop that never returns, which the test pins
     return webcpp::test::exit_status(0);
 }

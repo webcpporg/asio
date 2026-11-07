@@ -8,14 +8,15 @@
 == Build and test a WASIp3 program
 
 This how-to uses the same timer example as the native tutorial. The port also
-provides TCP/UDP through Boost's socket types. Read <<asio-capabilities>> before
+provides TCP/UDP through its selected socket backend. Read <<asio-capabilities>> before
 choosing a profile; it records the restrictions that still differ from native.
 
 === Prerequisites
 
 Use Boost 1.92.0, wasi-sdk 34.0 and Wasmtime 50.0.1 for the configuration verified
-here. The port pins the exact input headers: a newer or modified Boost requires
-rebasing the patch and rerunning the tests. It is not accepted silently.
+here. The distributed Wasm backend records exact upstream inputs and corrections.
+Updating it requires rerunning the maintainer importer and regression tests;
+an application build uses the sources already shipped in the library.
 WASIp3 and cooperative threads require runtime support; the previously installed
 Wasmtime 47.0.3 could not load the SDK's cooperative-thread component.
 
@@ -24,11 +25,11 @@ setup. Put the SDK in `.local/wasi-sdk`, or supply `-sWASI_SDK=/path/to/wasi-sdk
 when choosing the cooperative profile. It must be the same SDK as the compiler
 registered for this toolset. Put the tested Wasmtime binary on `PATH`.
 
-`/webcpp/asio//asio` prepares a private copy of the patched Boost headers under
-`bin/boost-asio-wasip3/include`. It verifies the input and output hashes and
-searches those headers before the stock headers, only for `clang-wasip3`.
-It does not rewrite the Boost installation. Native and browser builds retain
-their existing headers and settings.
+`/webcpp/asio//asio` selects the shipped WebCPP headers and compiles
+`src/wasip3/waitable.cpp`. It validates the SDK's private descriptor ABI before
+building that bridge. Neither B2 nor another consumer build patches Boost or
+inserts a replacement Boost include tree. See <<asio-distribution>> for the
+equivalent source contract outside B2.
 
 === Run without threads
 
@@ -101,9 +102,8 @@ b2 -a toolset=clang-wasip3 variant=release threading=multi \
   testing.launcher=tools/boost/asio-wasip3/run.sh \
   libs/asio/test libs/asio/test//wasi_core_threads libs/asio/example
 
-python3 tools/boost/asio-wasip3/prepare_test.py
+python3 libs/asio/src/wasip3/verify.py --sdk .local/wasi-sdk
 python3 tools/test/asio_wasip3_test.py
-python3 tools/boost/cobalt-wasip3/prepare_test.py
 python3 tools/test/cobalt_wasip3_test.py
 ----
 
@@ -120,20 +120,20 @@ multi-buffer sends and receives,
 including complete sequences beyond 64 buffers, allocation routing, empty
 datagrams, oversized input and release of storage before completion.
 
-The preparation tests check exact hashes, idempotence and protection of the
-installed headers. The build tests use a checkout with spaces, check that the
-private headers are selected only for WASIp3, and reject unavailable SDK
-profiles. Native controls use the same runtime test sources. These are local
+The SDK verifier checks the private ABI snapshot. The maintainer importers check
+source hashes, and external consumers use a source snapshot with spaces in its
+path and no cached replacement Boost headers. Unsupported SDK profiles fail
+with diagnostics. Native controls use the same runtime test sources. These are local
 commands; none starts a CI job.
 
 [#asio-wasip3-cobalt]
 === Build a Cobalt application
 
-Use `<library>/webcpp/asio//cobalt` in the application's B2 requirements.
-Its ordinary `boost::cobalt::main co_main(int, char**)` entry point is unchanged.
-The target builds Boost.Cobalt from source, applies the checked Cobalt and Asio
-compatibility overlays, and supplies the signal-free WASIp3 runner. Applications
-do not compile a special subset of Cobalt sources themselves.
+Use `<library>/webcpp/cobalt//cobalt` in the application's B2 requirements,
+`webcpp/cobalt/` headers and `webcpp::cobalt` names. The application supplies
+`co_main`; the separately compiled runner omits unsupported process signals.
+Cobalt's explicit source inventory also supports other build systems. The old
+Asio target is a forwarding alias, not a second implementation.
 
 Run the existing <<asio-cobalt-example,Cobalt timer example>>:
 
@@ -142,42 +142,38 @@ Run the existing <<asio-cobalt-example,Cobalt timer example>>:
 b2 -a toolset=clang-wasip3 variant=release threading=single \
   exception-handling=on \
   testing.launcher=tools/boost/asio-wasip3/run.sh \
-  libs/asio/example//asio_cobalt.output
+  libs/cobalt/example//asio_cobalt.output
 ----
 
-[listing]
-----
-include::{examples}/asio_cobalt.expected[]
-----
+The expected output and complete source are in the
+link:{webcpp-libs}/cobalt/{webcpp-page}#cobalt-tutorial[Cobalt tutorial].
 
 Repeat with `exception-handling=off`, or with `threading=multi` and
 `exception-handling=off` for the cooperative runtime. The latter can also run
-the explicit `libs/asio/test//cobalt_thread` test. The ordinary test target
-includes `cobalt_wasi`, `cobalt_network_wasi` and `cobalt_io`; they cover the
+the explicit `libs/cobalt/test//cobalt_thread` test. The ordinary test target
+includes `cobalt_wasi`, `cobalt_network_exceptions_on/off` and `cobalt_io`; they cover the
 runner, both timer APIs, Asio TCP/UDP through `use_op`, Cobalt's own IP socket
 wrappers, refused TCP connections, TCP/UDP cancellation, EOF and result-based
 resolver behavior.
 
-The `libs/asio/test//cobalt_wasip3` lane checks successful and unsuccessful
+The `libs/cobalt/test//cobalt_wasip3` lane checks successful and unsuccessful
 command completion with an exact-status driver. Put Wasmtime 50.0.1 on `PATH`,
 or set `WASMTIME` to its executable for that driver. The SDK maps nonzero
 coroutine returns to host status 1.
 
 For TLS, add `/webcpp/asio//tls` and await Asio SSL operations with
-`boost::cobalt::use_op`. `tools/openssl/test//cobalt_tls_client` is a compiled
-consumer of both public targets. Run the following command to check TLS 1.2/1.3,
-trusted and rejected
-identities, malformed CA data and clean shutdown; the path is printed by B2's
-link action:
+`webcpp::cobalt::use_op`. The following public-target drivers check TLS 1.2/1.3,
+trusted and rejected identities, malformed CA data, transfer cancellation and
+clean, failed and cancelled shutdown:
 
 [source,bash]
 ----
-python3 tools/openssl/test/tls.py <path-to-cobalt_tls_client> --embedded
+b2 -a toolset=clang-wasip3 variant=release libs/cobalt/test/tls//tls
 ----
 
 The WASI client needs network capabilities but no CA filesystem
 preopen. To use Cobalt's own `io::ssl::stream`, link the optional
-`/webcpp/asio//cobalt_ssl` target. Its checked patch, trust configuration and
+`/webcpp/cobalt//cobalt_ssl` target. Its shipped implementation, trust configuration and
 local test commands are described in <<asio-cobalt-ssl>>.
 
 The underlying platform contracts are documented by

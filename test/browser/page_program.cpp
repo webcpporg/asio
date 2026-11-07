@@ -7,9 +7,7 @@
 // A page program loaded by the browser lane (doc: #asio-building-loader).
 #include <webcpp/asio.hpp>
 
-#include "../browser_values.hpp"
-
-#include <boost/asio/post.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <cstdio>
 
@@ -18,7 +16,7 @@ int main() {
     webcpp::asio::io_context io;
     int ran = 0;
     for (int i = 0; i < 3; ++i) {
-        boost::asio::post(io, [&ran] { ++ran; });
+        webcpp::asio::post(io, [&ran] { ++ran; });
     }
     io.run();  // lint-run: the page's event loop, suspended into the browser's
     if (ran != 3) {

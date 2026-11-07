@@ -22,9 +22,7 @@ def main() -> None:
         if mode == 'entropy':
             subprocess.run([*command, 'fail-entropy'], check=True, timeout=30)
         return
-    options = {'client': ['--require-sni'], 'embedded': ['--embedded'],
-               'cobalt': ['--embedded', '--require-sni'], 'state': ['--state-test'],
-               'cancel': ['--state-test']}
+    options = {'client': ['--require-sni'], 'embedded': ['--embedded']}
     fixture = root / 'tools/openssl/test/tls.py'
     subprocess.run([sys.executable, str(fixture), program, *options[mode]],
                    check=True, timeout=150)

@@ -12,19 +12,18 @@ The numbered anchors are stable: code and tests link to the same guarantee
 when its explanation moves. The reference describes individual API members;
 these guarantees describe their behaviour together.
 
-. [[asio-invariant-1]]Natively, `io_context` derives from Boost.Asio's context,
-  shares its executor type and uses Boost's run family. Browser scheduling
-  options are accepted without changing native execution. The timer aliases
+. [[asio-invariant-1]]Natively, `io_context` is an alias of Boost.Asio's context,
+  with its original constructors, executor type and run family. Browser scheduling
+  options are not members of this native type. The timer aliases
   name Boost's types. See <<asio-names>>; checked by `names`.
 . [[asio-invariant-2]]On Emscripten, supported handler execution happens on
   the stack of a run family call from `main` or another export configured
   for suspension. Posted work and events delivered through the bridge wait
   for such a call. See <<asio-run-main>>; checked by `reactor` and `bridge`.
-. [[asio-invariant-3]]A polling turn runs at most `max_handlers_per_turn`
-  handlers. A full turn yields through a macrotask unless the context is
-  stopped or its timed call has expired. A wait may run one additional
-  handler between turns; the bound between yields is therefore at most
-  twice the limit, not always the limit itself. Timed calls check deadlines
+. [[asio-invariant-3]]A turn runs at most `max_handlers_per_turn`
+  handlers, counting both ready handlers and handlers completed by a wait.
+  A full turn yields through a macrotask unless the context is
+  stopped or its timed call has expired. Timed calls check deadlines
   before handlers; they cannot interrupt a running handler or guarantee
   when the host resumes them. See <<asio-run-turn>>; checked by `turn_limit`,
   `run_family` and `browser_render`.
@@ -48,10 +47,12 @@ these guarantees describe their behaviour together.
   the reactor on both targets. Timer cancellation retains Boost's semantics,
   including cancellation of an individual wait through its associated slot.
   See <<asio-timers>>; checked by `timers`.
-. [[asio-invariant-9]]Context services use the context's allocator; operation
+. [[asio-invariant-9]]Within the allocation scenarios and platform limits in
+  <<asio-allocation>>, context services use the context's allocator; operation
   storage uses the handler's associated allocator. Supplying one does not
   implicitly supply the other. The named runtime allocations and measurement
-  limits in <<asio-allocation-runtime>> remain outside that routing claim.
+  limits in <<asio-allocation-runtime>>, including native Boost's Windows IOCP
+  limitation, remain outside that routing claim.
   See <<asio-allocation>>; checked by `allocation`.
 . [[asio-invariant-10]]A Promise completes its operation through the bridge
   with its value, or with `promise_rejected` and its reason. Cancellation

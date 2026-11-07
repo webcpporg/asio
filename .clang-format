@@ -1,0 +1,5 @@
+BasedOnStyle: InheritParentConfig
+# This argument is a header-name token, not an arithmetic expression.
+WhitespaceSensitiveMacros:
+  - WEBCPP_ASIO_BACKEND_HEADER
+  - WEBCPP_BEAST_BACKEND_HEADER

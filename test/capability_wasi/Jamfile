@@ -8,6 +8,8 @@ import webcpp ;
 webcpp.targets native wasip2 wasip3 ;
 webcpp.run datagrams : datagrams_test.cpp : : native wasip2 wasip3 ;
 webcpp.run resolver : ../wasip2/resolver_test.cpp : : wasip3 ;
+webcpp.run resolver_immediate : ../wasip2/resolver_test.cpp resolver_immediate_fixture.cpp
+  : <linkflags>-Wl,--wrap=webcpp_asio_wasip3_lookup : wasip3 ;
 webcpp.run resolver_progress : resolver_progress_test.cpp
   : <linkflags>-Wl,--wrap=webcpp_asio_wasip3_lookup
     <linkflags>-Wl,--wrap=wasip3_subtask_drop : wasip3 ;

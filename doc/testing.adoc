@@ -24,6 +24,25 @@ Use <<asio-quick-start>> and <<asio-timers-example>> as executable starting
 points. Native and Node runs do not establish browser rendering behaviour;
 use a real browser when your contract depends on page events or animation.
 
+For resolver cancellation, distinguish a pending lookup from a result already
+delivered by `poll_one()`. A fast host may complete a localhost lookup during
+that first call; cancelling afterwards cannot retract the successful callback.
+The WASI resolver test accepts that ordering, and `resolver_immediate` repeats
+it with an immediately returned host result. `resolver_progress` separately
+holds a WASIp3 lookup pending and checks resolver-wide cancellation,
+per-operation cancellation, context shutdown and allocation release. It does
+not use localhost latency as proof that cancellation reached pending work.
+
+include::example-matrix.adoc[]
+
+The shared
+link:{webcpp-libs}/cobalt/{webcpp-page}#cobalt-release-measurements[Release comparison]
+measures this shipped Asio implementation alongside Cobalt, including native,
+WASIp2/P3 and browser page/worker profiles. It separates payload size, startup,
+execution and instrumented memory. The <<asio-yield-current>> isolates browser
+handoff cost. Older measurements below remain evidence for their recorded source
+and environment, rather than measurements of the current migration.
+
 [#asio-testing-library]
 === What the library checks
 
@@ -38,8 +57,10 @@ include it does not make fails, naming it.
 
 `<webcpp/asio/config.hpp>`, which every public header of asio includes
 first, defines `WEBCPP_ASIO_NO_EXCEPTIONS` when the build has no exceptions,
-and a program may define it itself to turn asio's exceptions off in a build
-that has them, as Boost.Asio's `BOOST_ASIO_NO_EXCEPTIONS` does. The tests
+and a program may define it explicitly for WebCPP-owned adapters. Browser
+throwing overloads follow that policy. Native Boost and upstream-derived WASI
+APIs retain their overload sets; an error through a throwing overload can reach
+the fatal handler when compiler exceptions are disabled. The tests
 `config`, `config_developer_defined` and `config_all_off` check compiler,
 library-specific and global WebCPP settings.
 
@@ -421,8 +442,9 @@ b2 -a toolset=clang-wasip3 libs/asio/test//threads
 
 tls-integration::
 Real peers exercise trusted/rejected certificates, SNI, embedded/replacement
-roots, Cobalt TLS state, encrypted transfer cancellation, and shutdown errors
-and cancellation. Native single/multi profiles run with exceptions on/off;
+roots and entropy failure. Cobalt TLS state, encrypted transfer cancellation,
+and shutdown errors/cancellation run in `libs/cobalt/test/tls//tls-integration`.
+Native single/multi profiles run with exceptions on/off;
 WASIp3 runs single with exceptions on/off and cooperative with exceptions off.
 The WASIp3 entropy control verifies that host randomness failure prevents
 random output and key generation. It does not measure entropy quality.

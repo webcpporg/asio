@@ -34,6 +34,12 @@ class AnalysisTest(unittest.TestCase):
         self.assertAlmostEqual(result['p95_us'], 10)
         self.assertEqual(expected_checksum(3), 2165703038)
 
+    def test_clock_plot_uses_observed_steps(self):
+        case, data = self.fixture()
+        data['wall_clock'] = dict(minimum_positive_ms=.125, observed_loop_ns_per_read=40)
+        result = analyze_case(case, data)
+        self.assertEqual(result['wall_clock_step_us'], 125)
+
     def test_affine_checksum_matches_sequential_reference(self):
         value = 1
         for i in range(1001):

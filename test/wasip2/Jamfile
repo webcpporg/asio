@@ -16,7 +16,8 @@ webcpp.run coroutine : ../wasi_coroutine_test.cpp : : wasip2 ;
 webcpp.run pollable : pollable_test.cpp : : wasip2 ;
 webcpp.run resolver : resolver_test.cpp : : wasip2 ;
 webcpp.run run_family : ../run_family_test.cpp : : wasip2 ;
-webcpp.run timers : ../timers_test.cpp : : wasip2 ;
+webcpp.run timers : ../timers_test.cpp
+  : <library>/webcpp/beast//beast : wasip2 ;
 webcpp.run write_permit : write_permit_test.cpp
   : <linkflags>-Wl,--wrap=streams_method_output_stream_check_write : wasip2 ;
 webcpp.run pending_write : write_permit_test.cpp

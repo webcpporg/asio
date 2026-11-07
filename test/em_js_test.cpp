@@ -12,7 +12,7 @@
 
 #include <webcpp/asio.hpp>
 
-#include "browser_values.hpp"
+#include <webcpp/test/browser_values.hpp>
 
 #include <webcpp/test/exit_status.hpp>
 

@@ -1,0 +1,1017 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1152pt" height="576pt" viewBox="0 0 1152 576" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-11-07T01:31:41.990323</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="01-yield-latency-24faa335b19b-figure_1">
+  <g id="01-yield-latency-24faa335b19b-patch_1">
+   <path d="M 0 576 
+L 1152 576 
+L 1152 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="01-yield-latency-24faa335b19b-axes_1">
+   <g id="01-yield-latency-24faa335b19b-patch_2">
+    <path d="M 80.64 483.84 
+L 541.44 483.84 
+L 541.44 109.44 
+L 80.64 109.44 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-matplotlib.axis_1">
+    <g id="01-yield-latency-24faa335b19b-xtick_1">
+     <g id="01-yield-latency-24faa335b19b-line2d_1">
+      <defs>
+       <path id="01-yield-latency-24faa335b19b-m0a7da200ed" d="M 0 0 
+L 0 3.5 
+" style="stroke: #000000; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="101.585455" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_1">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="101.585455" y="499.197422" transform="rotate(-0 101.585455 499.197422)">1</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_2">
+     <g id="01-yield-latency-24faa335b19b-line2d_2">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="185.367273" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_2">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="185.367273" y="499.197422" transform="rotate(-0 185.367273 499.197422)">10</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_3">
+     <g id="01-yield-latency-24faa335b19b-line2d_3">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="269.149091" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_3">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="269.149091" y="499.197422" transform="rotate(-0 269.149091 499.197422)">100</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_4">
+     <g id="01-yield-latency-24faa335b19b-line2d_4">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="352.930909" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_4">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="352.930909" y="499.197422" transform="rotate(-0 352.930909 499.197422)">1,000</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_5">
+     <g id="01-yield-latency-24faa335b19b-line2d_5">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="436.712727" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_5">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="436.712727" y="499.197422" transform="rotate(-0 436.712727 499.197422)">5,000</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_6">
+     <g id="01-yield-latency-24faa335b19b-line2d_6">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="520.494545" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_6">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="520.494545" y="499.197422" transform="rotate(-0 520.494545 499.197422)">10,000</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-text_7">
+     <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="311.04" y="514.198281" transform="rotate(-0 311.04 514.198281)">Handlers per turn (tested settings)</text>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-matplotlib.axis_2">
+    <g id="01-yield-latency-24faa335b19b-ytick_1">
+     <g id="01-yield-latency-24faa335b19b-line2d_7">
+      <path d="M 80.64 483.84 
+L 541.44 483.84 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_8">
+      <defs>
+       <path id="01-yield-latency-24faa335b19b-m14b64e1925" d="M 0 0 
+L -3.5 0 
+" style="stroke: #000000; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="80.64" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_8">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end" x="73.64" y="488.018711" transform="rotate(-0 73.64 488.018711)">0</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_2">
+     <g id="01-yield-latency-24faa335b19b-line2d_9">
+      <path d="M 80.64 432.930648 
+L 541.44 432.930648 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_10">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="80.64" y="432.930648" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_9">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end" x="73.64" y="437.109359" transform="rotate(-0 73.64 437.109359)">1</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_3">
+     <g id="01-yield-latency-24faa335b19b-line2d_11">
+      <path d="M 80.64 382.021297 
+L 541.44 382.021297 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_12">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="80.64" y="382.021297" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_10">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end" x="73.64" y="386.200008" transform="rotate(-0 73.64 386.200008)">2</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_4">
+     <g id="01-yield-latency-24faa335b19b-line2d_13">
+      <path d="M 80.64 331.111945 
+L 541.44 331.111945 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_14">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="80.64" y="331.111945" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_11">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end" x="73.64" y="335.290656" transform="rotate(-0 73.64 335.290656)">3</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_5">
+     <g id="01-yield-latency-24faa335b19b-line2d_15">
+      <path d="M 80.64 280.202593 
+L 541.44 280.202593 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_16">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="80.64" y="280.202593" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_12">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end" x="73.64" y="284.381304" transform="rotate(-0 73.64 284.381304)">4</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_6">
+     <g id="01-yield-latency-24faa335b19b-line2d_17">
+      <path d="M 80.64 229.293242 
+L 541.44 229.293242 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_18">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="80.64" y="229.293242" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_13">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end" x="73.64" y="233.471953" transform="rotate(-0 73.64 233.471953)">5</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_7">
+     <g id="01-yield-latency-24faa335b19b-line2d_19">
+      <path d="M 80.64 178.38389 
+L 541.44 178.38389 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_20">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="80.64" y="178.38389" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_14">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end" x="73.64" y="182.562601" transform="rotate(-0 73.64 182.562601)">6</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_8">
+     <g id="01-yield-latency-24faa335b19b-line2d_21">
+      <path d="M 80.64 127.474538 
+L 541.44 127.474538 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_22">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="80.64" y="127.474538" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_15">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end" x="73.64" y="131.653249" transform="rotate(-0 73.64 131.653249)">7</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-text_16">
+     <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="59.998672" y="296.64" transform="rotate(-90 59.998672 296.64)">Microseconds per yield gap</text>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-LineCollection_1">
+    <path d="M 101.585455 259.533397 
+L 101.585455 246.452239 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #2266a5; stroke-width: 2"/>
+    <path d="M 185.367273 272.209825 
+L 185.367273 268.849808 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #2266a5; stroke-width: 2"/>
+    <path d="M 269.149091 277.26934 
+L 269.149091 256.637132 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #2266a5; stroke-width: 2"/>
+    <path d="M 352.930909 271.551981 
+L 352.930909 251.168354 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #2266a5; stroke-width: 2"/>
+    <path d="M 436.712727 254.648485 
+L 436.712727 235.010601 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #2266a5; stroke-width: 2"/>
+    <path d="M 520.494545 251.914096 
+L 520.494545 217.609943 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #2266a5; stroke-width: 2"/>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-line2d_23">
+    <defs>
+     <path id="01-yield-latency-24faa335b19b-m130897347e" d="M 4 0 
+L -4 -0 
+" style="stroke: #2266a5"/>
+    </defs>
+    <g clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)">
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="101.585455" y="259.533397" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="185.367273" y="272.209825" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="269.149091" y="277.26934" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="352.930909" y="271.551981" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="436.712727" y="254.648485" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="520.494545" y="251.914096" style="fill: #2266a5; stroke: #2266a5"/>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-line2d_24">
+    <g clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)">
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="101.585455" y="246.452239" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="185.367273" y="268.849808" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="269.149091" y="256.637132" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="352.930909" y="251.168354" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="436.712727" y="235.010601" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="520.494545" y="217.609943" style="fill: #2266a5; stroke: #2266a5"/>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-LineCollection_2">
+    <path d="M 101.585455 222.135387 
+L 101.585455 209.11532 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #c25c16; stroke-width: 2"/>
+    <path d="M 185.367273 230.871432 
+L 185.367273 223.973214 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #c25c16; stroke-width: 2"/>
+    <path d="M 269.149091 213.881231 
+L 269.149091 200.209286 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #c25c16; stroke-width: 2"/>
+    <path d="M 352.930909 195.983412 
+L 352.930909 187.034503 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #c25c16; stroke-width: 2"/>
+    <path d="M 436.712727 167.396618 
+L 436.712727 143.78144 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #c25c16; stroke-width: 2"/>
+    <path d="M 520.494545 154.967577 
+L 520.494545 117.431873 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #c25c16; stroke-width: 2"/>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-line2d_25">
+    <defs>
+     <path id="01-yield-latency-24faa335b19b-mdbba161621" d="M 4 0 
+L -4 -0 
+" style="stroke: #c25c16"/>
+    </defs>
+    <g clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)">
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="101.585455" y="222.135387" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="185.367273" y="230.871432" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="269.149091" y="213.881231" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="352.930909" y="195.983412" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="436.712727" y="167.396618" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="520.494545" y="154.967577" style="fill: #c25c16; stroke: #c25c16"/>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-line2d_26">
+    <g clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)">
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="101.585455" y="209.11532" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="185.367273" y="223.973214" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="269.149091" y="200.209286" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="352.930909" y="187.034503" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="436.712727" y="143.78144" style="fill: #c25c16; stroke: #c25c16"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="520.494545" y="117.431873" style="fill: #c25c16; stroke: #c25c16"/>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-line2d_27">
+    <path d="M 101.585455 253.747549 
+L 185.367273 269.282537 
+L 269.149091 262.10591 
+L 352.930909 258.128617 
+L 436.712727 242.965187 
+L 520.494545 230.536146 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #2266a5; stroke-width: 2; stroke-linecap: square"/>
+    <defs>
+     <path id="01-yield-latency-24faa335b19b-mff7f5922de" d="M 0 3 
+C 0.795609 3 1.55874 2.683901 2.12132 2.12132 
+C 2.683901 1.55874 3 0.795609 3 0 
+C 3 -0.795609 2.683901 -1.55874 2.12132 -2.12132 
+C 1.55874 -2.683901 0.795609 -3 0 -3 
+C -0.795609 -3 -1.55874 -2.683901 -2.12132 -2.12132 
+C -2.683901 -1.55874 -3 -0.795609 -3 0 
+C -3 0.795609 -2.683901 1.55874 -2.12132 2.12132 
+C -1.55874 2.683901 -0.795609 3 0 3 
+z
+" style="stroke: #2266a5"/>
+    </defs>
+    <g clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)">
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="101.585455" y="253.747549" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="185.367273" y="269.282537" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="269.149091" y="262.10591" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="352.930909" y="258.128617" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="436.712727" y="242.965187" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="520.494545" y="230.536146" style="fill: #2266a5; stroke: #2266a5"/>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-line2d_28">
+    <path d="M 101.585455 217.077543 
+L 185.367273 227.384141 
+L 269.149091 202.446513 
+L 352.930909 195.23767 
+L 436.712727 161.92784 
+L 520.494545 133.838207 
+" clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)" style="fill: none; stroke: #c25c16; stroke-width: 2; stroke-linecap: square"/>
+    <defs>
+     <path id="01-yield-latency-24faa335b19b-mfd01699c6f" d="M -3 3 
+L 3 3 
+L 3 -3 
+L -3 -3 
+z
+" style="stroke: #c25c16; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#01-yield-latency-24faa335b19b-p72c98d0288)">
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="101.585455" y="217.077543" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="185.367273" y="227.384141" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="269.149091" y="202.446513" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="352.930909" y="195.23767" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="436.712727" y="161.92784" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="520.494545" y="133.838207" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-patch_3">
+    <path d="M 80.64 483.84 
+L 80.64 109.44 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-patch_4">
+    <path d="M 80.64 483.84 
+L 541.44 483.84 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_17">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #2266a5" x="101.585455" y="277.533397" transform="rotate(-0 101.585455 277.533397)">4.52</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_18">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #2266a5" x="185.367273" y="290.209825" transform="rotate(-0 185.367273 290.209825)">4.21</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_19">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #2266a5" x="269.149091" y="295.26934" transform="rotate(-0 269.149091 295.26934)">4.36</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_20">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #2266a5" x="352.930909" y="289.551981" transform="rotate(-0 352.930909 289.551981)">4.43</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_21">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #2266a5" x="436.712727" y="272.648485" transform="rotate(-0 436.712727 272.648485)">4.73</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_22">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #2266a5" x="520.494545" y="269.914096" transform="rotate(-0 520.494545 269.914096)">4.98</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_23">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #c25c16" x="101.585455" y="201.11532" transform="rotate(-0 101.585455 201.11532)">5.24</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_24">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #c25c16" x="185.367273" y="215.973214" transform="rotate(-0 185.367273 215.973214)">5.04</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_25">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #c25c16" x="269.149091" y="192.209286" transform="rotate(-0 269.149091 192.209286)">5.53</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_26">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #c25c16" x="352.930909" y="179.034503" transform="rotate(-0 352.930909 179.034503)">5.67</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_27">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #c25c16" x="436.712727" y="135.78144" transform="rotate(-0 436.712727 135.78144)">6.32</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_28">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #c25c16" x="520.494545" y="109.431873" transform="rotate(-0 520.494545 109.431873)">6.87</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_29">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'DejaVu Sans'; text-anchor: start" x="80.64" y="96.44" transform="rotate(-0 80.64 96.44)">Measured boundary gap: excludes callback batch work</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-legend_1">
+    <g id="01-yield-latency-24faa335b19b-LineCollection_3">
+     <path d="M 101.54 129.348281 
+L 101.54 118.348281 
+" style="fill: none; stroke: #2266a5; stroke-width: 2"/>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-line2d_29">
+     <g>
+      <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="101.54" y="129.348281" style="fill: #2266a5; stroke: #2266a5"/>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-line2d_30">
+     <g>
+      <use xlink:href="#01-yield-latency-24faa335b19b-m130897347e" x="101.54" y="118.348281" style="fill: #2266a5; stroke: #2266a5"/>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-line2d_31">
+     <path d="M 90.54 123.848281 
+L 112.54 123.848281 
+" style="fill: none; stroke: #2266a5; stroke-width: 2; stroke-linecap: square"/>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-line2d_32">
+     <g>
+      <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="101.54" y="123.848281" style="fill: #2266a5; stroke: #2266a5"/>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-text_30">
+     <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start" x="121.34" y="127.698281" transform="rotate(-0 121.34 127.698281)">JSPI</text>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-LineCollection_4">
+     <path d="M 101.54 145.849141 
+L 101.54 134.849141 
+" style="fill: none; stroke: #c25c16; stroke-width: 2"/>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-line2d_33">
+     <g>
+      <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="101.54" y="145.849141" style="fill: #c25c16; stroke: #c25c16"/>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-line2d_34">
+     <g>
+      <use xlink:href="#01-yield-latency-24faa335b19b-mdbba161621" x="101.54" y="134.849141" style="fill: #c25c16; stroke: #c25c16"/>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-line2d_35">
+     <path d="M 90.54 140.349141 
+L 112.54 140.349141 
+" style="fill: none; stroke: #c25c16; stroke-width: 2; stroke-linecap: square"/>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-line2d_36">
+     <g>
+      <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="101.54" y="140.349141" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-text_31">
+     <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start" x="121.34" y="144.199141" transform="rotate(-0 121.34 144.199141)">ASYNCIFY</text>
+    </g>
+   </g>
+  </g>
+  <g id="01-yield-latency-24faa335b19b-axes_2">
+   <g id="01-yield-latency-24faa335b19b-patch_5">
+    <path d="M 656.64 483.84 
+L 1117.44 483.84 
+L 1117.44 109.44 
+L 656.64 109.44 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-matplotlib.axis_3">
+    <g id="01-yield-latency-24faa335b19b-xtick_7">
+     <g id="01-yield-latency-24faa335b19b-line2d_37">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="677.585455" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_32">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="677.585455" y="499.197422" transform="rotate(-0 677.585455 499.197422)">1</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_8">
+     <g id="01-yield-latency-24faa335b19b-line2d_38">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="761.367273" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_33">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="761.367273" y="499.197422" transform="rotate(-0 761.367273 499.197422)">10</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_9">
+     <g id="01-yield-latency-24faa335b19b-line2d_39">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="845.149091" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_34">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="845.149091" y="499.197422" transform="rotate(-0 845.149091 499.197422)">100</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_10">
+     <g id="01-yield-latency-24faa335b19b-line2d_40">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="928.930909" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_35">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="928.930909" y="499.197422" transform="rotate(-0 928.930909 499.197422)">1,000</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_11">
+     <g id="01-yield-latency-24faa335b19b-line2d_41">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="1012.712727" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_36">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="1012.712727" y="499.197422" transform="rotate(-0 1012.712727 499.197422)">5,000</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-xtick_12">
+     <g id="01-yield-latency-24faa335b19b-line2d_42">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m0a7da200ed" x="1096.494545" y="483.84" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_37">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="1096.494545" y="499.197422" transform="rotate(-0 1096.494545 499.197422)">10,000</text>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-text_38">
+     <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="887.04" y="514.198281" transform="rotate(-0 887.04 514.198281)">Handlers per turn (tested settings)</text>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-matplotlib.axis_4">
+    <g id="01-yield-latency-24faa335b19b-ytick_9">
+     <g id="01-yield-latency-24faa335b19b-line2d_43">
+      <path d="M 656.64 441.170199 
+L 1117.44 441.170199 
+" clip-path="url(#01-yield-latency-24faa335b19b-pcf796cae3b)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_44">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="656.64" y="441.170199" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_39">
+      <!-- $\mathdefault{10^{0}}$ -->
+      <g transform="translate(630.28 446.340199)">
+       <text>
+        <tspan x="0" y="-0.736688" style="font-size: 11px; font-family: 'DejaVu Sans'">1</tspan>
+        <tspan x="6.998535" y="-0.736688" style="font-size: 11px; font-family: 'DejaVu Sans'">0</tspan>
+        <tspan x="14.102344" y="-5.279688" style="font-size: 7.7px; font-family: 'DejaVu Sans'">0</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_10">
+     <g id="01-yield-latency-24faa335b19b-line2d_45">
+      <path d="M 656.64 356.55489 
+L 1117.44 356.55489 
+" clip-path="url(#01-yield-latency-24faa335b19b-pcf796cae3b)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_46">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="656.64" y="356.55489" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_40">
+      <!-- $\mathdefault{10^{1}}$ -->
+      <g transform="translate(630.28 361.66989)">
+       <text>
+        <tspan x="0" y="-0.846063" style="font-size: 11px; font-family: 'DejaVu Sans'">1</tspan>
+        <tspan x="6.998535" y="-0.846063" style="font-size: 11px; font-family: 'DejaVu Sans'">0</tspan>
+        <tspan x="14.102344" y="-5.389063" style="font-size: 7.7px; font-family: 'DejaVu Sans'">1</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_11">
+     <g id="01-yield-latency-24faa335b19b-line2d_47">
+      <path d="M 656.64 271.93958 
+L 1117.44 271.93958 
+" clip-path="url(#01-yield-latency-24faa335b19b-pcf796cae3b)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_48">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="656.64" y="271.93958" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_41">
+      <!-- $\mathdefault{10^{2}}$ -->
+      <g transform="translate(630.28 277.10958)">
+       <text>
+        <tspan x="0" y="-0.736688" style="font-size: 11px; font-family: 'DejaVu Sans'">1</tspan>
+        <tspan x="6.998535" y="-0.736688" style="font-size: 11px; font-family: 'DejaVu Sans'">0</tspan>
+        <tspan x="14.102344" y="-5.279688" style="font-size: 7.7px; font-family: 'DejaVu Sans'">2</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_12">
+     <g id="01-yield-latency-24faa335b19b-line2d_49">
+      <path d="M 656.64 187.324271 
+L 1117.44 187.324271 
+" clip-path="url(#01-yield-latency-24faa335b19b-pcf796cae3b)" style="fill: none; stroke: #e2e6ea; stroke-width: 0.7; stroke-linecap: square"/>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-line2d_50">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m14b64e1925" x="656.64" y="187.324271" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="01-yield-latency-24faa335b19b-text_42">
+      <!-- $\mathdefault{10^{3}}$ -->
+      <g transform="translate(630.28 192.494271)">
+       <text>
+        <tspan x="0" y="-0.736688" style="font-size: 11px; font-family: 'DejaVu Sans'">1</tspan>
+        <tspan x="6.998535" y="-0.736688" style="font-size: 11px; font-family: 'DejaVu Sans'">0</tspan>
+        <tspan x="14.102344" y="-5.279688" style="font-size: 7.7px; font-family: 'DejaVu Sans'">3</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_13">
+     <g id="01-yield-latency-24faa335b19b-line2d_51">
+      <defs>
+       <path id="01-yield-latency-24faa335b19b-m52c36e438a" d="M 0 0 
+L -2 0 
+" style="stroke: #000000; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="474.842016" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_14">
+     <g id="01-yield-latency-24faa335b19b-line2d_52">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="466.641945" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_15">
+     <g id="01-yield-latency-24faa335b19b-line2d_53">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="459.942" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_16">
+     <g id="01-yield-latency-24faa335b19b-line2d_54">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="454.277276" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_17">
+     <g id="01-yield-latency-24faa335b19b-line2d_55">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="449.37027" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_18">
+     <g id="01-yield-latency-24faa335b19b-line2d_56">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="445.041983" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_19">
+     <g id="01-yield-latency-24faa335b19b-line2d_57">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="415.698453" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_20">
+     <g id="01-yield-latency-24faa335b19b-line2d_58">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="400.798436" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_21">
+     <g id="01-yield-latency-24faa335b19b-line2d_59">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="390.226707" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_22">
+     <g id="01-yield-latency-24faa335b19b-line2d_60">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="382.026636" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_23">
+     <g id="01-yield-latency-24faa335b19b-line2d_61">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="375.32669" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_24">
+     <g id="01-yield-latency-24faa335b19b-line2d_62">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="369.661967" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_25">
+     <g id="01-yield-latency-24faa335b19b-line2d_63">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="364.75496" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_26">
+     <g id="01-yield-latency-24faa335b19b-line2d_64">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="360.426674" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_27">
+     <g id="01-yield-latency-24faa335b19b-line2d_65">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="331.083143" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_28">
+     <g id="01-yield-latency-24faa335b19b-line2d_66">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="316.183127" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_29">
+     <g id="01-yield-latency-24faa335b19b-line2d_67">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="305.611397" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_30">
+     <g id="01-yield-latency-24faa335b19b-line2d_68">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="297.411326" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_31">
+     <g id="01-yield-latency-24faa335b19b-line2d_69">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="290.711381" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_32">
+     <g id="01-yield-latency-24faa335b19b-line2d_70">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="285.046657" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_33">
+     <g id="01-yield-latency-24faa335b19b-line2d_71">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="280.139651" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_34">
+     <g id="01-yield-latency-24faa335b19b-line2d_72">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="275.811364" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_35">
+     <g id="01-yield-latency-24faa335b19b-line2d_73">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="246.467834" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_36">
+     <g id="01-yield-latency-24faa335b19b-line2d_74">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="231.567817" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_37">
+     <g id="01-yield-latency-24faa335b19b-line2d_75">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="220.996088" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_38">
+     <g id="01-yield-latency-24faa335b19b-line2d_76">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="212.796017" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_39">
+     <g id="01-yield-latency-24faa335b19b-line2d_77">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="206.096071" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_40">
+     <g id="01-yield-latency-24faa335b19b-line2d_78">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="200.431348" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_41">
+     <g id="01-yield-latency-24faa335b19b-line2d_79">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="195.524341" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_42">
+     <g id="01-yield-latency-24faa335b19b-line2d_80">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="191.196055" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_43">
+     <g id="01-yield-latency-24faa335b19b-line2d_81">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="161.852524" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_44">
+     <g id="01-yield-latency-24faa335b19b-line2d_82">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="146.952508" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_45">
+     <g id="01-yield-latency-24faa335b19b-line2d_83">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="136.380778" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_46">
+     <g id="01-yield-latency-24faa335b19b-line2d_84">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="128.180707" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_47">
+     <g id="01-yield-latency-24faa335b19b-line2d_85">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="121.480762" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_48">
+     <g id="01-yield-latency-24faa335b19b-line2d_86">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="115.816038" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-ytick_49">
+     <g id="01-yield-latency-24faa335b19b-line2d_87">
+      <g>
+       <use xlink:href="#01-yield-latency-24faa335b19b-m52c36e438a" x="656.64" y="110.909032" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-text_43">
+     <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle" x="623.637422" y="296.64" transform="rotate(-90 623.637422 296.64)">Nanoseconds per callback (log scale)</text>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-line2d_88">
+    <path d="M 677.585455 131.892375 
+L 761.367273 219.076499 
+L 845.149091 302.482754 
+L 928.930909 386.444749 
+L 1012.712727 443.198951 
+L 1096.494545 466.821818 
+" clip-path="url(#01-yield-latency-24faa335b19b-pcf796cae3b)" style="fill: none; stroke: #2266a5; stroke-width: 2; stroke-linecap: square"/>
+    <g clip-path="url(#01-yield-latency-24faa335b19b-pcf796cae3b)">
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="677.585455" y="131.892375" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="761.367273" y="219.076499" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="845.149091" y="302.482754" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="928.930909" y="386.444749" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="1012.712727" y="443.198951" style="fill: #2266a5; stroke: #2266a5"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="1096.494545" y="466.821818" style="fill: #2266a5; stroke: #2266a5"/>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-line2d_89">
+    <path d="M 677.585455 126.458182 
+L 761.367273 212.521436 
+L 845.149091 293.726628 
+L 928.930909 377.412371 
+L 1012.712727 432.541992 
+L 1096.494545 454.93942 
+" clip-path="url(#01-yield-latency-24faa335b19b-pcf796cae3b)" style="fill: none; stroke: #c25c16; stroke-width: 2; stroke-linecap: square"/>
+    <g clip-path="url(#01-yield-latency-24faa335b19b-pcf796cae3b)">
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="677.585455" y="126.458182" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="761.367273" y="212.521436" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="845.149091" y="293.726628" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="928.930909" y="377.412371" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="1012.712727" y="432.541992" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="1096.494545" y="454.93942" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-patch_6">
+    <path d="M 656.64 483.84 
+L 656.64 109.44 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-patch_7">
+    <path d="M 656.64 483.84 
+L 1117.44 483.84 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-text_44">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'DejaVu Sans'; text-anchor: start" x="656.64" y="96.44" transform="rotate(-0 656.64 96.44)">Derived scheduling cost per callback</text>
+   </g>
+   <g id="01-yield-latency-24faa335b19b-legend_2">
+    <g id="01-yield-latency-24faa335b19b-line2d_90">
+     <path d="M 1023.312656 123.848281 
+L 1034.312656 123.848281 
+L 1045.312656 123.848281 
+" style="fill: none; stroke: #2266a5; stroke-width: 2; stroke-linecap: square"/>
+     <g>
+      <use xlink:href="#01-yield-latency-24faa335b19b-mff7f5922de" x="1034.312656" y="123.848281" style="fill: #2266a5; stroke: #2266a5"/>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-text_45">
+     <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start" x="1054.112656" y="127.698281" transform="rotate(-0 1054.112656 127.698281)">JSPI</text>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-line2d_91">
+     <path d="M 1023.312656 140.349141 
+L 1034.312656 140.349141 
+L 1045.312656 140.349141 
+" style="fill: none; stroke: #c25c16; stroke-width: 2; stroke-linecap: square"/>
+     <g>
+      <use xlink:href="#01-yield-latency-24faa335b19b-mfd01699c6f" x="1034.312656" y="140.349141" style="fill: #c25c16; stroke: #c25c16; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="01-yield-latency-24faa335b19b-text_46">
+     <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start" x="1054.112656" y="144.199141" transform="rotate(-0 1054.112656 144.199141)">ASYNCIFY</text>
+    </g>
+   </g>
+  </g>
+  <g id="01-yield-latency-24faa335b19b-text_47">
+   <text style="font-weight: 700; font-size: 21px; font-family: 'DejaVu Sans'; text-anchor: start" x="69.12" y="30.356719" transform="rotate(-0 69.12 30.356719)">Yield latency and turn limits</text>
+  </g>
+  <g id="01-yield-latency-24faa335b19b-text_48">
+   <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #475569" x="69.12" y="43.2" transform="rotate(-0 69.12 43.2)">Release -O3 | Exceptions enabled | Isolated page | Seven repetitions per setting</text>
+  </g>
+  <g id="01-yield-latency-24faa335b19b-text_49">
+   <text style="font-size: 9px; font-family: 'DejaVu Sans'; fill: #475569" transform="translate(69.12 547.734551)">Dots: median of per-run means. Error bars: range of run means, not confidence intervals.</text>
+   <text style="font-size: 9px; font-family: 'DejaVu Sans'; fill: #475569" transform="translate(69.12 558.537012)">Amortization = measured gap / turn limit. Gaps include small dispatcher return/reentry costs.</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="01-yield-latency-24faa335b19b-p72c98d0288">
+   <rect x="80.64" y="109.44" width="460.8" height="374.4"/>
+  </clipPath>
+  <clipPath id="01-yield-latency-24faa335b19b-pcf796cae3b">
+   <rect x="656.64" y="109.44" width="460.8" height="374.4"/>
+  </clipPath>
+ </defs>
+</svg>
