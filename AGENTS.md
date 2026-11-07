@@ -288,8 +288,9 @@ for a later Trystero migration. Never ban their combination to avoid a dependenc
 conflict. All native consumers, including libdatachannel, use the same pinned
 source-built OpenSSL provider. Trystero's current native backend requires threads.
 
-The `tls-integration` own lane runs real native and WASIp3 TLS peers, state and
-cancellation checks. The native `openssl-upstream` lane additionally requests
+The `tls-integration` own lane runs real native and WASIp3 TLS peers and entropy
+checks. Cobalt owns its corresponding state/cancellation profile matrix at
+`libs/cobalt/test/tls//tls-integration`. The native `openssl-upstream` lane additionally requests
 `webcpp-openssl-tests=on` to test the exact source-built archives before use.
 OpenSSL's native Perl harness is not evidence for its WASI configuration.
 

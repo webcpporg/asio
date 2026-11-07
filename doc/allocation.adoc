@@ -108,7 +108,12 @@ A counting allocator services context construction, a timer, ten posts and
 on Emscripten the bridge's two event deliveries. The measurement includes
 object destruction. It requires allocations through the supplied allocator
 and zero calls through the other counted paths, excluding only the named
-runtime operations above. This checks allocation routing, not a total
+runtime operations above, except on native Windows IOCP. There the same operation
+scenario is a negative witness for Boost 1.92's documented thread-state defect:
+it requires observable global allocation and prints `UPSTREAM-LIMITATION`, while
+still checking the timer and every posted completion. It does not certify zero
+global allocation or impose an arbitrary allowance. A corrected upstream that
+removes the allocation fails this witness and requires reclassification. This checks allocation routing, not a total
 memory limit or a proof of freedom from leaks. A separate explicit
 suspension verifies Asyncify's runtime attribution: the timer may already
 be ready when `run` starts and therefore need no suspension.

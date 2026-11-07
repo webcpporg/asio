@@ -20,11 +20,10 @@ these guarantees describe their behaviour together.
   the stack of a run family call from `main` or another export configured
   for suspension. Posted work and events delivered through the bridge wait
   for such a call. See <<asio-run-main>>; checked by `reactor` and `bridge`.
-. [[asio-invariant-3]]A polling turn runs at most `max_handlers_per_turn`
-  handlers. A full turn yields through a macrotask unless the context is
-  stopped or its timed call has expired. A wait may run one additional
-  handler between turns; the bound between yields is therefore at most
-  twice the limit, not always the limit itself. Timed calls check deadlines
+. [[asio-invariant-3]]A turn runs at most `max_handlers_per_turn`
+  handlers, counting both ready handlers and handlers completed by a wait.
+  A full turn yields through a macrotask unless the context is
+  stopped or its timed call has expired. Timed calls check deadlines
   before handlers; they cannot interrupt a running handler or guarantee
   when the host resumes them. See <<asio-run-turn>>; checked by `turn_limit`,
   `run_family` and `browser_render`.

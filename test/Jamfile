@@ -7,6 +7,7 @@
 project : requirements <library>/webcpp/asio//asio ;
 
 import webcpp ;
+import set ;
 
 webcpp.targets native emscripten wasip3 ;
 webcpp.original node : browser ;
@@ -42,9 +43,15 @@ webcpp.run wasi_core_threads : wasi_core_test.cpp
     <toolset>clang-wasip3:<exception-handling>off : native wasip3 ;
 explicit wasi_core_threads ;
 
+# ICMP has a native-only public guard. Keep every other IP header in the
+# portable header checks, and compile ICMP only where the capability exists.
+local portable-ip-headers = [ MATCH ".*/webcpp/(.*)"
+  : [ glob ../include/webcpp/asio/ip/*.hpp ] ] ;
+portable-ip-headers = [ set.difference $(portable-ip-headers) : asio/ip/icmp.hpp ] ;
+webcpp.headers-alone asio : ../include : asio/ip/icmp.hpp : : native ;
 webcpp.headers-alone asio : ../include : asio.hpp asio/basic_datagram_socket.hpp asio/basic_socket_acceptor.hpp
   asio/basic_stream_socket.hpp asio/basic_waitable_timer.hpp asio/config.hpp
-  asio/io_context.hpp asio/steady_timer.hpp asio/system_timer.hpp asio/ip/*.hpp
+  asio/io_context.hpp asio/steady_timer.hpp asio/system_timer.hpp $(portable-ip-headers)
   asio/detail/backend_select.hpp ;
 # The browser's headers name Emscripten's own, and compile on emscripten
 # alone.
@@ -83,13 +90,15 @@ webcpp.compile-fail negative_default_refused : config_test.cpp
 local browser-tests = reactor run_family turn_limit bridge bridge_abort em_js timers allocation promise event sockets transport resolver ;
 for local test in $(browser-tests)
 {
-    webcpp.run $(test) : $(test)_test.cpp : : emscripten ;
-    webcpp.run $(test)_no_exceptions : $(test)_test.cpp : <exception-handling>off
+    local requirements ;
+    if $(test) = timers { requirements = <library>/webcpp/beast//beast ; }
+    webcpp.run $(test) : $(test)_test.cpp : $(requirements) : emscripten ;
+    webcpp.run $(test)_no_exceptions : $(test)_test.cpp : $(requirements) <exception-handling>off
       : emscripten ;
-    webcpp.run $(test)_asyncify : $(test)_test.cpp : <webcpp-suspend>asyncify
+    webcpp.run $(test)_asyncify : $(test)_test.cpp : $(requirements) <webcpp-suspend>asyncify
       : emscripten ;
     webcpp.run $(test)_asyncify_no_exceptions : $(test)_test.cpp
-      : <webcpp-suspend>asyncify <exception-handling>off : emscripten ;
+      : $(requirements) <webcpp-suspend>asyncify <exception-handling>off : emscripten ;
     .asyncify += $(test)_asyncify $(test)_asyncify_no_exceptions ;
 }
 

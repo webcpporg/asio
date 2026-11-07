@@ -16,6 +16,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <exception>
 #include <webcpp/asio/detail/backend/detail/executor_op.hpp>
 #include <webcpp/asio/detail/backend/detail/global.hpp>
 #include <webcpp/asio/detail/backend/detail/type_traits.hpp>
@@ -31,7 +32,19 @@ inline system_context&
 basic_system_executor<Blocking, Relationship, Allocator>::query(
     execution::context_t) noexcept
 {
-  return detail::global<system_context>();
+  // Preserve the noexcept query contract if global initialization fails.
+#if !defined(WEBCPP_ASIO_BACKEND_NO_EXCEPTIONS)
+  try
+  {
+#endif
+    return detail::global<system_context>();
+#if !defined(WEBCPP_ASIO_BACKEND_NO_EXCEPTIONS)
+  }
+  catch (...)
+  {
+    std::terminate();
+  }
+#endif
 }
 
 template <typename Blocking, typename Relationship, typename Allocator>
@@ -39,7 +52,19 @@ inline std::size_t
 basic_system_executor<Blocking, Relationship, Allocator>::query(
     execution::occupancy_t) const noexcept
 {
-  return detail::global<system_context>().num_threads_;
+  // Preserve the noexcept query contract if global initialization fails.
+#if !defined(WEBCPP_ASIO_BACKEND_NO_EXCEPTIONS)
+  try
+  {
+#endif
+    return detail::global<system_context>().num_threads_;
+#if !defined(WEBCPP_ASIO_BACKEND_NO_EXCEPTIONS)
+  }
+  catch (...)
+  {
+    std::terminate();
+  }
+#endif
 }
 
 template <typename Blocking, typename Relationship, typename Allocator>
@@ -124,7 +149,19 @@ template <typename Blocking, typename Relationship, typename Allocator>
 inline system_context& basic_system_executor<
     Blocking, Relationship, Allocator>::context() const noexcept
 {
-  return detail::global<system_context>();
+  // Preserve the noexcept query contract if global initialization fails.
+#if !defined(WEBCPP_ASIO_BACKEND_NO_EXCEPTIONS)
+  try
+  {
+#endif
+    return detail::global<system_context>();
+#if !defined(WEBCPP_ASIO_BACKEND_NO_EXCEPTIONS)
+  }
+  catch (...)
+  {
+    std::terminate();
+  }
+#endif
 }
 
 template <typename Blocking, typename Relationship, typename Allocator>

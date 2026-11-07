@@ -274,17 +274,18 @@ private:
     }
 
     /**
-     Runs the ready handlers, max_handlers_per_turn at most, without waiting, and none once
-     expired.
+     Runs ready handlers within the current turn's remaining budget, without waiting,
+     and none once expired.
 
      Tip: the deadline is checked before each handler, as Boost's run_until does, so that a
      deadline already passed runs nothing.
     */
     template <class Expired>
-    std::size_t drain(const Expired& expired) {
+    std::size_t drain(std::size_t& turn, const Expired& expired) {
         std::size_t ran = 0;
-        while (ran < options_.max_handlers_per_turn && !expired() && poll_one() == 1) {
+        while (turn < options_.max_handlers_per_turn && !expired() && poll_one() == 1) {
             ++ran;
+            ++turn;
         }
         return ran;
     }
@@ -292,18 +293,22 @@ private:
     /**
      The run family's four steps: a turn of ready handlers; return when stopped or expired;
      yield through a macrotask when the turn reached the limit; else wait for one handler.
+
+     A wait can suspend only to microtasks, so its handler consumes the same turn budget.
+     Only the explicit macrotask yield resets that budget.
     */
     template <class Wait, class Expired>
     count_type compose(Wait wait, Expired expired) {
         count_type total = 0;
+        std::size_t turn = 0;
         for (;;) {
-            const std::size_t ran = drain(expired);
-            total += ran;
+            total += drain(turn, expired);
             if (stopped() || expired()) {
                 return total;
             }
-            if (ran == options_.max_handlers_per_turn) {
+            if (turn >= options_.max_handlers_per_turn) {
                 webcpp_asio_yield();
+                turn = 0;
                 continue;
             }
             const std::size_t one = wait();
@@ -311,6 +316,7 @@ private:
                 return total;
             }
             total += one;
+            turn += one;
         }
     }
 

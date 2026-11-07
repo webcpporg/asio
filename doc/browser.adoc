@@ -108,7 +108,7 @@ their destructors, Boost's and asio's, and the next `run` runs as after a
 {cpp} exception. With JavaScript exceptions, and without exceptions, the
 destructors are skipped and the context is left broken whatever asio
 does. Boost's scheduler keeps the finished handler's work counted, so
-that Boost's own `run`, reached through a reference to the shipped backend's base context,
+that the base `run`, reached through a reference to the shipped backend's context,
 never returns once out of work. Boost's call stack keeps the frame `run`
 pushed, so that `running_in_this_thread()` is true outside any `run`, and
 a `dispatch` anywhere runs its handler at once. And the run family's flag

@@ -433,8 +433,9 @@ b2 -a toolset=clang-wasip3 libs/asio/test//threads
 
 tls-integration::
 Real peers exercise trusted/rejected certificates, SNI, embedded/replacement
-roots, Cobalt TLS state, encrypted transfer cancellation, and shutdown errors
-and cancellation. Native single/multi profiles run with exceptions on/off;
+roots and entropy failure. Cobalt TLS state, encrypted transfer cancellation,
+and shutdown errors/cancellation run in `libs/cobalt/test/tls//tls-integration`.
+Native single/multi profiles run with exceptions on/off;
 WASIp3 runs single with exceptions on/off and cooperative with exceptions off.
 The WASIp3 entropy control verifies that host randomness failure prevents
 random output and key generation. It does not measure entropy quality.

@@ -7,8 +7,8 @@
 // The turn limit, pinned by counting the yields themselves (doc: #asio-invariant-3): a
 // self-posting handler under run and run_for sees a yield after every max_handlers_per_turn
 // handlers, never more handlers between two yields, and the page's setTimeout(0) runs at a
-// yield, never inside a turn. Boost's own run, reached through a webcpp::asio::io_context&, never
-// yields.
+// yield, never inside a turn. The shipped backend's base run, reached through an
+// asio_backend::io_context&, never yields.
 
 #include <webcpp/asio/io_context.hpp>
 
@@ -18,6 +18,7 @@
 
 #include <boost/core/lightweight_test.hpp>
 #include <webcpp/asio/post.hpp>
+#include <webcpp/asio/steady_timer.hpp>
 
 #include <algorithm>
 #include <chrono>
@@ -108,15 +109,45 @@ void the_page_s_timer_runs_at_a_yield() {
     BOOST_TEST(state.longest <= 250U);
 }
 
-void boost_s_own_run_never_yields() {
+void backend_base_run_never_yields() {
     turn state;
     state.until = 5000;
     webcpp::asio::post(state.io, std::bind_front(&spin, &state));
-    webcpp::asio::io_context& boost_s = state.io;
-    BOOST_TEST_EQ(boost_s.run(), 5000U);  // lint-run: Boost's own run, which has no limit
+    webcpp::asio_backend::io_context& backend = state.io;
+    BOOST_TEST_EQ(backend.run(), 5000U);  // lint-run: the backend base run has no limit
     BOOST_TEST_EQ(state.yields.count(), 0);
     BOOST_TEST_EQ(state.longest, 5000U);
     BOOST_TEST_EQ(state.seen_at, 0U);
+}
+
+/** Timer completions must consume the turn budget even when run_one waits for them. */
+struct timer_turn {
+    webcpp::asio::io_context io{webcpp::asio::io_context_options{4}};
+    webcpp::asio::steady_timer timer{io};
+    webcpp::test::yield_counter yields;
+    std::size_t handlers = 0;
+};
+
+void timer_spin(timer_turn* state, boost::system::error_code error) {
+    BOOST_TEST(!error);
+    BOOST_TEST_EQ(static_cast<std::size_t>(state->yields.count()), state->handlers / 4);
+    if (++state->handlers < 9) {
+        state->timer.expires_after(1ms);
+        state->timer.async_wait(std::bind_front(&timer_spin, state));
+    }
+}
+
+void timer_handlers_share_the_turn_budget() {
+    for (const bool timed : {false, true}) {
+        timer_turn state;
+        state.timer.expires_after(1ms);
+        state.timer.async_wait(std::bind_front(&timer_spin, &state));
+        const auto ran =
+            timed ? state.io.run_for(10s) : state.io.run();  // lint-run: the test's event loop
+        BOOST_TEST_EQ(ran, 9U);
+        BOOST_TEST_EQ(state.handlers, 9U);
+        BOOST_TEST_EQ(state.yields.count(), 2);
+    }
 }
 
 }  // namespace
@@ -125,6 +156,7 @@ int main() {
     run_yields_every_turn();
     run_for_yields_every_turn();
     the_page_s_timer_runs_at_a_yield();
-    boost_s_own_run_never_yields();
+    backend_base_run_never_yields();
+    timer_handlers_share_the_turn_budget();
     return webcpp::test::exit_status(boost::report_errors());
 }

@@ -445,8 +445,9 @@ WASIp2/P3 checks use wasi-sdk 34.0 and Wasmtime 50.0.1. See
 <<asio-capabilities-network>> for the target/variant matrix.
 
 The recurring own lane `b2 libs/asio/test/tls//tls-integration` drives those
-TLS, embedded-CA, state, cancellation and entropy fixtures on native and WASIp3
-profiles. The separate `libs/cobalt/test/tls//tls` lane
+TLS, embedded-CA and entropy fixtures on native and WASIp3 profiles. The Cobalt-owned
+`libs/cobalt/test/tls//tls-integration` lane checks SSL state and cancellation across
+the same profiles. The separate `libs/cobalt/test/tls//tls` lane
 drives the Cobalt fixtures on WASIp2 with each requested exception mode; see <<asio-wasip2>> for
 the complete command, including the ordinary Cobalt consumers.
 `b2 libs/asio/test/tls//openssl-upstream` is native only: it requests

@@ -67,8 +67,8 @@ For illustration, 100 callbacks that each take 50 us occupy about 5 ms,
 whereas 1,000 occupy about 50 ms, excluding scheduling overhead. These are
 calculated examples, not measured application response times. Browser work
 gets an opportunity at a yield, not a guarantee that an input or frame runs
-before Wasm resumes. A long handler is never preempted; short-drain/wait paths
-can also run up to twice the configured count between yields, as described
+before Wasm resumes. A long handler is never preempted; both ready handlers
+and completions after a wait consume the configured budget, as described
 in <<asio-run>>. The choice of 100 is a responsiveness-oriented policy, not
 proof of an optimum. Applications can still select 1,000 or another value.
 

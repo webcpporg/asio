@@ -19,6 +19,14 @@ units and compiled bridge sources must use the same target, exception mode and
 thread ABI. A config macro cannot supply a runtime capability or change the
 compiler's ABI.
 
+The inherited system executor's `query(execution::context)`,
+`query(execution::occupancy)` and `context()` are `noexcept`. If their first use
+cannot create the global system context, initialization failure terminates the
+process, including with exceptions enabled. The shipped Wasm implementation
+makes that fatal boundary explicit; it does not report an allocation failure as
+a successful query. Use an explicitly constructed `io_context` when application
+code must handle context-construction failure.
+
 `sources.json` lists runtime sources and private include directories per target.
 B2's `src/sources.jam` is generated from that same inventory. Neither consumer
 runs the maintainer importer or creates a replacement Boost include directory.

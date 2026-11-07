@@ -14,6 +14,10 @@ deferred completions on its shared queue and signals the wakeup: JavaScript may
 re-enter the same thread while its reactor is suspended, before a private queue
 could be drained. This also applies to concurrency hint 1, including the
 allocator constructor, without changing the constructor API or native behavior.
+The system executor's three `noexcept` context/occupancy accessors explicitly
+terminate if initial construction of the global context throws. This preserves
+the upstream fatal-initialization contract while making its exception boundary
+visible to static analysis; it does not turn allocation failure into success.
 `extensions/` contains
 the maintained resolver/waitable adapters. SDK bridge source and the pinned
 wasi-libc ABI declarations are shipped in `src/wasip2` and `src/wasip3`.
