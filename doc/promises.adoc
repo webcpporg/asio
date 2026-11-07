@@ -32,8 +32,8 @@ rejection reason. Embind is linked by the library's build requirements.
 
 === How-to: choose a completion token or cancel a wait
 
-Callbacks, `boost::asio::deferred`, `boost::asio::use_awaitable` and
-`boost::cobalt::use_op` use the same initiation. Coroutine tokens that turn
+Callbacks, `webcpp::asio::deferred`, `webcpp::asio::use_awaitable` and
+`webcpp::cobalt::use_op` use the same initiation. Coroutine tokens that turn
 errors into exceptions require exception support for that error path.
 Use an error-preserving completion token adapter for errors as values.
 

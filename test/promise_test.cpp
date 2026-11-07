@@ -5,19 +5,19 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 // Promise values, cancellation and lifetime (doc: #asio-promises).
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/cancellation_signal.hpp>
-#include <boost/asio/deferred.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/bind_cancellation_slot.hpp>
+#include <webcpp/asio/bind_executor.hpp>
 #include <webcpp/asio/browser/async_await.hpp>
+#include <webcpp/asio/cancellation_signal.hpp>
+#include <webcpp/asio/deferred.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/steady_timer.hpp>
+#include <webcpp/test/browser_values.hpp>
 #include <webcpp/test/exit_status.hpp>
-#include "browser_values.hpp"
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
-#include <boost/asio/co_spawn.hpp>
-#include <boost/asio/use_awaitable.hpp>
+#include <webcpp/asio/co_spawn.hpp>
+#include <webcpp/asio/use_awaitable.hpp>
 #endif
 #include <chrono>
 #include <memory>
@@ -56,18 +56,18 @@ void resolved_and_rejected_promises() {
 void completion_tokens_work() {
     webcpp::asio::io_context io;
     int called = 0;
-    auto pending = async_await(io.get_executor(), val(7), boost::asio::deferred);
+    auto pending = async_await(io.get_executor(), val(7), webcpp::asio::deferred);
     std::move(pending)([&](boost::system::error_code ec, const val& value) {
         BOOST_TEST(!ec);
         BOOST_TEST_EQ(value.as<int>(), 7);
         ++called;
     });
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
-    boost::asio::co_spawn(
+    webcpp::asio::co_spawn(
         io,
-        [&]() -> boost::asio::awaitable<void> {
+        [&]() -> webcpp::asio::awaitable<void> {
             const auto value =
-                co_await async_await(io.get_executor(), val(8), boost::asio::use_awaitable);
+                co_await async_await(io.get_executor(), val(8), webcpp::asio::use_awaitable);
             BOOST_TEST_EQ(value.as<int>(), 8);
         },
         [&](const std::exception_ptr& exception) {
@@ -83,14 +83,14 @@ void completion_tokens_work() {
 #endif
 }
 
-void cancellation_completes_before_settlement(boost::asio::cancellation_type kind) {
+void cancellation_completes_before_settlement(webcpp::asio::cancellation_type kind) {
     webcpp::asio::io_context io;
-    boost::asio::cancellation_signal signal;
+    webcpp::asio::cancellation_signal signal;
     int called = 0;
     async_await(io.get_executor(), val::take_ownership(test_promise_after(1000, 42, false)),
-                boost::asio::bind_cancellation_slot(
+                webcpp::asio::bind_cancellation_slot(
                     signal.slot(), [&](boost::system::error_code ec, const val& value) {
-                        BOOST_TEST(ec == boost::asio::error::operation_aborted);
+                        BOOST_TEST(ec == webcpp::asio::error::operation_aborted);
                         BOOST_TEST(value.isUndefined());
                         ++called;
                     }));
@@ -115,37 +115,37 @@ void cancellation_completes_before_settlement(boost::asio::cancellation_type kin
 
 void never_settling_promises_keep_work() {
     webcpp::asio::io_context io;
-    boost::asio::cancellation_signal signal;
+    webcpp::asio::cancellation_signal signal;
     int called = 0;
     async_await(io.get_executor(), val::take_ownership(test_never_settles()),
-                boost::asio::bind_cancellation_slot(
+                webcpp::asio::bind_cancellation_slot(
                     signal.slot(), [&](boost::system::error_code ec, const val&) {
-                        BOOST_TEST(ec == boost::asio::error::operation_aborted);
+                        BOOST_TEST(ec == webcpp::asio::error::operation_aborted);
                         ++called;
                     }));
-    signal.emit(boost::asio::cancellation_type::none);
+    signal.emit(webcpp::asio::cancellation_type::none);
     BOOST_TEST_EQ(io.run_for(200ms), 0U);  // lint-run: a pending promise owns work
     BOOST_TEST(!io.stopped());
     BOOST_TEST_EQ(called, 0);
-    signal.emit(boost::asio::cancellation_type::total);
+    signal.emit(webcpp::asio::cancellation_type::total);
     BOOST_TEST_EQ(io.run(), 1U);  // lint-run: drain the posted cancellation
     BOOST_TEST_EQ(called, 1);
 }
 
 void destruction_releases_the_handler() {
     const auto held = std::make_shared<int>(0);
-    boost::asio::cancellation_signal signal;
+    webcpp::asio::cancellation_signal signal;
     {
         webcpp::asio::io_context io;
         async_await(io.get_executor(), val::take_ownership(test_never_settles()),
-                    boost::asio::bind_cancellation_slot(
+                    webcpp::asio::bind_cancellation_slot(
                         signal.slot(), [held](boost::system::error_code, const val&) { ++*held; }));
         BOOST_TEST_GT(held.use_count(), 1);
     }
     BOOST_TEST_EQ(held.use_count(), 1);
     BOOST_TEST_EQ(*held, 0);
     BOOST_TEST(!signal.slot().has_handler());
-    signal.emit(boost::asio::cancellation_type::total);
+    signal.emit(webcpp::asio::cancellation_type::total);
 }
 
 void settlement_after_destruction_finds_nothing() {
@@ -198,12 +198,12 @@ void associated_executor_receives_success() {
     int called = 0;
     const auto input = val(7);
     async_await(source.get_executor(), input,
-                boost::asio::bind_executor(completion.get_executor(),
-                                           [&](boost::system::error_code ec, const val& value) {
-                                               BOOST_TEST(!ec);
-                                               BOOST_TEST_EQ(value.as<int>(), 7);
-                                               ++called;
-                                           }));
+                webcpp::asio::bind_executor(completion.get_executor(),
+                                            [&](boost::system::error_code ec, const val& value) {
+                                                BOOST_TEST(!ec);
+                                                BOOST_TEST_EQ(value.as<int>(), 7);
+                                                ++called;
+                                            }));
     BOOST_TEST_EQ(completion.poll(), 0U);
     BOOST_TEST(!completion.stopped());
 
@@ -218,19 +218,19 @@ void associated_executor_keeps_work() {
     int called = 0;
     {
         webcpp::asio::io_context source;
-        boost::asio::cancellation_signal signal;
+        webcpp::asio::cancellation_signal signal;
         const auto input = val::take_ownership(test_never_settles());
         async_await(source.get_executor(), input,
-                    boost::asio::bind_executor(
+                    webcpp::asio::bind_executor(
                         completion.get_executor(),
-                        boost::asio::bind_cancellation_slot(
+                        webcpp::asio::bind_cancellation_slot(
                             signal.slot(), [&](boost::system::error_code ec, const val&) {
-                                BOOST_TEST(ec == boost::asio::error::operation_aborted);
+                                BOOST_TEST(ec == webcpp::asio::error::operation_aborted);
                                 ++called;
                             })));
         BOOST_TEST_EQ(completion.poll(), 0U);
         BOOST_TEST(!completion.stopped());
-        signal.emit(boost::asio::cancellation_type::total);
+        signal.emit(webcpp::asio::cancellation_type::total);
         source.run();      // lint-run: transfer cancellation to the associated executor
         completion.run();  // lint-run: deliver without restarting the associated context
         BOOST_TEST_EQ(called, 1);
@@ -241,8 +241,8 @@ void associated_executor_keeps_work() {
         const auto input = val::take_ownership(test_never_settles());
         async_await(
             source.get_executor(), input,
-            boost::asio::bind_executor(completion.get_executor(),
-                                       [&](boost::system::error_code, const val&) { ++called; }));
+            webcpp::asio::bind_executor(completion.get_executor(),
+                                        [&](boost::system::error_code, const val&) { ++called; }));
         BOOST_TEST_EQ(completion.poll(), 0U);
         BOOST_TEST(!completion.stopped());
     }
@@ -259,9 +259,9 @@ int main() {
     resolved_and_rejected_promises();
     completion_tokens_work();
     for (const auto kind : {
-             boost::asio::cancellation_type::terminal,
-             boost::asio::cancellation_type::partial,
-             boost::asio::cancellation_type::total,
+             webcpp::asio::cancellation_type::terminal,
+             webcpp::asio::cancellation_type::partial,
+             webcpp::asio::cancellation_type::total,
          }) {
         cancellation_completes_before_settlement(kind);
     }

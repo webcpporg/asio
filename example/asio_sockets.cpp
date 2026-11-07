@@ -19,9 +19,9 @@ int main() {
     const bool opened = !open_result && !ec && socket.is_open();
     std::printf("open: %s\n", opened ? "true" : "false");
     failures += static_cast<int>(!opened);
-    const auto connect_result = socket.connect({boost::asio::ip::address_v4::loopback(), 80}, ec);
+    const auto connect_result = socket.connect({webcpp::asio::ip::address_v4::loopback(), 80}, ec);
     const bool unsupported =
-        connect_result == ec && ec == boost::asio::error::operation_not_supported;
+        connect_result == ec && ec == webcpp::asio::error::operation_not_supported;
     std::printf("connect: %s\n", unsupported ? "operation_not_supported" : "unexpected");
     failures += static_cast<int>(!unsupported);
     const auto close_result = socket.close(ec);

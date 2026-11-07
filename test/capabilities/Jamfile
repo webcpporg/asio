@@ -47,3 +47,21 @@ webcpp.compile-fail browser_requires_stdio : diagnostics_test.cpp
 
 # Includes alone must not ban a browser transport chosen at runtime.
 webcpp.compile portable_browser : portable_browser_test.cpp : : emscripten ;
+
+# Direct feature headers diagnose unavailable local sockets before backend
+# names leak.
+webcpp.compile local_sockets : local_sockets_test.cpp : : native ;
+webcpp.headers-alone asio : ../../include : asio/local/*.hpp : : native ;
+for local header in BASIC_ENDPOINT CONNECT_PAIR DATAGRAM_PROTOCOL SEQ_PACKET_PROTOCOL STREAM_PROTOCOL
+{
+    webcpp.compile-diagnostic local_$(header) : local_sockets_test.cpp
+      : <define>WEBCPP_TEST_LOCAL_$(header) : wasip2 wasip3 ;
+    # Emscripten uses Clang's verifier too, although the shared diagnostic rule
+    # deliberately selects only B2's clang toolset.
+    webcpp.compile browser_local_$(header) : local_sockets_test.cpp
+      : <define>WEBCPP_TEST_LOCAL_$(header)
+        <cxxflags>"-Xclang -verify -Xclang -verify-ignore-unexpected=error,note"
+      : emscripten ;
+}
+webcpp.compile-fail local_sockets_umbrella : local_sockets_test.cpp
+  : <define>WEBCPP_TEST_LOCAL_UMBRELLA : wasip2 wasip3 emscripten ;

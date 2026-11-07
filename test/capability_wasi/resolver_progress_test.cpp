@@ -4,14 +4,14 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // https://www.boost.org/LICENSE_1_0.txt)
 #include <wasi/wasip3.h>
-#include <boost/asio/bind_allocator.hpp>
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/cancellation_signal.hpp>
-#include <boost/asio/deferred.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
+#include <webcpp/asio/bind_allocator.hpp>
+#include <webcpp/asio/bind_cancellation_slot.hpp>
+#include <webcpp/asio/cancellation_signal.hpp>
+#include <webcpp/asio/deferred.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
 #include <webcpp/asio/steady_timer.hpp>
@@ -71,7 +71,7 @@ extern "C" void __wrap_wasip3_subtask_drop(wasip3_subtask_t handle) {
 
 namespace {
 void pending_cancellation(bool per_operation) {
-    namespace asio = boost::asio;
+    namespace asio = webcpp::asio;
     using tcp = webcpp::asio::ip::tcp;
     webcpp::asio::io_context context;
     tcp::resolver resolver(context);
@@ -106,7 +106,7 @@ void pending_cancellation(bool per_operation) {
 }
 
 void pending_shutdown() {
-    namespace asio = boost::asio;
+    namespace asio = webcpp::asio;
     using tcp = webcpp::asio::ip::tcp;
     counts allocations;
     const auto before = state().pending_releases;
@@ -130,7 +130,7 @@ void pending_shutdown() {
 }  // namespace
 
 int main() {
-    namespace asio = boost::asio;
+    namespace asio = webcpp::asio;
     using tcp = webcpp::asio::ip::tcp;
     webcpp::asio::io_context context;
     tcp::resolver resolver(context);

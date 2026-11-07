@@ -36,24 +36,7 @@ for local handling in on off
     webcpp.run asio_coroutine_exceptions_$(handling)_asyncify : wasi_coroutine_test.cpp
       : <exception-handling>$(handling) <webcpp-suspend>asyncify : emscripten ;
     .asyncify += asio_coroutine_exceptions_$(handling)_asyncify ;
-    webcpp.run cobalt_network_exceptions_$(handling) : cobalt_network_test.cpp
-      : <library>/webcpp/asio//cobalt <exception-handling>$(handling) : native ;
 }
-webcpp.run cobalt_network_wasi : cobalt_network_test.cpp
-  : <library>/webcpp/asio//cobalt : wasip3 ;
-webcpp.run cobalt_io : cobalt_io_test.cpp : <library>/webcpp/asio//cobalt : native wasip3 ;
-webcpp.run cobalt_accept_cancel : cobalt_accept_cancel_test.cpp
-  : <library>/webcpp/asio//cobalt : native wasip3 ;
-webcpp.run cobalt_wasi : cobalt_test.cpp : <library>/webcpp/asio//cobalt : wasip3 ;
-# The SDK supports cooperative WASIp3 threads only with exceptions disabled.
-webcpp.run cobalt_thread : cobalt_thread_test.cpp
-  : <library>/webcpp/asio//cobalt <threading>multi
-    <toolset>clang-wasip3:<exception-handling>off : native wasip3 ;
-explicit cobalt_thread ;
-# Compile the real runner independently of Cobalt's compiled I/O sources.
-# This must not require wasi-libc's process-signal emulation.
-webcpp.compile cobalt_main_wasip3 : ../src/cobalt_main.cpp
-  : <define>BOOST_COBALT_NO_LIB=1 : wasip3 ;
 webcpp.run wasi_core_threads : wasi_core_test.cpp
   : <threading>multi <define>WEBCPP_TEST_WASI_THREADS
     <toolset>clang-wasip3:<exception-handling>off : native wasip3 ;
@@ -61,7 +44,8 @@ explicit wasi_core_threads ;
 
 webcpp.headers-alone asio : ../include : asio.hpp asio/basic_datagram_socket.hpp asio/basic_socket_acceptor.hpp
   asio/basic_stream_socket.hpp asio/basic_waitable_timer.hpp asio/config.hpp
-  asio/io_context.hpp asio/steady_timer.hpp asio/system_timer.hpp asio/ip/*.hpp ;
+  asio/io_context.hpp asio/steady_timer.hpp asio/system_timer.hpp asio/ip/*.hpp
+  asio/detail/backend_select.hpp ;
 # The browser's headers name Emscripten's own, and compile on emscripten
 # alone.
 webcpp.headers-alone asio : ../include : asio/browser/async_await.hpp
@@ -78,8 +62,8 @@ webcpp.compile config_all_off : config_test.cpp : <define>WEBCPP_NO_EXCEPTIONS ;
 webcpp.compile config_developer_defined : config_test.cpp
   : <define>WEBCPP_ASIO_NO_EXCEPTIONS <define>WEBCPP_TEST_ASIO_DEVELOPER_DEFINED ;
 
-# The names of asio are Boost.Asio's: the io_context derives from Boost's and
-# keeps its options, and the timers are Boost's own.
+# Native names are Boost aliases. WebAssembly keeps the existing context
+# options.
 webcpp.run names : names_test.cpp ;
 # Compiler configuration selects the default. Explicit context options
 # still win.
@@ -155,9 +139,9 @@ for local suspend in jspi asyncify
 
 # The run family keeps Boost's meaning natively too, where it is Boost's own.
 webcpp.run run_family_native : run_family_test.cpp : : native ;
-webcpp.run timers_native : timers_test.cpp : : native ;
+webcpp.run timers_native : timers_test.cpp : <library>/webcpp/beast//beast : native ;
 webcpp.run run_family_wasip3 : run_family_test.cpp : : wasip3 ;
-webcpp.run timers_wasip3 : timers_test.cpp : : wasip3 ;
+webcpp.run timers_wasip3 : timers_test.cpp : <library>/webcpp/beast//beast : wasip3 ;
 # Allocation instrumentation observes calls that compiler builtins may elide
 # or reorder across its measurement flags. Keep the calls observable in this
 # test alone, including release; application and size builds stay unchanged.
@@ -172,7 +156,7 @@ webcpp.run allocation_threads : allocation_test.cpp
     <toolset>clang-wasip3:<exception-handling>off
     <toolset>clang-wasip3:<linkflags>-Wl,--wrap=malloc,--wrap=calloc,--wrap=realloc,--wrap=aligned_alloc,--wrap=posix_memalign,--wrap=pipe,--wrap=write,--wrap=close
   : native wasip3 ;
-webcpp.lane threads : cobalt_thread wasi_core_threads allocation_threads : native wasip3 ;
+webcpp.lane threads : wasi_core_threads allocation_threads : native wasip3 ;
 webcpp.run allocation_native : allocation_test.cpp
   : $(allocation-native-requirements) : native ;
 webcpp.run allocation_native_release : allocation_test.cpp
@@ -208,12 +192,6 @@ for local build in $(.asyncify-stack-builds)
             <exception-handling>$(handling)
           : emscripten ;
         .asyncify += $(name) ;
-        local cobalt-name = cobalt_stack_$(build)_exceptions_$(handling) ;
-        webcpp.run $(cobalt-name) : cobalt_stack_test.cpp
-          : <library>/webcpp/asio//cobalt <webcpp-suspend>asyncify
-            $(.asyncify-stack-$(build)) <exception-handling>$(handling)
-          : emscripten ;
-        .asyncify += $(cobalt-name) ;
     }
 }
 
@@ -253,52 +231,6 @@ webcpp.run-fail return_after_suspension_asyncify : return_after_suspension_test.
   : <webcpp-suspend>asyncify : emscripten ;
 .asyncify += never_finishes_asyncify return_after_suspension_asyncify ;
 
-# Cobalt's entry point uses the same program in all three environments.
-for local test in cobalt cobalt_status
-{
-    local runner = run ;
-    if $(test) = cobalt_status { runner = run-fail ; }
-    for local handling in on off
-    {
-        local requirements = <library>/webcpp/asio//cobalt <exception-handling>$(handling) ;
-        local name = $(test)_exceptions_$(handling) ;
-        webcpp.$(runner) $(name)_native : $(test)_test.cpp : $(requirements) : native ;
-        webcpp.$(runner) $(name) : $(test)_test.cpp : $(requirements) : emscripten ;
-        webcpp.$(runner) $(name)_asyncify : $(test)_test.cpp
-          : $(requirements) <webcpp-suspend>asyncify : emscripten ;
-        .asyncify += $(name)_asyncify ;
-    }
-}
-
-# A driver checks the actual status, so a trap cannot satisfy run-fail.
-webcpp.drive cobalt_exit_wasi : cobalt_status_test.cpp : <library>/webcpp/asio//cobalt
-  : cobalt_status_driver.mjs : : wasip3 ;
-webcpp.lane cobalt_wasip3 : cobalt_exit_wasi : wasip3 ;
-for local handling in on off
-{
-    local name = cobalt_exit_exceptions_$(handling) ;
-    local requirements = <library>/webcpp/asio//cobalt <exception-handling>$(handling) ;
-    webcpp.drive $(name) : cobalt_status_test.cpp : $(requirements)
-      : cobalt_status_driver.mjs : : native emscripten ;
-    webcpp.drive $(name)_asyncify : cobalt_status_test.cpp
-      : $(requirements) <webcpp-suspend>asyncify : cobalt_status_driver.mjs : : emscripten ;
-    .cobalt += $(name) ;
-    .cobalt-emscripten += $(name)_asyncify ;
-    .asyncify += $(name)_asyncify ;
-}
-webcpp.lane cobalt : $(.cobalt) : native emscripten ;
-webcpp.lane cobalt_asyncify : $(.cobalt-emscripten) : emscripten ;
-
-for local handling in on off
-{
-    local name = promise_cobalt_exceptions_$(handling) ;
-    local requirements = <library>/webcpp/asio//cobalt <exception-handling>$(handling) ;
-    webcpp.run $(name) : promise_cobalt_test.cpp : $(requirements) : emscripten ;
-    webcpp.run $(name)_asyncify : promise_cobalt_test.cpp
-      : $(requirements) <webcpp-suspend>asyncify : emscripten ;
-    .asyncify += $(name)_asyncify ;
-}
-
 .asyncify += ssl_asyncify ssl_asyncify_no_exceptions ;
 webcpp.lane asyncify : $(.asyncify) : emscripten ;
 
@@ -329,4 +261,4 @@ build-project tls ;
 build-project wasip2 ;
 build-project capabilities ;
 build-project capability_wasi ;
-build-project wasip2_tls_cobalt ;
+build-project wasip2_tls ;

@@ -9,29 +9,23 @@
 
 Boost.Asio is the ground of asynchronous {cpp}: Boost.Beast, Boost.Cobalt,
 Boost.MySQL, Boost.Redis and many others are written on it, as templates
-over its executors, its completion tokens and its stream concepts. asio
-keeps all of that and changes one thing, where the waiting happens. Natively
-it is Boost.Asio itself. Compiled with Emscripten it is still Boost.Asio's
-own `io_context`, whose `run` suspends into the browser's event loop, so
-that two worlds meet.
+over its executors, its completion tokens and its stream concepts. WebCPP
+preserves that programming model while adapting execution and I/O to the
+deployment target. Native equivalents are Boost.Asio itself. On Wasm, an
+explicitly shipped implementation provides the backend selected by configuration.
 
-{cpp}'s asynchronous libraries reach the browser. What is written on Asio's
-model runs in a page with the same code, because the `io_context`, the
-executors and the timers are Boost's own. Boost.Cobalt runs on asio's
-`io_context` and executors unchanged, its timers included, since Cobalt's
-`io::steady_timer` wraps Asio's; its `co_main` runs unchanged too, and asio
-gives it the turn limit by replacing the one function of Cobalt's that runs
-the `io_context`. Boost.Beast is templates over stream concepts,
-`AsyncReadStream` and `AsyncWriteStream`: its messages, parsers,
-serializers and buffers compile and run in the browser as they are, and its
-timeouts are Boost timers, which fire there. Its HTTP and WebSocket
-algorithms run unchanged over a byte stream a program names as their next
-layer: a socket of asio's whose transport a later library provides, or a
-WebRTC channel's. Beast's own `tcp_stream` wraps Boost's socket, never
-asio's, and over plain TCP nothing runs, since a browser gives no raw
-sockets; there webcpp's beast library gives Beast's interfaces over the
-browser's own `WebSocket` and `fetch`. Any other library written on Asio's
-model, its completion tokens and its executors, follows.
+`webcpp::cobalt` and `webcpp::beast` share this selected Asio backend.
+Cobalt supplies coroutine types and a compiled runner. Beast supplies HTTP
+messages, parsers and serializers, stream-based protocol operations, and
+explicit browser and WASI host adapters. A browser has no ordinary raw TCP
+listener: its WebSocket and fetch APIs are separate host facilities with
+their own security policy. A socket-based server example cannot become a
+browser listener merely by changing its namespace.
+
+WASI guest sockets instead use the SDK's pollable or waitable reactor support.
+They still require runtime network grants. A program using only timers has
+different prerequisites from one using TCP, TLS, threads or host HTTP. The
+feature matrix and named application profiles keep those requirements separate.
 
 The browser's asynchronous model reaches {cpp}. The web's APIs are
 asynchronous: promises, events, streams. asio makes a promise and an event
@@ -40,7 +34,7 @@ completion token, `co_await`, a callback or a Cobalt task, and an event
 source is an operation that completes on the event, so that {cpp} writes the
 web's programs in the web's own model, and in {cpp}'s.
 
-Emscripten 6.0.11 already makes Boost.Asio's `io_context::run` suspend into
-the browser. What asio adds there, the threads configuration on Emscripten,
-the turn limit and the wake from browser events, is proven here first, to
-be offered to Boost.Asio upstream later.
+Emscripten supplies the suspension mechanism through JSPI or Asyncify.
+WebCPP adds browser configuration, a bounded turn and wakeups from browser
+events. These are library features, not compiler flags that grant access to
+facilities absent from the host.

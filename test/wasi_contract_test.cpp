@@ -9,17 +9,17 @@
 #include <webcpp/asio/ip/udp.hpp>
 #include <webcpp/asio/steady_timer.hpp>
 
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/ip/address_v6.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/buffer.hpp>
+#include <webcpp/asio/ip/address_v6.hpp>
+#include <webcpp/asio/post.hpp>
 #include <webcpp/test/exit_status.hpp>
 
 #include <array>
 #include <chrono>
 #include <string>
 
-namespace asio = boost::asio;
+namespace asio = webcpp::asio;
 using tcp = webcpp::asio::ip::tcp;
 using udp = webcpp::asio::ip::udp;
 

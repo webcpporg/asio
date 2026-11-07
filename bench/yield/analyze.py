@@ -70,6 +70,9 @@ def analyze_case(case, data):
     for clock in ('performance_clock', 'cpp_clock', 'wall_clock'):
         if clock in data:
             row[clock + '_loop_ns'] = data[clock]['observed_loop_ns_per_read']
+            step = data[clock]['minimum_positive_ms']
+            if step is not None:
+                row[clock + '_step_us'] = step * 1000
     for check in data['clock_checks']:
         assert check['max_outside_bracket_ms'] < 0.002
         assert check['wall_max_outside_bracket_ms'] < 1.01
@@ -112,6 +115,12 @@ def summarize(rows):
             if observed:
                 group[metric] = dict(median=stats.median(observed), min=min(observed),
                                      max=max(observed), mean=stats.mean(observed))
+        for clock in ('performance_clock', 'cpp_clock', 'wall_clock'):
+            metric = clock + '_step_us'
+            observed = [row[metric] for row in values if metric in row]
+            if observed:
+                group[metric] = dict(median=stats.median(observed), min=min(observed),
+                                     max=max(observed), mean=stats.mean(observed))
         if PARTS[0] + '_us' in values[0]:
             # Means add to the mean round trip; medians generally do not.
             group['component_means_us'] = {
@@ -139,6 +148,7 @@ def main():
     args = parser.parse_args()
     environment = json.loads((args.input / 'environment.json').read_text())
     cases = environment['config']['cases']
+    assert len(cases) == 442 and len({case['id'] for case in cases}) == 442
     expected = {case['id'] + '.json' for case in cases} | {'environment.json'}
     assert {p.name for p in args.input.glob('*.json')} == expected
     rows = [analyze_case(case, json.loads((args.input / (case['id'] + '.json')).read_text()))

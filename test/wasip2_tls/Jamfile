@@ -1,0 +1,23 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+
+project : requirements <library>/webcpp/asio//asio <library>/webcpp//node-test ;
+import webcpp ;
+webcpp.targets wasip2 ;
+webcpp.original python3 : ../wasip2 ;
+webcpp.drive entropy : ../../../../tools/openssl/test/entropy.c
+  : <library>/webcpp/third_party//openssl <linkflags>-Wl,--wrap=getentropy
+  : entropy_driver.py : : wasip2 ;
+for local test in tls_client tls_client_embedded
+{
+    local args ;
+    if $(test) = tls_client_embedded { args = --embedded ; }
+    webcpp.drive $(test) : ../../../../tools/openssl/test/$(test).cpp
+      : <library>/webcpp/asio//tls <webcpp-drive-timeout>180
+        <dependency>../../../../tools/openssl/test/tls.py
+      : ../../../../tools/openssl/test/driver.py : --wasip2 $(args) : wasip2 ;
+}
+webcpp.lane wasip2-tls : entropy tls_client tls_client_embedded : wasip2 ;

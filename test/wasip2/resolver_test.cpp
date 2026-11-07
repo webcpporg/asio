@@ -3,12 +3,12 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // https://www.boost.org/LICENSE_1_0.txt)
-#include <boost/asio/bind_allocator.hpp>
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/cancellation_signal.hpp>
-#include <boost/asio/deferred.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/bind_allocator.hpp>
+#include <webcpp/asio/bind_cancellation_slot.hpp>
+#include <webcpp/asio/bind_executor.hpp>
+#include <webcpp/asio/cancellation_signal.hpp>
+#include <webcpp/asio/deferred.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
 #include <webcpp/test/exit_status.hpp>
@@ -16,7 +16,7 @@
 
 namespace {
 void initiation_and_cancellation() {
-    namespace asio = boost::asio;
+    namespace asio = webcpp::asio;
     using tcp = webcpp::asio::ip::tcp;
     webcpp::asio::io_context context;
     webcpp::asio::io_context completions;
@@ -83,7 +83,7 @@ void initiation_and_cancellation() {
 }
 
 void resources_and_errors() {
-    namespace asio = boost::asio;
+    namespace asio = webcpp::asio;
     using tcp = webcpp::asio::ip::tcp;
     webcpp::asio::io_context context;
     tcp::resolver resolver(context);

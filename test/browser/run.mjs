@@ -39,6 +39,9 @@ const cleanUp = () => (cleaning ??= (async () => {
         left.chrome.kill()
         try { await ended } finally { clearTimeout(stubborn) }
     }
+    // Chrome helpers may retain the inherited stderr pipe after the main process
+    // exits. Release our read end so a completed driver can terminate normally.
+    left.chrome?.stderr?.destroy()
     if (left.server) {
         left.server.closeAllConnections()
         await new Promise(resolve => left.server.close(resolve))
@@ -264,7 +267,7 @@ try {
                     assert.equal(report.isolated, true)
                     if (!program.includes('cobalt') && !program.includes('worker_return') &&
                         !program.includes('move_failure')) {
-                        const worker = !program.includes('_main-')
+                        const worker = !program.includes('_main-') && !program.includes('hint_one')
                         assert.ok(report.polls.some(poll => poll.worker === worker && poll.timeout > 0),
                             `missing ${worker ? 'original worker proxy' : 'main adapter'} wait: ${JSON.stringify(report.polls)}`)
                     }

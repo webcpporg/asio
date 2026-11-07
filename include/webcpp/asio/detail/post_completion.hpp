@@ -9,25 +9,25 @@
 
 #include <webcpp/asio/config.hpp>
 
-#include <boost/asio/any_io_executor.hpp>  // lint-world: preserve an erased executor
-#include <boost/asio/io_context.hpp>  // lint-world: recover an ordinary context executor without erasing its allocator
-#include <boost/asio/post.hpp>  // lint-world: completion always enters through a post
+#include WEBCPP_ASIO_BACKEND_HEADER(any_io_executor.hpp)  // lint-world: preserve an erased executor
+#include WEBCPP_ASIO_BACKEND_HEADER(io_context.hpp)  // lint-world: recover an ordinary context executor without erasing its allocator
+#include WEBCPP_ASIO_BACKEND_HEADER(post.hpp)  // lint-world: completion always enters through a post
 #include <utility>
 
 namespace webcpp::asio::detail {
 /** Posts without erasing an ordinary io_context executor's allocator property. */
 template <class Handler>
-void post_completion(const boost::asio::any_io_executor& executor, Handler&& handler) {
-    using plain = boost::asio::io_context::executor_type;
-    using tracked = decltype(boost::asio::prefer(
-        std::declval<plain>(), boost::asio::execution::outstanding_work_t::tracked));
+void post_completion(const ::webcpp::asio_backend::any_io_executor& executor, Handler&& handler) {
+    using plain = ::webcpp::asio_backend::io_context::executor_type;
+    using tracked = decltype(::webcpp::asio_backend::prefer(
+        std::declval<plain>(), ::webcpp::asio_backend::execution::outstanding_work_t::tracked));
     if (const auto* concrete = executor.target<plain>()) {
-        boost::asio::post(*concrete, std::forward<Handler>(handler));
+        ::webcpp::asio_backend::post(*concrete, std::forward<Handler>(handler));
     } else if (const auto* concrete = executor.target<tracked>()) {
-        boost::asio::post(*concrete, std::forward<Handler>(handler));
+        ::webcpp::asio_backend::post(*concrete, std::forward<Handler>(handler));
     } else {
         // Keep custom executor and strand semantics; they own their dispatch allocation policy.
-        boost::asio::post(executor, std::forward<Handler>(handler));
+        ::webcpp::asio_backend::post(executor, std::forward<Handler>(handler));
     }
 }
 }  // namespace webcpp::asio::detail

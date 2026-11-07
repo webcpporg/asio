@@ -7,9 +7,9 @@
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/udp.hpp>
 
-#include <boost/asio/bind_allocator.hpp>
-#include <boost/asio/buffer.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/bind_allocator.hpp>
+#include <webcpp/asio/buffer.hpp>
 #include <webcpp/test/exit_status.hpp>
 
 #include <array>
@@ -18,7 +18,7 @@
 #include <string_view>
 
 namespace {
-namespace asio = boost::asio;
+namespace asio = webcpp::asio;
 using udp = webcpp::asio::ip::udp;
 
 struct allocation_counts {

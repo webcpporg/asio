@@ -3,15 +3,15 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // https://www.boost.org/LICENSE_1_0.txt)
-#include <boost/asio/executor_work_guard.hpp>
 #include <cstdio>
 #include <optional>
+#include <webcpp/asio/executor_work_guard.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/steady_timer.hpp>
 
 int main(int argc, char** /*argv*/) {
     webcpp::asio::io_context context;
-    auto const guard = boost::asio::make_work_guard(context);
+    auto const guard = webcpp::asio::make_work_guard(context);
     std::optional<webcpp::asio::steady_timer> timer;
     if (argc > 1) {
         timer.emplace(context, std::chrono::milliseconds(0));

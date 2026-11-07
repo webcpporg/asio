@@ -5,13 +5,18 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 /**
- Every public header except ssl.hpp and tls_client_context.hpp, which bring optional TLS
- dependencies.
+ The selected Asio umbrella and WebCPP extensions, excluding optional TLS headers.
 */
 #ifndef WEBCPP_ASIO_HPP
 #define WEBCPP_ASIO_HPP
 
 #include <webcpp/asio/config.hpp>
+
+#ifdef WEBCPP_TARGET_NATIVE
+#include <boost/asio.hpp>  // lint-world: native forwarding retains Boost networking
+#else
+#include <webcpp/asio/detail/backend.hpp>
+#endif
 
 #include <webcpp/asio/basic_datagram_socket.hpp>
 #include <webcpp/asio/basic_socket_acceptor.hpp>

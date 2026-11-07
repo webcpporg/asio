@@ -19,8 +19,12 @@ exe app : app.cpp /webcpp/asio//asio ;
 
 The target adds asio's headers, Boost's and the webcpp configuration dependency.
 `<webcpp/asio/config.hpp>` includes `<webcpp/config.hpp>` first;
-`WEBCPP_NO_EXCEPTIONS` disables asio's throwing APIs even when the compiler
-supports exceptions. An explicit `WEBCPP_ASIO_NO_EXCEPTIONS` remains supported.
+`WEBCPP_NO_EXCEPTIONS` selects the exception-free policy of WebCPP-owned
+adapters. An explicit `WEBCPP_ASIO_NO_EXCEPTIONS` remains supported. Neither macro
+removes the overloads inherited from native Boost or the shipped WASI backend,
+nor changes the compiler's exception mode. Use matching compiler flags across
+the application and its sources; with exceptions disabled, prefer `error_code`
+overloads and asynchronous error/result channels to avoid fatal error paths.
 On emscripten the target also supplies everything
 else a program needs there: the define Asio needs to build, embind, the
 JavaScript functions asio calls, compiled once in `src/browser_src.cpp`,
@@ -45,6 +49,9 @@ The bridge's JavaScript uses `stackSave` and `stackRestore`. On Emscripten
 including in optimized JSPI builds. A build outside b2 must keep the same
 link flags shown above.
 
+For direct compilation or another build system, see <<asio-distribution>> for
+the source inventory, SDK verification and external consumer recipe.
+
 [#asio-building-workers]
 === Browser workers and main-thread callbacks
 
@@ -63,7 +70,7 @@ when assertions are disabled, before accessing thread-local JavaScript values.
 
 `browser::main_thread_context` supplies an Asio executor for DOM callbacks.
 Construct and destroy that context on the actual browser main thread; copy its
-executor to workers and use `boost::asio::post` or `bind_executor`. Obtain
+executor to workers and use `webcpp::asio::post` or `bind_executor`. Obtain
 JavaScript objects inside the main callback and send ordinary {cpp} data back to
 the worker. Do not move `emscripten::val` handles between threads. The context
 must outlive calls using its executors, and destruction must not overlap such
@@ -439,8 +446,8 @@ WASIp2/P3 checks use wasi-sdk 34.0 and Wasmtime 50.0.1. See
 
 The recurring own lane `b2 libs/asio/test/tls//tls-integration` drives those
 TLS, embedded-CA, state, cancellation and entropy fixtures on native and WASIp3
-profiles. The separate `libs/asio/test/wasip2_tls_cobalt//wasip2-tls` own lane
-drives the WASIp2 fixtures with both exception modes; see <<asio-wasip2>> for
+profiles. The separate `libs/cobalt/test/tls//tls` lane
+drives the Cobalt fixtures on WASIp2 with each requested exception mode; see <<asio-wasip2>> for
 the complete command, including the ordinary Cobalt consumers.
 `b2 libs/asio/test/tls//openssl-upstream` is native only: it requests
 `webcpp-openssl-tests=on`, builds and runs upstream's full `alltests` suite,

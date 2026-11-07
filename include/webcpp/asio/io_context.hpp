@@ -9,13 +9,13 @@
 
 #include <webcpp/asio/config.hpp>
 
-#include <boost/asio/io_context.hpp>  // lint-world: the program's event loop, asio's purpose
+#include WEBCPP_ASIO_BACKEND_HEADER(io_context.hpp)  // lint-world: the program's event loop, asio's purpose
 #ifdef WEBCPP_TARGET_EMSCRIPTEN
 #include <webcpp/asio/browser/bridge.hpp>
 #include <webcpp/asio/detail/browser_imports.hpp>
 #include <webcpp/asio/detail/flag_scope.hpp>
 
-#include <boost/asio/steady_timer.hpp>  // lint-world: the unarmed timer that makes the reactor
+#include WEBCPP_ASIO_BACKEND_HEADER(steady_timer.hpp)  // lint-world: the unarmed timer that makes the reactor
 #include <boost/assert.hpp>
 #ifdef __EMSCRIPTEN_PTHREADS__
 #include <emscripten/threading.h>
@@ -29,6 +29,15 @@
 
 namespace webcpp::asio {
 
+#ifdef WEBCPP_TARGET_NATIVE
+/**
+ Boost.Asio's native execution context, with its original type and constructors.
+
+ Browser turn controls belong to the WebAssembly implementation and do not add
+ members or constructor arguments to the native Boost type.
+*/
+using ::webcpp::asio_backend::io_context;
+#else
 /** The options of an io_context. */
 struct io_context_options {
     /**
@@ -44,7 +53,7 @@ struct io_context_options {
  Boost.Asio's io_context, whose run family on emscripten suspends into the browser's event loop
  and yields to it after every turn of max_handlers_per_turn handlers.
 
- Natively and on WASIp2/P3 it uses Boost's run family, and its options change nothing.
+ On WASIp2/P3 it uses Boost's run family, and its options change nothing.
  In a threaded browser build each context and its JavaScript bridge stay on their
  constructing thread. Other threads post through its executor; the run family
  rejects a runner on another thread. Multiple simultaneous runners of one browser
@@ -52,7 +61,7 @@ struct io_context_options {
 
  @see "The run family", in the guide.
 */
-class io_context : public boost::asio::io_context {
+class io_context : public ::webcpp::asio_backend::io_context {
 public:
     /** Constructs an io_context with the default options. */
     io_context() : io_context(io_context_options{}) {}
@@ -74,7 +83,8 @@ public:
     template <class Allocator>
     io_context(std::allocator_arg_t /*tag*/, const Allocator& allocator,
                io_context_options options = {})
-        : boost::asio::io_context(std::allocator_arg, allocator), options_(normal(options)) {}
+        : ::webcpp::asio_backend::io_context(std::allocator_arg, allocator),
+          options_(normal(options)) {}
 
     /**
      Constructs an io_context with Boost's hint of the concurrency it will see.
@@ -83,7 +93,7 @@ public:
      @param options Its options.
     */
     explicit io_context(int concurrency_hint, io_context_options options = {})
-        : boost::asio::io_context(concurrency_hint), options_(normal(options)) {}
+        : ::webcpp::asio_backend::io_context(concurrency_hint), options_(normal(options)) {}
 
     /**
      Constructs an io_context with an allocator and Boost's hint of its concurrency.
@@ -96,7 +106,7 @@ public:
     template <class Allocator>
     io_context(std::allocator_arg_t /*tag*/, const Allocator& allocator, int concurrency_hint,
                io_context_options options = {})
-        : boost::asio::io_context(std::allocator_arg, allocator, concurrency_hint),
+        : ::webcpp::asio_backend::io_context(std::allocator_arg, allocator, concurrency_hint),
           options_(normal(options)) {}
 
     /**
@@ -141,7 +151,8 @@ public:
         const detail::flag_scope running(running_);
         return compose(
             [this] {
-                return boost::asio::io_context::run_one();  // lint-run: step 4, the one wait
+                return ::webcpp::asio_backend::io_context::run_one();  // lint-run: step 4, the one
+                                                                       // wait
             },
             [] { return false; });
     }
@@ -156,7 +167,7 @@ public:
             return 0;
         }
         const detail::flag_scope running(running_);
-        return boost::asio::io_context::run_one();  // lint-run: step 4 alone
+        return ::webcpp::asio_backend::io_context::run_one();  // lint-run: step 4 alone
     }
 
     /**
@@ -208,7 +219,7 @@ public:
             return 0;
         }
         const detail::flag_scope running(running_);
-        return boost::asio::io_context::run_one_until(abs_time);
+        return ::webcpp::asio_backend::io_context::run_one_until(abs_time);
     }
 
     /**
@@ -225,7 +236,7 @@ public:
             return 0;
         }
         const detail::flag_scope running(running_);
-        return boost::asio::io_context::run_one_for(rel_time);
+        return ::webcpp::asio_backend::io_context::run_one_for(rel_time);
     }
 
 private:
@@ -256,7 +267,9 @@ private:
     template <class Clock, class Duration>
     std::size_t run_until_unchecked(const std::chrono::time_point<Clock, Duration>& abs_time) {
         return compose(
-            [this, &abs_time] { return boost::asio::io_context::run_one_until(abs_time); },
+            [this, &abs_time] {
+                return ::webcpp::asio_backend::io_context::run_one_until(abs_time);
+            },
             [&abs_time] { return Clock::now() >= abs_time; });
     }
 
@@ -304,17 +317,17 @@ private:
 public:
 #else
     /** Boost's own, natively. */
-    using boost::asio::io_context::run;  // lint-run: Boost's own, natively
+    using ::webcpp::asio_backend::io_context::run;  // lint-run: Boost's own, natively
     /** Boost's own, natively. */
-    using boost::asio::io_context::run_for;  // lint-run: Boost's own, natively
+    using ::webcpp::asio_backend::io_context::run_for;  // lint-run: Boost's own, natively
     /** Boost's own, natively. */
-    using boost::asio::io_context::run_one;  // lint-run: Boost's own, natively
+    using ::webcpp::asio_backend::io_context::run_one;  // lint-run: Boost's own, natively
     /** Boost's own, natively. */
-    using boost::asio::io_context::run_one_for;
+    using ::webcpp::asio_backend::io_context::run_one_for;
     /** Boost's own, natively. */
-    using boost::asio::io_context::run_one_until;
+    using ::webcpp::asio_backend::io_context::run_one_until;
     /** Boost's own, natively. */
-    using boost::asio::io_context::run_until;
+    using ::webcpp::asio_backend::io_context::run_until;
 #endif
 
 private:
@@ -331,9 +344,9 @@ private:
     // run with work and no timer of the program's own suspends in select, which a post wakes,
     // rather than in ::pause(), which nothing wakes (measured with Emscripten 6.0.11;
     // test/reactor_test.cpp fails without it).
-    boost::asio::steady_timer reactor_{*this};  // lint-world: never armed
+    ::webcpp::asio_backend::steady_timer reactor_{*this};  // lint-world: never armed
     // The bridge whose deliveries the run family refuses to run inside, looked up once.
-    browser::bridge& bridge_ = boost::asio::use_service<browser::bridge>(*this);
+    browser::bridge& bridge_ = ::webcpp::asio_backend::use_service<browser::bridge>(*this);
 #ifdef __EMSCRIPTEN_PTHREADS__
     // The context and its JavaScript bridge stay on their creating thread.
     pthread_t owner_ = pthread_self();
@@ -343,6 +356,7 @@ private:
 #endif
 };
 
+#endif  // WEBCPP_TARGET_NATIVE
 }  // namespace webcpp::asio
 
 #endif  // WEBCPP_ASIO_IO_CONTEXT_HPP

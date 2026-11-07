@@ -17,7 +17,7 @@
 #include <webcpp/asio/detail/browser_imports.hpp>
 
 #include <emscripten/val.h>
-#include <boost/asio/execution_context.hpp>  // lint-world: a service of the io_context
+#include WEBCPP_ASIO_BACKEND_HEADER(execution_context.hpp)  // lint-world: a service of the io_context
 #include <boost/intrusive/avl_set.hpp>
 #include <boost/unordered/unordered_flat_map.hpp>
 
@@ -95,26 +95,27 @@ public:
  delivering to one registration by a key that is never reused.
 
  A service of the io_context, made with its allocator by
- boost::asio::use_service<bridge>(io), and shut down and destroyed with it. On emscripten alone.
+ ::webcpp::asio_backend::use_service<bridge>(io), and shut down and destroyed with it. On emscripten
+ alone.
 
  @see "Browser events", in the guide.
 */
-class bridge : public boost::asio::execution_context::service {
+class bridge : public ::webcpp::asio_backend::execution_context::service {
 public:
     // Boost.Asio's key, by address, and mutable as Boost declares it. Its constructor is empty,
     // `id() {}`: it throws nothing and reads no other static, so that its initialization can
     // neither fail nor come too early.
     /** The service's identity, which Boost.Asio keys services by. */
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables,bugprone-throwing-static-initialization,cert-err58-cpp,bugprone-dynamic-static-initializers)
-    static inline boost::asio::execution_context::id id;
+    static inline ::webcpp::asio_backend::execution_context::id id;
 
     /**
      Constructs the bridge of context, with nothing registered.
 
      @param context The io_context it serves.
     */
-    explicit bridge(boost::asio::execution_context& context)
-        : boost::asio::execution_context::service(context),
+    explicit bridge(::webcpp::asio_backend::execution_context& context)
+        : ::webcpp::asio_backend::execution_context::service(context),
           registrations_(map::allocator_type(context)),
           token_(emscripten::val::object()) {
         token_.set("alive", true);
@@ -216,9 +217,10 @@ private:
         }
     }
 
-    using map = boost::unordered_flat_map<
-        std::uint64_t, registration*, boost::hash<std::uint64_t>, std::equal_to<>,
-        boost::asio::execution_context::allocator<std::pair<const std::uint64_t, registration*>>>;
+    using map = boost::unordered_flat_map<std::uint64_t, registration*, boost::hash<std::uint64_t>,
+                                          std::equal_to<>,
+                                          ::webcpp::asio_backend::execution_context::allocator<
+                                              std::pair<const std::uint64_t, registration*>>>;
 
     struct node_less {
         bool operator()(const intrusive_registration& a, const intrusive_registration& b) const {

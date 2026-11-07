@@ -5,10 +5,10 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 #include <array>
-#include <boost/asio/bind_allocator.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <cerrno>
 #include <string_view>
+#include <webcpp/asio/bind_allocator.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/udp.hpp>
 #include <webcpp/test/exit_status.hpp>
@@ -41,7 +41,7 @@ extern "C" ssize_t __wrap_send(int socket, const void* data, size_t size, int fl
 }
 
 int main() {
-    namespace asio = boost::asio;
+    namespace asio = webcpp::asio;
     using udp = webcpp::asio::ip::udp;
     for (bool const gather : {false, true}) {
         webcpp::asio::io_context context;

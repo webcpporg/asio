@@ -1,0 +1,141 @@
+{
+  "boost_version": 109200,
+  "files": {
+    "boost/asio/detail/buffer_sequence_adapter.hpp": {
+      "before": "fa90fb4211bd4463269d6a3f36b37cd8702ffc0260b35b27eca8627bfee2ee33",
+      "after": "a9e9d5f90228d8360eb99a8c267b3ca902be4bd08de5dff7bcf25443b04fe08c"
+    },
+    "boost/asio/detail/config.hpp": {
+      "before": "be2ff484edb3f0bc46b6874f8e9595b4802132c4c052ca675d3c7d4359da8352",
+      "after": "a3354e5be669ad04377a1b65dd4ab2706443ea1491d9cc6fa75fef83cb4a1580"
+    },
+    "boost/asio/detail/impl/null_event.ipp": {
+      "before": "00b0ffc7de583ed07afe02ca249d630414c118ac2d68948cbc1a51d47c583617",
+      "after": "f7aa930637aa0d4d466a7f6b078387620f50d28fa9b66059f19c10911e5499fa"
+    },
+    "boost/asio/detail/impl/resolver_thread_pool.ipp": {
+      "before": "2c1488b04ea5cb139f0a632aa908b9ce7fe01e7c95464af2f9a16541cab31cb8",
+      "after": "d173fc0fc5ab396b24c7d7b56832676c05ba2017a6dca9997338821dd23bb0dc"
+    },
+    "boost/asio/detail/impl/socket_ops.ipp": {
+      "before": "fd5bae35b76c374174d4cd6613c420225c297ef01acafd0487fff4b8d9298529",
+      "after": "3f191e38e230f05b5f629325d027b8408b6c28b9116219e5c43aaf399cb2eaaf"
+    },
+    "boost/asio/detail/null_signal_blocker.hpp": {
+      "before": "125601602bac1118debb090870c96757abf71818dda18299c560555940b550d8",
+      "after": "13b78db25b3ff599d36fb0270109a0c077673f3de0d410d7e4392bd75110ef83"
+    },
+    "boost/asio/detail/reactive_socket_sendto_op.hpp": {
+      "before": "1f8e02cf41fea19813b97ed8abdb77f64432b2168cd7cfcad86bea36aea1b4df",
+      "after": "ff72ed6496b9f6c3ea88213f83433e470ef11db948637aefafecbc11d23c9e4b"
+    },
+    "boost/asio/detail/reactive_socket_service.hpp": {
+      "before": "5f68f1e43559adab6ec869f989a33c1295e0fafbb9ce7f27f4c0f205cfb0bbb2",
+      "after": "fb5e204b25a39c993c3cbb7480fc1e305952ea2ab5180418a312894b8e938b57"
+    },
+    "boost/asio/detail/signal_blocker.hpp": {
+      "before": "b46eb959862d0b1643f244a743a2366aff3f0acd7638a5c3cfa78dc826dd4df9",
+      "after": "24559dd6af26a5ba8ee466e15ab9efb560602ef2995361824bc2b09eda160daa"
+    },
+    "boost/asio/detail/socket_types.hpp": {
+      "before": "c83d94ea136034fc3e89018d47b38afed40449250660cc2720cbc89441023551",
+      "after": "52b404d0793e36afb0cdf3daf7b4d7713f40beaab9d2f09cab982c9f791985cb"
+    },
+    "boost/asio/error.hpp": {
+      "before": "a836acf6bb58190eb3ae72d6795affb75d39876633c88c8343c61dfac67b0be2",
+      "after": "25e5d4ce36c513eed48c925d24cff62df0009469b73c6038c075939669cc2777"
+    },
+    "boost/asio/detail/impl/select_reactor.ipp": {
+      "before": "4e6df639193d0c93d2a9b3e2ead005824a6a3c921d1382c3ce72e5ce959e6a48",
+      "after": "6587f498614375ba046e799c434871ecb682854f219d2ca0cb0685d457341998"
+    },
+    "boost/asio/detail/select_interrupter.hpp": {
+      "before": "debfbfa6e8915f7123229d2031b4704b1b95edcb4590f4d9a5b25c8cdd4105d5",
+      "after": "0f41bb2fb2190bbb23ab553c3bc0c52266f4685f2e400fd57f0b4fb987cdedbb"
+    },
+    "boost/asio/detail/resolver_service.hpp": {
+      "before": "8ec1a1f84c3de50a4bf85e9ae5f2247ceb10cb36970c2bcaa3598587fa3acb50",
+      "after": "d56d25b9795e5da2420f63f1c511520e515f20e76e0afa601c70a56c8f78812d"
+    },
+    "boost/asio/detail/reactive_socket_service_base.hpp": {
+      "before": "cd6aca62ed4c72088946f85f968f6005d6b72ec7ba4d0d54b244b64963c5668e",
+      "after": "230282cd2f1dfcf196b6c255e90af7cc069cbf9987bf9c3962bbfb134ccbd3ef"
+    },
+    "boost/asio/detail/reactive_socket_send_op.hpp": {
+      "before": "32e0b1a85875a4b352a5f32afb1e07a2397b5a20c3de0580a1b0ecfb9681ab45",
+      "after": "2ac6aae36c0812feb5d2bb7da405419e4f9d2af84adc4c656115f00e39e45f25"
+    },
+    "boost/asio/detail/reactive_socket_recv_op.hpp": {
+      "before": "ffd1dfeb9997f8991e0daa8f85bf72e4aaa555857e8a99cc99faa5ee76e4b878",
+      "after": "adcd584194aeff30bcd23dc7248c1068eb0a939f6ef0c980c786f9fe8799cb3d"
+    },
+    "boost/asio/detail/reactive_socket_recvfrom_op.hpp": {
+      "before": "6f2b4e781fcfbafda3b06e26e7ba57f7fbe207571b524e617d621ee3f7b0b24b",
+      "after": "668eaeb1f563dc5c9ad69d1c7f4b7888066bbe814cf3cac83a138281daf17acb"
+    },
+    "boost/asio/detail/select_reactor.hpp": {
+      "before": "c00df2bc8876796f774c090d65d1b61d72f96f37611e7bdf72ea571afccd1fc8",
+      "after": "e46bdac4c17852f4c3a08340d63c0f6d93234271cf53cc23bdaff182115fc74c"
+    },
+    "boost/asio/impl/co_spawn.hpp": {
+      "before": "2fa23d0de677ccee2306e2c16dc1257a4e5d6798b11ae7f13810ade59c8a902e",
+      "after": "e688d812bc22f4fd0a209892f43cecefdbab4c249a07e0cb26453eb028891ad7",
+      "targets": [
+        "wasip2",
+        "wasip3",
+        "emscripten"
+      ],
+      "reason": "The completion-state flag is read only by exception handling; EH-off strict consumers still parse this template."
+    },
+    "boost/asio/detail/impl/scheduler.ipp": {
+      "before": "c04f994d21601faa3e2c15d81ce4ac04fed581ed0e2b51cf44eb0fe760cd75c3",
+      "after": "2ab9db658b48e959be7dd1c6b50e2660fee0167a3d35ca00616c521927259c78",
+      "targets": [
+        "wasip2",
+        "wasip3",
+        "emscripten"
+      ],
+      "reason": "Browser callbacks can re-enter a suspended reactor on the same thread. Posting to the shared queue preserves wakeup even with concurrency hint 1 or continuation handlers; native and WASI retain the upstream path."
+    },
+    "boost/asio/disposition.hpp": {
+      "before": "86d420dddb272013c66831a3135ce6bd965ba18800c4ecdbb0091f6b61135d3f",
+      "after": "e9512907e15be1940dabc4b8772f36de74b683cd7a1f4c29e988745c8f5a8b55",
+      "targets": [
+        "wasip2",
+        "wasip3",
+        "emscripten"
+      ],
+      "reason": "Capture an exception raised while constructing system_error before make_exception_ptr, preserving the noexcept disposition conversion contract."
+    },
+    "boost/asio/ip/impl/address.ipp": {
+      "before": "384edc860e390aee4c5300b9f7193cf294dcf83cd39c8469a3e97a6936c77a79",
+      "after": "9d672d696f3026519de0beb4861b3fc1b99fa700c5008a0a61f06c99d0fc4c17",
+      "targets": [
+        "wasip2",
+        "wasip3",
+        "emscripten"
+      ],
+      "reason": "Report temporary string allocation failure through error_code instead of terminating in the noexcept string_view address parser."
+    },
+    "boost/asio/ip/impl/address_v4.ipp": {
+      "before": "8aaf45510b1e27f2ae742d43165cde3db06f6396bd346eaec354798592019708",
+      "after": "9adb962cf01c216780cbe0c9f264d753b41683aa90cf2e200abeba4727848a3f",
+      "targets": [
+        "wasip2",
+        "wasip3",
+        "emscripten"
+      ],
+      "reason": "Report temporary string allocation failure through error_code instead of terminating in the noexcept string_view address parser."
+    },
+    "boost/asio/ip/impl/address_v6.ipp": {
+      "before": "ae037f5315cb4f5abaf6c0a839408493f193460388322d5f5dfde389cfed2c6a",
+      "after": "f9e3bb2957935169836ee8fd6c0e65015ee5d55e0cc58b14456d7613dcc8ab21",
+      "targets": [
+        "wasip2",
+        "wasip3",
+        "emscripten"
+      ],
+      "reason": "Report temporary string allocation failure through error_code instead of terminating in the noexcept string_view address parser."
+    }
+  }
+}

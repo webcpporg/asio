@@ -9,7 +9,7 @@
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/post.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <emscripten/em_js.h>
 #include <emscripten/emscripten.h>
@@ -66,7 +66,7 @@ void next_handler(chain_state* state) {
     }
     ++state->completed;
     if (state->completed < state->total) {
-        boost::asio::post(*state->context, std::bind_front(&next_handler, state));
+        webcpp::asio::post(*state->context, std::bind_front(&next_handler, state));
         if (state->completed % state->limit == 0) {
             (*state->pairs)[2 * state->recorded] = now_ms();
         }
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
                          .limit = 1000,
                          .total = 10001,
                          .work = work};
-        boost::asio::post(warm_context, std::bind_front(&next_handler, &warm));
+        webcpp::asio::post(warm_context, std::bind_front(&next_handler, &warm));
         warm_context.run();  // lint-run: bounded benchmark warmup
         if (warm.completed != 10001 || warm.recorded != 10)
             return webcpp::test::exit_status(6);
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
                           .limit = limit,
                           .total = operations,
                           .work = work};
-        boost::asio::post(context, std::bind_front(&next_handler, &state));
+        webcpp::asio::post(context, std::bind_front(&next_handler, &state));
         context.run();  // lint-run: the benchmark's bounded event loop
         if (state.completed != operations || state.recorded != samples) {
             return webcpp::test::exit_status(4);

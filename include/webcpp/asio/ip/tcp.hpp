@@ -10,24 +10,27 @@
 
 #include <webcpp/asio/ip/basic_resolver.hpp>
 #ifndef WEBCPP_TARGET_EMSCRIPTEN
-#include <boost/asio/ip/tcp.hpp>  // lint-world: native protocol alias
+#include WEBCPP_ASIO_BACKEND_HEADER(ip/tcp.hpp)  // lint-world: native protocol alias
 
 namespace webcpp::asio::ip {
+using namespace ::webcpp::asio_backend::ip;
 /** Boost's native TCP protocol. */
-using boost::asio::ip::tcp;
+using ::webcpp::asio_backend::ip::tcp;
 }  // namespace webcpp::asio::ip
 #else
-#include <boost/asio/detail/socket_types.hpp>  // lint-world: portable protocol constants
-#include <boost/asio/ip/basic_endpoint.hpp>  // lint-world: Boost endpoint layout for the browser protocol
+#include WEBCPP_ASIO_BACKEND_HEADER(detail/socket_types.hpp)  // lint-world: portable protocol constants
+#include WEBCPP_ASIO_BACKEND_HEADER(ip/basic_endpoint.hpp)  // lint-world: Boost endpoint layout for the browser protocol
 #include <webcpp/asio/basic_socket_acceptor.hpp>
 #include <webcpp/asio/basic_stream_socket.hpp>
 
 namespace webcpp::asio::ip {
+using namespace ::webcpp::asio_backend::ip;
+
 /** The browser TCP protocol, with operations supplied by a transport. */
 class tcp {
 public:
     /** The endpoint type. */
-    using endpoint = boost::asio::ip::basic_endpoint<tcp>;
+    using endpoint = ::webcpp::asio_backend::ip::basic_endpoint<tcp>;
     /** The resolver type. */
     using resolver = basic_resolver<tcp>;
     /** The socket type. */
@@ -37,23 +40,23 @@ public:
 
     /** Returns the IPv4 protocol.
      @return The IPv4 protocol. */
-    static tcp v4() noexcept { return tcp(BOOST_ASIO_OS_DEF(AF_INET)); }
+    static tcp v4() noexcept { return tcp(WEBCPP_ASIO_BACKEND_OS_DEF(AF_INET)); }
 
     /** Returns the IPv6 protocol.
      @return The IPv6 protocol. */
-    static tcp v6() noexcept { return tcp(BOOST_ASIO_OS_DEF(AF_INET6)); }
+    static tcp v6() noexcept { return tcp(WEBCPP_ASIO_BACKEND_OS_DEF(AF_INET6)); }
 
     /** Returns the socket type constant.
      @return The socket type. */
     // Match the InternetProtocol member signature used by Boost.
     // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-    [[nodiscard]] int type() const noexcept { return BOOST_ASIO_OS_DEF(SOCK_STREAM); }
+    [[nodiscard]] int type() const noexcept { return WEBCPP_ASIO_BACKEND_OS_DEF(SOCK_STREAM); }
 
     /** Returns the protocol number.
      @return The protocol number. */
     // Match the InternetProtocol member signature used by Boost.
     // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-    [[nodiscard]] int protocol() const noexcept { return BOOST_ASIO_OS_DEF(IPPROTO_TCP); }
+    [[nodiscard]] int protocol() const noexcept { return WEBCPP_ASIO_BACKEND_OS_DEF(IPPROTO_TCP); }
 
     /** Returns the address family.
      @return The address family. */

@@ -9,17 +9,17 @@
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/as_tuple.hpp>
-#include <boost/asio/awaitable.hpp>
-#include <boost/asio/co_spawn.hpp>
-#include <boost/asio/this_coro.hpp>
-#include <boost/asio/use_awaitable.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/as_tuple.hpp>
+#include <webcpp/asio/awaitable.hpp>
+#include <webcpp/asio/co_spawn.hpp>
+#include <webcpp/asio/this_coro.hpp>
+#include <webcpp/asio/use_awaitable.hpp>
 
 #include <chrono>
 #include <exception>
 
-namespace asio = boost::asio;
+namespace asio = webcpp::asio;
 
 namespace {
 

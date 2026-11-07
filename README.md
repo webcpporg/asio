@@ -1,35 +1,30 @@
 # asio
 
-asio is Boost.Asio natively, and in the browser Boost.Asio's own
-`io_context` suspended into the page's event loop, in C++20, one of the
-libraries of [webcpp](https://github.com/webcpporg/webcpp). A program
-written against Boost.Asio, `main()` and `io_context::run()` included, runs
-unchanged in a browser: compiled with Emscripten, asio adds only what Boost
-lacks there, the configuration Asio needs to build, what wakes `run` from a
-browser event, and a limit on the handlers one turn runs, so that the page
-keeps rendering. The program's code runs only when the browser delivers an
-event (a message, a promise, a timer), never by polling, and its stack and
-objects stay as they were. Timers are Boost's on these targets, so that a
-library written on asio, and every Boost library built on Asio, never knows
-where it runs.
+WebCPP Asio brings Boost.Asio's programming model to native C++, browsers through
+Emscripten, and WASIp2/P3 through runtimes such as Wasmtime. Native equivalents
+are actual Boost types. Wasm selects a versioned implementation shipped with the
+library, using the same explicit source contract with B2 or another build system.
+Use `webcpp/asio/` headers and `webcpp::asio` names throughout portable code.
 
-WASIp3 has a minimal port for timers and plain TCP/UDP, with single-thread and
-experimental cooperative-thread profiles. See the [capability matrix](doc/capabilities.adoc)
-and [WASIp3 build instructions](doc/wasip3.adoc) for exception settings, SDK/runtime
-requirements and unsupported operations. `/webcpp/asio//cobalt` supports the same
-WASIp3 profiles with its normal `co_main`, timers and IP socket APIs.
-OpenSSL is built from pinned sources for
-native and WASIp3 targets through `/webcpp/asio//openssl`.
-For embedded Mozilla CA roots and an error-returning TLS client factory, use
-`/webcpp/asio//tls` and `<webcpp/asio/tls_client_context.hpp>`.
-Its replacement overload trusts only the authorities supplied by the application;
-see [trusted certificate authorities](doc/building.adoc#asio-ca-certificates).
+The browser context suspends through JSPI or Asyncify, wakes for browser events,
+and yields between bounded turns. The configurable default is 100 handlers per
+turn; it does not interrupt a long handler or promise a frame deadline.
+WASI provides guest TCP/UDP and asynchronous forward DNS, subject to host grants.
+See the [capability matrix](doc/capabilities.adoc),
+[WASIp2 guide](doc/wasip2.adoc), [WASIp3 guide](doc/wasip3.adoc) and
+[external build recipe](doc/distribution.adoc) for the supported variants.
+
+Optional `/webcpp/asio//tls` supplies source-built OpenSSL and embedded Mozilla
+CA roots on native and WASI targets. The TLS client factory accepts replacement
+trust roots explicitly. Browser HTTPS/WSS uses the browser's TLS policy instead.
+Cobalt's coroutine facade, compiled sources and runner belong to the separate
+WebCPP Cobalt library; the old Asio Cobalt target names are forwarding aliases.
 
 ## First program
 
 Schedule a message and a timer, then run their context. The complete
 [tutorial](doc/html/index.html#asio-quick-start) walks through this program
-natively and with both WebAssembly variants.
+natively and with both Emscripten suspension variants.
 
 <!-- include::example/asio_quick_start.cpp[tag=program] -->
 ```cpp
@@ -38,7 +33,7 @@ natively and with both WebAssembly variants.
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/post.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <chrono>
 #include <cstdio>
@@ -50,7 +45,7 @@ int main() {
     asio::io_context io;
     asio::steady_timer timer(io);
 
-    boost::asio::post(io, [&timer] {
+    webcpp::asio::post(io, [&timer] {
         std::puts("posted");
         timer.expires_after(50ms);
         timer.async_wait([](boost::system::error_code ec) {

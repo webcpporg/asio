@@ -7,18 +7,17 @@
 // The turn limit, pinned by counting the yields themselves (doc: #asio-invariant-3): a
 // self-posting handler under run and run_for sees a yield after every max_handlers_per_turn
 // handlers, never more handlers between two yields, and the page's setTimeout(0) runs at a
-// yield, never inside a turn. Boost's own run, reached through a boost::asio::io_context&, never
+// yield, never inside a turn. Boost's own run, reached through a webcpp::asio::io_context&, never
 // yields.
 
 #include <webcpp/asio/io_context.hpp>
 
-#include "page_timeout.hpp"
+#include <webcpp/test/page_timeout.hpp>
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <algorithm>
 #include <chrono>
@@ -67,7 +66,7 @@ void spin(turn* state) {
     }
     const bool more = state->until == 0 ? state->seen_at == 0 : state->handlers < state->until;
     if (more) {
-        boost::asio::post(state->io, std::bind_front(&spin, state));
+        webcpp::asio::post(state->io, std::bind_front(&spin, state));
     }
 }
 
@@ -76,7 +75,7 @@ void spin(turn* state) {
 void run_yields_every_turn() {
     turn state;
     state.until = 5000;
-    boost::asio::post(state.io, std::bind_front(&spin, &state));
+    webcpp::asio::post(state.io, std::bind_front(&spin, &state));
     BOOST_TEST_EQ(state.io.run(), 5000U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(state.longest, 100U);
     BOOST_TEST_EQ(state.yields.count(), 49);
@@ -87,7 +86,7 @@ void run_for_yields_every_turn() {
     turn state;
     state.io.max_handlers_per_turn(250);
     state.until = 5000;
-    boost::asio::post(state.io, std::bind_front(&spin, &state));
+    webcpp::asio::post(state.io, std::bind_front(&spin, &state));
     BOOST_TEST_EQ(state.io.run_for(10s), 5000U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(state.longest, 250U);
     BOOST_TEST_EQ(state.yields.count(), 19);
@@ -101,7 +100,7 @@ void run_for_yields_every_turn() {
 void the_page_s_timer_runs_at_a_yield() {
     turn state;
     state.io.max_handlers_per_turn(250);
-    boost::asio::post(state.io, std::bind_front(&spin, &state));
+    webcpp::asio::post(state.io, std::bind_front(&spin, &state));
     state.io.run_for(10s);  // lint-run: the test's event loop
     BOOST_TEST(state.seen_at > 0);
     BOOST_TEST_EQ(state.seen_since, 1U);
@@ -112,8 +111,8 @@ void the_page_s_timer_runs_at_a_yield() {
 void boost_s_own_run_never_yields() {
     turn state;
     state.until = 5000;
-    boost::asio::post(state.io, std::bind_front(&spin, &state));
-    boost::asio::io_context& boost_s = state.io;
+    webcpp::asio::post(state.io, std::bind_front(&spin, &state));
+    webcpp::asio::io_context& boost_s = state.io;
     BOOST_TEST_EQ(boost_s.run(), 5000U);  // lint-run: Boost's own run, which has no limit
     BOOST_TEST_EQ(state.yields.count(), 0);
     BOOST_TEST_EQ(state.longest, 5000U);

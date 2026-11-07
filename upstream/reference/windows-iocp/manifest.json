@@ -1,0 +1,9 @@
+{
+  "boost_version": 109200,
+  "files": {
+    "boost/asio/detail/impl/win_iocp_io_context.ipp": {
+      "before": "d05a5e4fbb540eb13eb8e3165614177407fbed564e3a3bbbeca0b5b9ae0247f3",
+      "after": "0d77d743e222e71145abdfc8d968d275b66b9550f8416aa4724561f86085ba19"
+    }
+  }
+}

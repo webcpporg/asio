@@ -9,7 +9,7 @@
 
 #include <webcpp/asio/config.hpp>
 
-#include <boost/asio/steady_timer.hpp>  // lint-world: Boost's timers are asio's
+#include WEBCPP_ASIO_BACKEND_HEADER(steady_timer.hpp)  // lint-world: Boost's timers are asio's
 
 namespace webcpp::asio {
 
@@ -17,7 +17,7 @@ namespace webcpp::asio {
  Boost.Asio's timer on the monotonic clock, Boost's own: on emscripten it waits in the reactor's
  timer queue, which the run family waits on.
 */
-using boost::asio::steady_timer;  // lint-world: Boost's timers are asio's
+using ::webcpp::asio_backend::steady_timer;  // lint-world: Boost's timers are asio's
 
 }  // namespace webcpp::asio
 

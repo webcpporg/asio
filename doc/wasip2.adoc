@@ -25,8 +25,9 @@ b2 -a toolset=clang-wasip2 variant=release exception-handling=on,off \
   libs/asio/test/wasip2//supplied-stream libs/asio/test/wasip2//scheduler-idle
 ----
 
-Add `/webcpp/asio//cobalt` for Cobalt, `//tls` for OpenSSL with embedded or
-replacement trust roots, or `//cobalt_ssl` for Cobalt's SSL wrapper. These targets
+Add `/webcpp/cobalt//cobalt` for Cobalt, `/webcpp/asio//tls` for OpenSSL
+with embedded or replacement trust roots, or `/webcpp/cobalt//cobalt_ssl`
+for Cobalt's corrected SSL wrapper. These targets
 share the same source-built provider as native and WASIp3 programs. Run their
 real peer, trust, transfer/shutdown and cancellation consumers with:
 
@@ -34,7 +35,7 @@ real peer, trust, transfer/shutdown and cancellation consumers with:
 ----
 b2 -a toolset=clang-wasip2 variant=release exception-handling=on,off \
   testing.launcher=tools/boost/asio-wasip2/run.sh \
-  libs/asio/test/wasip2_tls_cobalt libs/asio/test/wasip2_tls_cobalt//wasip2-tls
+  libs/cobalt/test/wasip2 libs/cobalt/test/tls//tls
 ----
 
 The first command exercises timers, the run/poll family, TCP and UDP exchanges,

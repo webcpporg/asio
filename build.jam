@@ -15,9 +15,9 @@ import numbers ;
 import webcpp ;
 import webcpp-target ;
 
-use-project /webcpp/asio-wasip3 : ../../tools/boost/asio-wasip3 ;
-use-project /webcpp/asio-wasip2 : ../../tools/boost/asio-wasip2 ;
-use-project /webcpp/asio-windows : ../../tools/boost/asio-windows ;
+use-project /webcpp/asio-runtime : src ;
+path-constant ASIO_SOURCE_DIR : src ;
+include $(ASIO_SOURCE_DIR)/sources.jam ;
 
 # The stack Asyncify saves a suspension in, in bytes: 8192 unless a program
 # asks for more with <asyncify-stack-size>, propagated so that asio's usage
@@ -61,9 +61,8 @@ rule asyncify-stack ( properties * )
 # calls, the run family's yield among them
 # (include/webcpp/asio/browser/src.hpp), linked into every program on
 # emscripten by asio's usage requirements below.
-obj browser-src : src/browser_src.cpp : <include>include <library>/boost//headers
-  <library>/webcpp/config//config
-  <toolset>emscripten,<threading>single:<define>BOOST_ASIO_DISABLE_THREADS ;
+obj browser-src : src/$(ASIO_EMSCRIPTEN_RUNTIME) : <include>include <library>/boost//headers
+  <library>/webcpp/config//config ;
 explicit browser-src ;
 
 # Single-thread Emscripten needs BOOST_ASIO_DISABLE_THREADS. A pthread build
@@ -84,13 +83,13 @@ explicit browser-src ;
 # bridge's stack helpers exported even when an optimized JSPI runtime does
 # not otherwise need them; JavaScript calls both through stackSave/Restore.
 # tag::asio[]
+alias headers : : : : <include>include <library>/boost//headers
+  <library>/webcpp/config//config ;
+
 alias asio : : : : <include>include <library>/boost//headers
   <library>/webcpp/config//config
-  <target-os>windows:<library>/webcpp/asio-windows//headers
-  <toolset>clang-wasip2:<library>/webcpp/asio-wasip2//headers
-  <toolset>clang-wasip2:<source>/webcpp/asio-wasip2//pollable
-  <toolset>clang-wasip3:<library>/webcpp/asio-wasip3//headers
-  <toolset>emscripten,<threading>single:<define>BOOST_ASIO_DISABLE_THREADS
+  <toolset>clang-wasip2:<library>/webcpp/asio-runtime//runtime
+  <toolset>clang-wasip3:<library>/webcpp/asio-runtime//runtime
   <toolset>emscripten:<linkflags>-lembind
   <toolset>emscripten:<linkflags>-Wl,--export=emscripten_stack_get_current
   <toolset>emscripten:<linkflags>-Wl,--export=_emscripten_stack_restore
@@ -102,15 +101,9 @@ alias asio : : : : <include>include <library>/boost//headers
   <toolset>emscripten:<tag>@webcpp%suspend-tag ;
 # end::asio[]
 
-# WASIp2 and WASIp3 use the same checked Cobalt capability overlays.
-# Cobalt's entry point, with webcpp's bounded application event loop.
+# Compatibility names retain the independent Cobalt integration.
 # tag::cobalt[]
-lib cobalt-main : src/cobalt_main.cpp
-  : <link>static <library>asio <library>/webcpp//boost_cobalt ;
-explicit cobalt-main ;
-# The checked common Cobalt patch supplies the promise member required even
-# when a compiler builds the coroutine without exception handling.
-alias cobalt : : : : <library>asio <library>cobalt-main <library>/webcpp//boost_cobalt ;
+alias cobalt : : : : <library>/webcpp/cobalt//cobalt ;
 # end::cobalt[]
 
 # tag::openssl[]
@@ -144,6 +137,5 @@ alias tls : : : : <library>asio <library>openssl
 # end::tls[]
 
 # tag::cobalt-ssl[]
-alias cobalt_ssl : : : : <library>cobalt <library>tls
-  <library>/webcpp//boost_cobalt_io_ssl ;
+alias cobalt_ssl : : : : <library>/webcpp/cobalt//cobalt_ssl ;
 # end::cobalt-ssl[]

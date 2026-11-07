@@ -9,8 +9,8 @@
 
 #include <webcpp/asio/config.hpp>
 
-#include <boost/asio/async_result.hpp>       // lint-world: socket completion token initiation
-#include <boost/asio/execution_context.hpp>  // lint-world: constrain context constructors
+#include WEBCPP_ASIO_BACKEND_HEADER(async_result.hpp)  // lint-world: socket completion token initiation
+#include WEBCPP_ASIO_BACKEND_HEADER(execution_context.hpp)  // lint-world: constrain context constructors
 #include <boost/system/system_error.hpp>
 #include <boost/throw_exception.hpp>
 #include <type_traits>
@@ -28,7 +28,7 @@ inline void throw_socket_error(boost::system::error_code ec) {
 #endif
 /** Shared browser socket state and forwarding, with no native file descriptor. */
 template <class Protocol, class Executor>
-class browser_socket : public boost::asio::socket_base {
+class browser_socket : public ::webcpp::asio_backend::socket_base {
 public:
     /** The executor type. */
     using executor_type = Executor;
@@ -43,7 +43,7 @@ public:
 
     /** Constructs a closed socket on context. */
     template <class Context>
-        requires std::is_convertible_v<Context&, boost::asio::execution_context&>
+        requires std::is_convertible_v<Context&, ::webcpp::asio_backend::execution_context&>
     explicit browser_socket(Context& context) : browser_socket(context.get_executor()) {}
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
     /** Constructs and opens a socket for protocol. */
@@ -59,13 +59,13 @@ public:
 
     /** Constructs and opens a socket on context. */
     template <class Context>
-        requires std::is_convertible_v<Context&, boost::asio::execution_context&>
+        requires std::is_convertible_v<Context&, ::webcpp::asio_backend::execution_context&>
     browser_socket(Context& context, const Protocol& protocol)
         : browser_socket(context.get_executor(), protocol) {}
 
     /** Constructs and binds a socket on context. */
     template <class Context>
-        requires std::is_convertible_v<Context&, boost::asio::execution_context&>
+        requires std::is_convertible_v<Context&, ::webcpp::asio_backend::execution_context&>
     browser_socket(Context& context, const endpoint_type& endpoint)
         : browser_socket(context.get_executor(), endpoint) {}
 #endif
@@ -113,7 +113,7 @@ public:
     /** Opens local state, or reports already_open. */
     boost::system::error_code open(const protocol_type& protocol, boost::system::error_code& ec) {
         if (open_) {
-            ec = boost::asio::error::already_open;
+            ec = ::webcpp::asio_backend::error::already_open;
         } else {
             protocol_ = protocol;
             open_ = true;

@@ -14,16 +14,16 @@
 #error \
     "webcpp::asio: <webcpp/asio/ssl.hpp> needs OpenSSL on native and WASI targets, and it is not linked. In the program's Jamfile, add /webcpp/asio//openssl beside /webcpp/asio//asio, as in: exe app : app.cpp /webcpp/asio//asio /webcpp/asio//openssl ; b2 builds the pinned OpenSSL sources (git submodule update --init third_party/libs/openssl). (without b2: define WEBCPP_ASIO_HAS_OPENSSL=1 and link libssl and libcrypto)"
 #else
-#include <boost/asio/ssl.hpp>  // lint-world: native TLS with explicitly linked OpenSSL
+#include WEBCPP_ASIO_BACKEND_HEADER(ssl.hpp)  // lint-world: native TLS with explicitly linked OpenSSL
 
 namespace webcpp::asio {
 /** Boost's TLS types on native and WASI targets, with OpenSSL explicitly linked. */
-namespace ssl = boost::asio::ssl;
+namespace ssl = ::webcpp::asio_backend::ssl;
 }  // namespace webcpp::asio
 #endif
 #else
-#include <boost/asio/buffer.hpp>  // lint-world: certificate and key buffer signatures
-#include <boost/asio/error.hpp>   // lint-world: error-code setting overloads
+#include WEBCPP_ASIO_BACKEND_HEADER(buffer.hpp)  // lint-world: certificate and key buffer signatures
+#include WEBCPP_ASIO_BACKEND_HEADER(error.hpp)   // lint-world: error-code setting overloads
 #include <boost/system/error_code.hpp>
 #include <cstdint>
 #include <memory_resource>
@@ -320,7 +320,7 @@ public:
      @param ca The certificate authority data.
      @param ec Receives success.
     */
-    void add_certificate_authority([[maybe_unused]] const boost::asio::const_buffer& ca,
+    void add_certificate_authority([[maybe_unused]] const ::webcpp::asio_backend::const_buffer& ca,
                                    boost::system::error_code& ec) {
         roots_added_ = true;
         ec.clear();
@@ -330,7 +330,7 @@ public:
      Records a request to add certificate roots.
      @param ca The certificate authority data.
     */
-    void add_certificate_authority(const boost::asio::const_buffer& ca) {
+    void add_certificate_authority(const ::webcpp::asio_backend::const_buffer& ca) {
         boost::system::error_code ec;
         add_certificate_authority(ca, ec);
     }
@@ -380,7 +380,7 @@ public:
      @param format The certificate encoding.
      @param ec Receives success.
     */
-    void use_certificate([[maybe_unused]] const boost::asio::const_buffer& certificate,
+    void use_certificate([[maybe_unused]] const ::webcpp::asio_backend::const_buffer& certificate,
                          [[maybe_unused]] file_format format, boost::system::error_code& ec) {
         credentials_ = true;
         ec.clear();
@@ -391,7 +391,8 @@ public:
      @param certificate The certificate bytes.
      @param format The certificate encoding.
     */
-    void use_certificate(const boost::asio::const_buffer& certificate, file_format format) {
+    void use_certificate(const ::webcpp::asio_backend::const_buffer& certificate,
+                         file_format format) {
         boost::system::error_code ec;
         use_certificate(certificate, format, ec);
     }
@@ -423,7 +424,7 @@ public:
      @param chain The certificate chain bytes.
      @param ec Receives success.
     */
-    void use_certificate_chain([[maybe_unused]] const boost::asio::const_buffer& chain,
+    void use_certificate_chain([[maybe_unused]] const ::webcpp::asio_backend::const_buffer& chain,
                                boost::system::error_code& ec) {
         credentials_ = true;
         ec.clear();
@@ -433,7 +434,7 @@ public:
      Records a client certificate chain request.
      @param chain The certificate chain bytes.
     */
-    void use_certificate_chain(const boost::asio::const_buffer& chain) {
+    void use_certificate_chain(const ::webcpp::asio_backend::const_buffer& chain) {
         boost::system::error_code ec;
         use_certificate_chain(chain, ec);
     }
@@ -464,7 +465,7 @@ public:
      @param format The key encoding.
      @param ec Receives success.
     */
-    void use_private_key([[maybe_unused]] const boost::asio::const_buffer& key,
+    void use_private_key([[maybe_unused]] const ::webcpp::asio_backend::const_buffer& key,
                          [[maybe_unused]] file_format format, boost::system::error_code& ec) {
         credentials_ = true;
         ec.clear();
@@ -475,7 +476,7 @@ public:
      @param key The private key bytes.
      @param format The key encoding.
     */
-    void use_private_key(const boost::asio::const_buffer& key, file_format format) {
+    void use_private_key(const ::webcpp::asio_backend::const_buffer& key, file_format format) {
         boost::system::error_code ec;
         use_private_key(key, format, ec);
     }

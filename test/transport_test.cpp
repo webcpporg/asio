@@ -4,10 +4,10 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // https://www.boost.org/LICENSE_1_0.txt)
 
-#include <boost/asio/deferred.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <chrono>
 #include <memory>
+#include <webcpp/asio/deferred.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
 #include <webcpp/asio/steady_timer.hpp>
@@ -15,7 +15,7 @@
 
 namespace {
 struct test_protocol {
-    using endpoint = boost::asio::ip::basic_endpoint<test_protocol>;
+    using endpoint = webcpp::asio::ip::basic_endpoint<test_protocol>;
 
     static test_protocol v4() { return {}; }
 
@@ -31,12 +31,12 @@ struct test_protocol {
 };
 
 // The observation belongs to this context, not to process-wide mutable state.
-struct observations : boost::asio::execution_context::service {
+struct observations : webcpp::asio::execution_context::service {
     // Asio identifies each service type through its static id.
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables,bugprone-throwing-static-initialization,cert-err58-cpp)
-    static inline boost::asio::execution_context::id id;
+    static inline webcpp::asio::execution_context::id id;
 
-    explicit observations(boost::asio::execution_context& context) : service(context) {}
+    explicit observations(webcpp::asio::execution_context& context) : service(context) {}
 
     test_protocol::endpoint peer;
     unsigned calls = 0;
@@ -53,10 +53,10 @@ namespace webcpp::asio::browser {
 template <>
 class transport<test_protocol> {
 public:
-    explicit transport(const boost::asio::any_io_executor& executor)
+    explicit transport(const webcpp::asio::any_io_executor& executor)
         : executor_(executor),
-          seen_(boost::asio::use_service<observations>(
-              boost::asio::query(executor, boost::asio::execution::context))) {}
+          seen_(webcpp::asio::use_service<observations>(
+              webcpp::asio::query(executor, webcpp::asio::execution::context))) {}
 
     boost::system::error_code connect(const test_protocol::endpoint& peer) {
         seen_.peer = peer;
@@ -73,7 +73,7 @@ public:
         }
         const auto ec = connect(peer);
         webcpp::asio::detail::post_completion(
-            executor_, boost::asio::append(std::forward<Handler>(handler), ec));
+            executor_, webcpp::asio::append(std::forward<Handler>(handler), ec));
     }
 
     boost::system::error_code close() {
@@ -84,7 +84,7 @@ public:
 
 private:
     std::unique_ptr<webcpp::asio::steady_timer> timer_;
-    boost::asio::any_io_executor executor_;
+    webcpp::asio::any_io_executor executor_;
     observations& seen_;
 };
 }  // namespace webcpp::asio::browser
@@ -92,8 +92,8 @@ private:
 int main() {
     webcpp::asio::io_context io;
     webcpp::asio::basic_stream_socket<test_protocol> socket(io);
-    auto& seen = boost::asio::use_service<observations>(io);
-    const test_protocol::endpoint peer(boost::asio::ip::address_v4::loopback(), 8080);
+    auto& seen = webcpp::asio::use_service<observations>(io);
+    const test_protocol::endpoint peer(webcpp::asio::ip::address_v4::loopback(), 8080);
     boost::system::error_code ec;
     BOOST_TEST(socket.connect(peer, ec) == ec);
     BOOST_TEST(!ec);
@@ -107,7 +107,7 @@ int main() {
         ++completed;
     };
     socket.async_connect(peer, handler);
-    auto operation = socket.async_connect(peer, boost::asio::deferred);
+    auto operation = socket.async_connect(peer, webcpp::asio::deferred);
     std::move(operation)(handler);
     BOOST_TEST_EQ(completed, 0U);
     returned = true;
@@ -120,7 +120,7 @@ int main() {
     BOOST_TEST(socket.open(test_protocol::v4(), ec) == ec);
     BOOST_TEST(!ec);
     socket.async_connect(peer, [&](boost::system::error_code result) {
-        BOOST_TEST(result == boost::asio::error::operation_aborted);
+        BOOST_TEST(result == webcpp::asio::error::operation_aborted);
         ++completed;
     });
     BOOST_TEST(socket.close(ec) == ec);

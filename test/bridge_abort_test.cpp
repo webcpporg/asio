@@ -59,7 +59,7 @@ public:
 void an_event_after_an_abort_enters_nothing() {
     webcpp::asio::io_context io;
     counter listener;
-    auto& bridge = boost::asio::use_service<webcpp::asio::browser::bridge>(io);
+    auto& bridge = webcpp::asio::use_service<webcpp::asio::browser::bridge>(io);
     const std::uint64_t key = bridge.add(listener);
     const emscripten::val deliver = bridge.function(key);
     deliver(0);  // the control: before the abort, an event is delivered

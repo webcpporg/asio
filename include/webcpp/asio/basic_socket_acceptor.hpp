@@ -8,7 +8,7 @@
 #define WEBCPP_ASIO_BASIC_SOCKET_ACCEPTOR_HPP
 #include <webcpp/asio/config.hpp>
 #ifndef WEBCPP_TARGET_EMSCRIPTEN
-#include <boost/asio/basic_socket_acceptor.hpp>  // lint-world: native sockets keep Boost semantics
+#include WEBCPP_ASIO_BACKEND_HEADER(basic_socket_acceptor.hpp)  // lint-world: native sockets keep Boost semantics
 
 namespace webcpp::asio {
 /**
@@ -16,12 +16,12 @@ namespace webcpp::asio {
  @tparam Protocol The network protocol.
  @tparam Executor The associated executor.
 */
-template <class Protocol, class Executor = boost::asio::any_io_executor>
-using basic_socket_acceptor = boost::asio::basic_socket_acceptor<Protocol, Executor>;
+template <class Protocol, class Executor = ::webcpp::asio_backend::any_io_executor>
+using basic_socket_acceptor = ::webcpp::asio_backend::basic_socket_acceptor<Protocol, Executor>;
 }  // namespace webcpp::asio
 #else
-#include <boost/asio/associated_allocator.hpp>  // lint-world: allocate a stable peer with the handler allocator
-#include <boost/asio/compose.hpp>  // lint-world: preserve associations and peer lifetime across acceptance
+#include WEBCPP_ASIO_BACKEND_HEADER(associated_allocator.hpp)  // lint-world: allocate a stable peer with the handler allocator
+#include WEBCPP_ASIO_BACKEND_HEADER(compose.hpp)  // lint-world: preserve associations and peer lifetime across acceptance
 #include <memory>
 #include <webcpp/asio/basic_stream_socket.hpp>
 #include <webcpp/asio/detail/browser_socket.hpp>
@@ -32,7 +32,7 @@ namespace webcpp::asio {
  @tparam Protocol The network protocol.
  @tparam Executor The associated executor.
 */
-template <class Protocol, class Executor = boost::asio::any_io_executor>
+template <class Protocol, class Executor = ::webcpp::asio_backend::any_io_executor>
 class basic_socket_acceptor : public detail::browser_socket<Protocol, Executor> {
     using base = detail::browser_socket<Protocol, Executor>;
     using base::transport_state;
@@ -76,11 +76,11 @@ public:
      @return The error code.
     */
     boost::system::error_code listen(boost::system::error_code& ec) {
-        return listen(boost::asio::socket_base::max_listen_connections, ec);
+        return listen(::webcpp::asio_backend::socket_base::max_listen_connections, ec);
     }
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
     /** Listens with the default backlog, throwing on error. */
-    void listen() { listen(boost::asio::socket_base::max_listen_connections); }
+    void listen() { listen(::webcpp::asio_backend::socket_base::max_listen_connections); }
 #endif
     /**
      Forwards accept to the transport.
@@ -112,7 +112,7 @@ public:
     */
     template <class Token>
     auto async_accept(socket_type& peer, Token&& token) {
-        return boost::asio::async_initiate<Token, void(boost::system::error_code)>(
+        return ::webcpp::asio_backend::async_initiate<Token, void(boost::system::error_code)>(
             [this](auto handler, socket_type* destination) {
                 transport_state.async_accept(*destination, std::move(handler));
             },
@@ -146,12 +146,14 @@ public:
     */
     template <class Token>
     auto async_accept(Token&& token) {
-        return boost::asio::async_compose<Token, void(boost::system::error_code, socket_type)>(
+        return ::webcpp::asio_backend::async_compose<Token,
+                                                     void(boost::system::error_code, socket_type)>(
             [this, peer = std::shared_ptr<socket_type>()](
                 auto& self, boost::system::error_code ec = {}) mutable {
                 if (!peer) {
                     peer = std::allocate_shared<socket_type>(
-                        boost::asio::get_associated_allocator(self), this->get_executor());
+                        ::webcpp::asio_backend::get_associated_allocator(self),
+                        this->get_executor());
                     transport_state.async_accept(*peer, std::move(self));
                 } else {
                     auto result = std::move(*peer);

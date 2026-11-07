@@ -5,11 +5,11 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 #include <wasi/wasip2.h>
-#include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <chrono>
 #include <webcpp/asio/detail/wasi_pollable_descriptor.hpp>
 #include <webcpp/asio/io_context.hpp>
+#include <webcpp/asio/posix/stream_descriptor.hpp>
 #include <webcpp/asio/steady_timer.hpp>
 #include <webcpp/test/exit_status.hpp>
 
@@ -25,7 +25,7 @@ void check_readiness(std::uint64_t delay) {
         poll_pollable_drop_own(ready);
         return;
     }
-    boost::asio::posix::stream_descriptor descriptor(context, fd);
+    webcpp::asio::posix::stream_descriptor descriptor(context, fd);
     webcpp::asio::steady_timer timer(context, std::chrono::milliseconds(1));
     int callbacks = 0;
     bool timer_fired = false;
@@ -33,7 +33,7 @@ void check_readiness(std::uint64_t delay) {
         BOOST_TEST(!error);
         timer_fired = true;
     });
-    descriptor.async_wait(boost::asio::posix::stream_descriptor::wait_read,
+    descriptor.async_wait(webcpp::asio::posix::stream_descriptor::wait_read,
                           [&](boost::system::error_code error) {
                               BOOST_TEST(!error);
                               ++callbacks;

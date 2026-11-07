@@ -153,7 +153,8 @@ through both Asio completion tokens and Cobalt's own wrappers. The optional
 and handshake/transfer cancellation, including partial composed operations.
 Truncated and cancelled shutdown are also tested; see <<asio-cobalt-ssl>>. See
 <<asio-feature-cobalt-build-block>> for integration details and
-<<asio-feature-validation-pending>> for open tests.
+<<asio-feature-validation-pending>> for the historical gap inventory.
+The current Cobalt guide records the subsequent coroutine and application tests.
 It has no automatic SIGINT/SIGTERM shutdown bridge on WASIp3; internal
 coroutine cancellation is a separate mechanism. See <<asio-cobalt-runner>>.
 

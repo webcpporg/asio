@@ -24,6 +24,16 @@ Use <<asio-quick-start>> and <<asio-timers-example>> as executable starting
 points. Native and Node runs do not establish browser rendering behaviour;
 use a real browser when your contract depends on page events or animation.
 
+include::example-matrix.adoc[]
+
+The shared
+link:{webcpp-libs}/cobalt/{webcpp-page}#cobalt-release-measurements[Release comparison]
+measures this shipped Asio implementation alongside Cobalt, including native,
+WASIp2/P3 and browser page/worker profiles. It separates payload size, startup,
+execution and instrumented memory. The <<asio-yield-current>> isolates browser
+handoff cost. Older measurements below remain evidence for their recorded source
+and environment, rather than measurements of the current migration.
+
 [#asio-testing-library]
 === What the library checks
 
@@ -38,8 +48,10 @@ include it does not make fails, naming it.
 
 `<webcpp/asio/config.hpp>`, which every public header of asio includes
 first, defines `WEBCPP_ASIO_NO_EXCEPTIONS` when the build has no exceptions,
-and a program may define it itself to turn asio's exceptions off in a build
-that has them, as Boost.Asio's `BOOST_ASIO_NO_EXCEPTIONS` does. The tests
+and a program may define it explicitly for WebCPP-owned adapters. Browser
+throwing overloads follow that policy. Native Boost and upstream-derived WASI
+APIs retain their overload sets; an error through a throwing overload can reach
+the fatal handler when compiler exceptions are disabled. The tests
 `config`, `config_developer_defined` and `config_all_off` check compiler,
 library-specific and global WebCPP settings.
 

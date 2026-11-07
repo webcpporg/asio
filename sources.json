@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "profiles": {
+    "native": {
+      "runtime": [],
+      "private_include": []
+    },
+    "wasip2": {
+      "runtime": [
+        "src/wasip2/pollable.cpp"
+      ],
+      "private_include": [
+        "src/wasip2/wasi-libc"
+      ]
+    },
+    "wasip3": {
+      "runtime": [
+        "src/wasip3/waitable.cpp"
+      ],
+      "private_include": [
+        "src/wasip3/wasi-libc"
+      ]
+    },
+    "emscripten": {
+      "runtime": [
+        "src/browser_src.cpp"
+      ],
+      "private_include": []
+    }
+  }
+}

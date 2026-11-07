@@ -10,9 +10,9 @@
 #include <webcpp/test/exit_status.hpp>
 
 #include <emscripten.h>
-#include <boost/asio/bind_allocator.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/bind_allocator.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <cstdio>
 #include <exception>
@@ -75,7 +75,7 @@ struct throwing_move {
     throwing_move(throwing_move&& other)
         : armed(other.armed), caught(other.caught), calls(other.calls) {
         if (*armed) {
-            throw move_failure{caught};
+            throw move_failure{caught};  // NOLINT(bugprone-exception-escape)
         }
     }
 
@@ -115,14 +115,14 @@ int main() {
     int calls = 0;
     {
         webcpp::asio::browser::main_thread_context context;
-        boost::asio::post(
+        webcpp::asio::post(
             context.get_executor(),
-            boost::asio::bind_allocator(std::pmr::polymorphic_allocator<void>(&allocations),
-                                        throwing_move(armed, caught, calls)));
-        boost::asio::post(
+            webcpp::asio::bind_allocator(std::pmr::polymorphic_allocator<void>(&allocations),
+                                         throwing_move(armed, caught, calls)));
+        webcpp::asio::post(
             context.get_executor(),
-            boost::asio::bind_allocator(std::pmr::polymorphic_allocator<void>(&allocations),
-                                        [&] { ++calls; }));
+            webcpp::asio::bind_allocator(std::pmr::polymorphic_allocator<void>(&allocations),
+                                         [&] { ++calls; }));
         armed = true;
         settle_move_failure();
         BOOST_TEST(caught);

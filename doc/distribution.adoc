@@ -1,0 +1,80 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#asio-distribution]
+== How-to: consume the shipped implementation
+
+Include the `webcpp/asio/` headers and use `webcpp::asio`. Native equivalents, including
+`io_context`, timers, sockets and executors, are the actual Boost.Asio types.
+The browser's turn-control members are WebCPP extensions and are not members of
+the native context. WebAssembly selects a versioned implementation shipped with
+the library. Header selection is explicit in `config.hpp`; it does not depend
+on B2 applying patches or putting replacement Boost headers first.
+
+Use matching Boost 1.92 dependencies with this source snapshot. All translation
+units and compiled bridge sources must use the same target, exception mode and
+thread ABI. A config macro cannot supply a runtime capability or change the
+compiler's ABI.
+
+`sources.json` lists runtime sources and private include directories per target.
+B2's `src/sources.jam` is generated from that same inventory. Neither consumer
+runs the maintainer importer or creates a replacement Boost include directory.
+
+[cols="1,3",options="header"]
+|===
+|Profile |Additional source and toolchain requirements
+|Native |Boost.Asio headers and the platform's normal thread/socket libraries.
+|WASIp2 |`src/wasip2/pollable.cpp`; pinned SDK ABI declarations in `src/wasip2/wasi-libc`; single-thread SDK profile.
+|WASIp3 |`src/wasip3/waitable.cpp`; pinned SDK ABI declarations in `src/wasip3/wasi-libc`; matching single or cooperative-thread sysroot.
+|Emscripten |`src/browser_src.cpp` linked as an object; embind, stack exports and the selected JSPI or Asyncify link flags.
+|===
+
+Run the corresponding `src/wasip2/verify.py` or `src/wasip3/verify.py` with
+`--sdk /path/to/wasi-sdk` before compiling an SDK bridge. Those private ABI
+declarations require the pinned SDK; copying them does not make another SDK compatible.
+
+The superproject's `tools/test/fixtures/portable-network/CMakeLists.txt` is an
+out-of-tree consumer recipe. The accompanying
+`tools/test/portable_network_distribution.py` creates a source archive with a
+SHA-256 inventory, deletes its staging inputs, extracts it into a path with
+spaces and builds without Git, B2, cached overlays or checkout include paths.
+The archive also retains each library's `upstream/` provenance: original revision
+and hashes, resulting hashes, correction bundles and maintainer inputs. These
+are audit records, not consumer build steps.
+Compiler dependency files verify the actual sources and headers against the
+archive, explicit dependencies and the selected compiler's declared SDK paths.
+`--evidence-dir <directory>` preserves the archive and compiler receipt.
+The consumers exercise timers, TCP/UDP, DNS, HTTP/WebSocket and Cobalt timers.
+The browser variant tests a Promise, timer and HTTP parser under Node; actual
+browser and worker tests remain separate.
+
+For Emscripten, use the SDK's `emar` and `emranlib` when making static libraries.
+Keep the browser bridge object in the final link: its JavaScript import metadata
+must not be discarded as an unused archive member. Use the compiler and linker
+flags shown by the consumer recipe rather than treating JSPI or Asyncify as a
+preprocessor-only option.
+
+Optional TLS additionally requires matching OpenSSL headers and `libssl`/`libcrypto`,
+the selected CA resource, and `WEBCPP_ASIO_HAS_OPENSSL=1`. It is not pulled into
+plain Asio. The browser instead uses the browser's HTTPS/WSS trust policy.
+The WASI provider also requires the `wasi-emulated-getpid`,
+`wasi-emulated-signal`, `wasi-emulated-process-clocks` and `wasi-emulated-mman`
+libraries after the crypto archive, as shown in the consumer recipe.
+
+[#asio-distribution-customization]
+=== Customize completion tokens and associated traits
+
+Write qualified specializations at global scope, using the public
+`webcpp::asio::async_result` or `webcpp::asio::associated_executor` name. These
+resolve to the template of the selected backend, including native Boost.
+Do not open a separate namespace containing a new template with the same name.
+The completion-handler macro is `WEBCPP_ASIO_HANDLER_TYPE`, from `config.hpp`;
+include `async_result.hpp` before expanding it.
+
+`test/distribution/customizations.hpp` supplies a complete token and associated
+executor specialization. Its consumer registers a timer in one translation
+unit and cancels it from another that also includes Beast and Cobalt. The direct
+compiler and CMake recipes build those same files with uniform configuration.

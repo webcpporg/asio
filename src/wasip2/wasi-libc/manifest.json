@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/WebAssembly/wasi-libc",
+  "commit": "2e6fb9d8ee0cdf9e431fbcabe8af3115de000a13",
+  "sdk": "34.0",
+  "files": {
+    "wasi/descriptor_table.h": "21938b584128a3c17be772f883f3104803cfe2096bcf7e08f6a0e7d509cc2aa3",
+    "wasi/poll.h": "6417072eda33738773d54747a7901c1583e9ae2d22b206116d8e1e082d6ef14c",
+    "LICENSE": "2711a8b5a5cdfef0e639f96c1aca12ae23d7d64a02d0507f1bdf14d2b27bbc3a",
+    "LICENSE-MIT": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+    "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+  }
+}

@@ -14,14 +14,14 @@
 #include <webcpp/asio/io_context.hpp>
 
 #include <emscripten/val.h>
-#include <boost/asio/execution_context.hpp>
+#include <webcpp/asio/execution_context.hpp>
 
 namespace {
 
 [[maybe_unused]] bool reach(webcpp::asio::io_context& io) {
     // Not const: a refusal must be refused for its access, never for a const bridge.
     // NOLINTNEXTLINE(misc-const-correctness)
-    auto& bridge = boost::asio::use_service<webcpp::asio::browser::bridge>(io);
+    auto& bridge = webcpp::asio::use_service<webcpp::asio::browser::bridge>(io);
 #ifdef WEBCPP_TEST_ASIO_DELIVER
     bridge.deliver(1, emscripten::val::undefined());
 #elif defined(WEBCPP_TEST_ASIO_SET_DELIVERING)

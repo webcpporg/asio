@@ -7,15 +7,20 @@
 [#asio-feature-matrix]
 === Feature matrix by library and build profile
 
-This records the WebCPP integration and capability-completion work verified
+This is a historical baseline for the WebCPP integration and capability-completion work verified
 on 2026-11-03, using
 Boost 1.92.0, Emscripten 6.0.11 and wasi-sdk 34.0. The project now selects
 Wasmtime 50.0.1 for its regression suites; the original isolated probes used
 Wasmtime 49.0.3. It is not a
 list of everything those upstream projects might support in other builds.
-The Asio target is `/webcpp/asio//asio`; the Cobalt integration is
-`/webcpp/asio//cobalt`, using Boost.Cobalt's names. Do not infer that an Asio
-feature has also been tested through a Cobalt wrapper or completion token.
+The 2026-11-06 distribution migration changes type selection and source ownership.
+The cells below retain their original evidence date; they do not certify the
+current unsubmitted candidate. Use <<asio-distribution>> for current build rules
+and link:{webcpp-libs}/cobalt/{webcpp-page}#cobalt-testing[Cobalt's current validation status].
+The old `/webcpp/asio//cobalt` target is now a compatibility alias for
+`/webcpp/cobalt//cobalt`. Portable consumers use `webcpp::cobalt` names.
+Do not infer that an Asio feature has also been tested through a Cobalt wrapper
+or completion token.
 
 Each cell describes the named feature, not every overload or possible input.
 Read the profile availability table first: an unavailable profile makes all
@@ -415,19 +420,22 @@ access depends on host policy and is not established by localhost or numeric
 consumers.
 
 [#asio-feature-cobalt-build-block]
-===== How the Cobalt source integration works
+===== Historical Cobalt source integration
 
-The target builds the normal compiled archive, replacing its endpoint and
+At the baseline revision, the target built the normal compiled archive, replacing its endpoint and
 acceptor source files with checked private copies. The private header overlay
 uses Asio capability macros to omit unsupported local-socket, signal and serial
 APIs. Seqpacket declarations are omitted when that socket type is unavailable.
 Single-thread builds omit the thread source and declaration; cooperative builds
 include it. Native and browser builds retain their original sources and headers.
 
-The application, archive and replacement runner use the same patched Asio
+The application, archive and replacement runner used the same patched Asio
 headers, thread profile and exception setting. No system Cobalt archive is
 linked, and installed Boost files are never modified. Input/output hashes pin
-the compatibility patch to Boost 1.92. A changed upstream input is rejected.
+the compatibility patch to Boost 1.92. A changed upstream input was rejected.
+This consumer-time overlay was superseded by the explicit source distribution
+described in <<asio-cobalt-build>>. The native core no longer acquires the Wasm
+corrections; the corrected native SSL wrapper is the approved exception.
 
 The public-target tests cover both Cobalt completion tokens applied to Asio
 sockets and Cobalt's own compiled TCP/UDP wrappers, with IPv4 loopback traffic,

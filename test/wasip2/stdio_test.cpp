@@ -4,14 +4,14 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // https://www.boost.org/LICENSE_1_0.txt)
 #include <array>
-#include <boost/asio/bind_allocator.hpp>
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/cancellation_signal.hpp>
-#include <boost/asio/deferred.hpp>
 #include <boost/core/lightweight_test.hpp>
 #include <chrono>
 #include <memory>
+#include <webcpp/asio/bind_allocator.hpp>
+#include <webcpp/asio/bind_cancellation_slot.hpp>
+#include <webcpp/asio/bind_executor.hpp>
+#include <webcpp/asio/cancellation_signal.hpp>
+#include <webcpp/asio/deferred.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/steady_timer.hpp>
 #include <webcpp/asio/wasi/stdio_stream.hpp>
@@ -19,7 +19,7 @@
 #include "counting_allocator.hpp"
 
 int main() {
-    namespace asio = boost::asio;
+    namespace asio = webcpp::asio;
     using stream_type = webcpp::asio::wasi::stdio_stream;
     webcpp::asio::io_context context;
     stream_type stream(context.get_executor());

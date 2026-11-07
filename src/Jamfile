@@ -1,0 +1,61 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+# See accompanying file LICENSE_1_0.txt or
+# https://www.boost.org/LICENSE_1_0.txt.
+
+project /webcpp/asio-runtime ;
+import make ;
+import errors ;
+import webcpp-wasi ;
+import webcpp-target ;
+path-constant HERE : . ;
+include $(HERE)/sources.jam ;
+path-constant OUTPUT : ../../../bin/asio-runtime ;
+
+rule configuration ( properties * )
+{
+    if [ webcpp-target.target-of $(properties) ] = wasip2 && <threading>multi in $(properties)
+    {
+        errors.user-error "webcpp::asio: WASIp2 supports threading=single only; use WASIp3 for cooperative threads." ;
+    }
+    if <threading>multi in $(properties)
+    {
+        return [ webcpp-wasi.cooperative $(WEBCPP_ROOT) : $(properties) ] ;
+    }
+}
+
+for local profile in wasip2 wasip3
+{
+    make $(profile)-verified.stamp : $(profile)/verify.py $(profile)/wasi-libc/manifest.json
+      : @verify : <location>$(OUTPUT) <webcpp-boost-check>off ;
+    always $(profile)-verified.stamp ;
+    explicit $(profile)-verified.stamp ;
+}
+
+rule verify ( targets * : sources * : properties * )
+{
+    SCRIPT on $(targets) = $(sources[1]) ;
+    SDK on $(targets) = [ webcpp-wasi.sdk $(WEBCPP_ROOT) ] ;
+}
+actions verify bind SCRIPT
+{
+    python3 "$(SCRIPT)" --sdk "$(SDK)" --stamp "$(<)"
+}
+
+obj pollable : $(ASIO_WASIP2_RUNTIME)
+  : <include>../include <include>wasip2/wasi-libc
+    <library>/webcpp/config//config <library>/boost//headers
+    <dependency>wasip2-verified.stamp ;
+obj waitable : $(ASIO_WASIP3_RUNTIME)
+  : <include>../include <include>wasip3/wasi-libc
+    <library>/webcpp/config//config <library>/boost//headers
+    <dependency>wasip3-verified.stamp <conditional>@configuration ;
+explicit pollable waitable ;
+
+alias runtime : : : : <conditional>@configuration
+    <toolset>clang-wasip2:<source>pollable
+    <toolset>clang-wasip3:<source>waitable ;
+explicit runtime ;

@@ -14,10 +14,11 @@
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/cancellation_signal.hpp>
-#include <boost/beast/_experimental/test/stream.hpp>
-#include <boost/beast/websocket.hpp>
+#include <webcpp/asio/bind_cancellation_slot.hpp>
+#include <webcpp/asio/cancellation_signal.hpp>
+#include <webcpp/beast/config.hpp>
+#include WEBCPP_BEAST_BACKEND_HEADER(_experimental/test/stream.hpp)
+#include WEBCPP_BEAST_BACKEND_HEADER(websocket.hpp)
 #include <boost/core/lightweight_test.hpp>
 
 #include <array>
@@ -74,7 +75,7 @@ void cancelling_a_timer_aborts_its_wait() {
     std::size_t completions = 0;
     timer.async_wait([&completions](boost::system::error_code ec) {
         ++completions;
-        BOOST_TEST(ec == boost::asio::error::operation_aborted);
+        BOOST_TEST(ec == webcpp::asio::error::operation_aborted);
         std::cout << "cancelled timer: " << ec.message() << "\n";
     });
     BOOST_TEST_EQ(timer.cancel(), 1U);
@@ -87,7 +88,7 @@ void cancelling_a_timer_aborts_its_wait() {
 void a_cancellation_slot_aborts_only_its_wait() {
     std::cout << "case: a cancellation slot aborts only its wait\n";
     webcpp::asio::io_context io;
-    boost::asio::cancellation_signal signal;
+    webcpp::asio::cancellation_signal signal;
     const auto start = std::chrono::steady_clock::now();
     webcpp::asio::steady_timer timer(io, start + 10s);
     webcpp::asio::steady_timer trigger(io, start + 10ms);
@@ -95,9 +96,9 @@ void a_cancellation_slot_aborts_only_its_wait() {
     std::size_t other = 0;
     std::size_t emitted = 0;
     timer.async_wait(
-        boost::asio::bind_cancellation_slot(signal.slot(), [&](boost::system::error_code ec) {
+        webcpp::asio::bind_cancellation_slot(signal.slot(), [&](boost::system::error_code ec) {
             ++cancelled;
-            BOOST_TEST(ec == boost::asio::error::operation_aborted);
+            BOOST_TEST(ec == webcpp::asio::error::operation_aborted);
             BOOST_TEST_EQ(emitted, 1U);
             BOOST_TEST_EQ(other, 0U);
             // The unbound wait is still pending. Cancel it explicitly to finish the case.
@@ -106,13 +107,13 @@ void a_cancellation_slot_aborts_only_its_wait() {
         }));
     timer.async_wait([&](boost::system::error_code ec) {
         ++other;
-        BOOST_TEST(ec == boost::asio::error::operation_aborted);
+        BOOST_TEST(ec == webcpp::asio::error::operation_aborted);
         BOOST_TEST_EQ(cancelled, 1U);
     });
     trigger.async_wait([&](boost::system::error_code ec) {
         BOOST_TEST(!ec);
         ++emitted;
-        signal.emit(boost::asio::cancellation_type::terminal);
+        signal.emit(webcpp::asio::cancellation_type::terminal);
     });
     io.run();  // lint-run: the test's event loop
     BOOST_TEST_EQ(emitted, 1U);
@@ -126,18 +127,18 @@ void a_cancellation_slot_aborts_only_its_wait() {
 void beast_s_handshake_timeout_fires() {
     std::cout << "case: Beast's handshake timeout fires\n";
     webcpp::asio::io_context io;
-    boost::beast::test::stream peer(io);
-    boost::beast::websocket::stream<boost::beast::test::stream> ws(io);
-    boost::beast::websocket::stream_base::timeout timeout{};
+    webcpp::beast_backend::test::stream peer(io);
+    webcpp::beast_backend::websocket::stream<webcpp::beast_backend::test::stream> ws(io);
+    webcpp::beast_backend::websocket::stream_base::timeout timeout{};
     timeout.handshake_timeout = 100ms;
-    timeout.idle_timeout = boost::beast::websocket::stream_base::none();
+    timeout.idle_timeout = webcpp::beast_backend::websocket::stream_base::none();
     timeout.keep_alive_pings = false;
     ws.set_option(timeout);
     ws.next_layer().connect(peer);
     std::size_t completions = 0;
     ws.async_accept([&completions](boost::system::error_code ec) {
         ++completions;
-        BOOST_TEST(ec == boost::beast::error::timeout);
+        BOOST_TEST(ec == webcpp::beast_backend::error::timeout);
         std::cout << "handshake: " << ec.message() << "\n";
     });
     io.run();  // lint-run: the test's event loop

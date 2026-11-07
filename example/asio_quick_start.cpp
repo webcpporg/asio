@@ -10,7 +10,7 @@
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/post.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <chrono>
 #include <cstdio>
@@ -22,7 +22,7 @@ int main() {
     asio::io_context io;
     asio::steady_timer timer(io);
 
-    boost::asio::post(io, [&timer] {
+    webcpp::asio::post(io, [&timer] {
         std::puts("posted");
         timer.expires_after(50ms);
         timer.async_wait([](boost::system::error_code ec) {

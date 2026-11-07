@@ -78,10 +78,10 @@ int main() {
         stream.cancel();
     });
 #endif
-    stream.async_write_some(boost::asio::buffer("ping", 4),
+    stream.async_write_some(webcpp::asio::buffer("ping", 4),
                             [&](boost::system::error_code error, std::size_t transferred) {
 #ifdef WEBCPP_TEST_PENDING_WRITE
-                                BOOST_TEST_EQ(error, boost::asio::error::operation_aborted);
+                                BOOST_TEST_EQ(error, webcpp::asio::error::operation_aborted);
                                 BOOST_TEST_EQ(transferred, 0U);
 #else
                                 BOOST_TEST(!error);

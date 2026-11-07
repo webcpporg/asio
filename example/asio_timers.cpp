@@ -10,7 +10,7 @@
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/error.hpp>
+#include <webcpp/asio/error.hpp>
 
 #include <chrono>
 #include <cstdio>
@@ -41,7 +41,7 @@ int main() {
     io.restart();
     asio::steady_timer cancelled(io, std::chrono::steady_clock::time_point::max());
     cancelled.async_wait([](boost::system::error_code ec) {
-        if (ec == boost::asio::error::operation_aborted) {
+        if (ec == webcpp::asio::error::operation_aborted) {
             std::puts("cancelled: operation_aborted");
         } else {
             std::printf("unexpected cancellation result: %d\n", ec.value());

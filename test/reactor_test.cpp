@@ -16,9 +16,9 @@
 
 #include <emscripten/em_asm.h>
 #include <emscripten/em_macros.h>
-#include <boost/asio/executor_work_guard.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/executor_work_guard.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <optional>
 
@@ -27,7 +27,7 @@ namespace {
 /** An io_context held by outstanding work that only a browser event releases. */
 struct waiting {
     webcpp::asio::io_context io;
-    std::optional<boost::asio::executor_work_guard<webcpp::asio::io_context::executor_type>> guard{
+    std::optional<webcpp::asio::executor_work_guard<webcpp::asio::io_context::executor_type>> guard{
         io.get_executor()};
     int released = 0;
 };
@@ -36,7 +36,7 @@ struct waiting {
 
 // Called by a JavaScript setTimeout while main is suspended in run: it posts, nothing more.
 extern "C" EMSCRIPTEN_KEEPALIVE void test_release(waiting* state) {
-    boost::asio::post(state->io, [state] {
+    webcpp::asio::post(state->io, [state] {
         ++state->released;
         state->guard.reset();
     });
@@ -55,7 +55,7 @@ void a_post_from_an_event_wakes_run() {
 void work_posted_before_run_waits_for_it() {
     webcpp::asio::io_context io;
     int ran = 0;
-    boost::asio::post(io, [&ran] { ++ran; });
+    webcpp::asio::post(io, [&ran] { ++ran; });
     BOOST_TEST_EQ(ran, 0);
     BOOST_TEST_EQ(io.run(), 1U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(ran, 1);

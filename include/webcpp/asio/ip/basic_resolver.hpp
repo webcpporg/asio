@@ -10,25 +10,26 @@
 #include <webcpp/asio/config.hpp>
 
 #ifndef WEBCPP_TARGET_EMSCRIPTEN
-#include <boost/asio/ip/basic_resolver.hpp>  // lint-world: native resolver semantics
+#include WEBCPP_ASIO_BACKEND_HEADER(ip/basic_resolver.hpp)  // lint-world: native resolver semantics
 
 namespace webcpp::asio::ip {
+using namespace ::webcpp::asio_backend::ip;
 /**
  Boost's native resolver.
  @tparam InternetProtocol The internet protocol.
  @tparam Executor The associated executor.
 */
-template <class InternetProtocol, class Executor = boost::asio::any_io_executor>
-using basic_resolver = boost::asio::ip::basic_resolver<InternetProtocol, Executor>;
+template <class InternetProtocol, class Executor = ::webcpp::asio_backend::any_io_executor>
+using basic_resolver = ::webcpp::asio_backend::ip::basic_resolver<InternetProtocol, Executor>;
 }  // namespace webcpp::asio::ip
 #else
-#include <boost/asio/append.hpp>                // lint-world: preserve handler associations
-#include <boost/asio/associated_allocator.hpp>  // lint-world: input storage uses the token allocator
-#include <boost/asio/async_result.hpp>          // lint-world: completion token initiation
-#include <boost/asio/error.hpp>                 // lint-world: resolver error values
-#include <boost/asio/ip/address_v4.hpp>         // lint-world: an unspecified address without DNS
-#include <boost/asio/ip/basic_resolver_results.hpp>  // lint-world: Boost resolver result entries
-#include <boost/asio/ip/resolver_base.hpp>           // lint-world: Boost resolver flags
+#include WEBCPP_ASIO_BACKEND_HEADER(append.hpp)  // lint-world: preserve handler associations
+#include WEBCPP_ASIO_BACKEND_HEADER(associated_allocator.hpp)  // lint-world: input storage uses the token allocator
+#include WEBCPP_ASIO_BACKEND_HEADER(async_result.hpp)  // lint-world: completion token initiation
+#include WEBCPP_ASIO_BACKEND_HEADER(error.hpp)         // lint-world: resolver error values
+#include WEBCPP_ASIO_BACKEND_HEADER(ip/address_v4.hpp)  // lint-world: an unspecified address without DNS
+#include WEBCPP_ASIO_BACKEND_HEADER(ip/basic_resolver_results.hpp)  // lint-world: Boost resolver result entries
+#include WEBCPP_ASIO_BACKEND_HEADER(ip/resolver_base.hpp)  // lint-world: Boost resolver flags
 #include <boost/system/system_error.hpp>
 #include <boost/throw_exception.hpp>
 #include <charconv>
@@ -43,8 +44,8 @@ using basic_resolver = boost::asio::ip::basic_resolver<InternetProtocol, Executo
 
 namespace webcpp::asio::ip::detail {
 /** Maps an empty, numeric or supported named service to its port. */
-inline std::optional<std::uint16_t> port_of(std::string_view service,
-                                            boost::asio::ip::resolver_base::flags flags) noexcept {
+inline std::optional<std::uint16_t> port_of(
+    std::string_view service, ::webcpp::asio_backend::ip::resolver_base::flags flags) noexcept {
     if (service.empty()) {
         return 0;
     }
@@ -56,8 +57,8 @@ inline std::optional<std::uint16_t> port_of(std::string_view service,
         }
         return std::nullopt;
     }
-    if ((flags & boost::asio::ip::resolver_base::numeric_service) !=
-        static_cast<boost::asio::ip::resolver_base::flags>(0)) {
+    if ((flags & ::webcpp::asio_backend::ip::resolver_base::numeric_service) !=
+        static_cast<::webcpp::asio_backend::ip::resolver_base::flags>(0)) {
         return std::nullopt;
     }
     if (service == "http" || service == "ws") {
@@ -71,14 +72,16 @@ inline std::optional<std::uint16_t> port_of(std::string_view service,
 }  // namespace webcpp::asio::ip::detail
 
 namespace webcpp::asio::ip {
+using namespace ::webcpp::asio_backend::ip;
+
 /**
  Preserves a host and service for browser transports without querying DNS.
  @tparam InternetProtocol The internet protocol.
  @tparam Executor The associated executor.
  @see "Sockets and transports", in the guide.
 */
-template <class InternetProtocol, class Executor = boost::asio::any_io_executor>
-class basic_resolver : public boost::asio::ip::resolver_base {
+template <class InternetProtocol, class Executor = ::webcpp::asio_backend::any_io_executor>
+class basic_resolver : public ::webcpp::asio_backend::ip::resolver_base {
 public:
     /** The associated executor type. */
     using executor_type = Executor;
@@ -87,7 +90,7 @@ public:
     /** The protocol endpoint type. */
     using endpoint_type = InternetProtocol::endpoint;
     /** Boost's sequence of resolver entries. */
-    using results_type = boost::asio::ip::basic_resolver_results<InternetProtocol>;
+    using results_type = ::webcpp::asio_backend::ip::basic_resolver_results<InternetProtocol>;
 
     /**
      Constructs a resolver on executor.
@@ -101,7 +104,8 @@ public:
      @param context The context that runs completions.
     */
     template <class ExecutionContext>
-        requires std::is_convertible_v<ExecutionContext&, boost::asio::execution_context&>
+        requires std::is_convertible_v<ExecutionContext&,
+                                       ::webcpp::asio_backend::execution_context&>
     explicit basic_resolver(ExecutionContext& context) : basic_resolver(context.get_executor()) {}
 
     /** Returns the associated executor.
@@ -140,12 +144,13 @@ public:
                          boost::system::error_code& ec) {
         const auto port = detail::port_of(service, resolve_flags);
         if (!port) {
-            ec = boost::asio::error::service_not_found;
+            ec = ::webcpp::asio_backend::error::service_not_found;
             return {};
         }
         ec.clear();
-        return results_type::create(endpoint_type(boost::asio::ip::address_v4::any(), *port),
-                                    std::string(host), std::string(service));
+        return results_type::create(
+            endpoint_type(::webcpp::asio_backend::ip::address_v4::any(), *port), std::string(host),
+            std::string(service));
     }
 
     /**
@@ -156,7 +161,7 @@ public:
     // Preserve Boost's non-static member interface.
     // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
     results_type resolve(const endpoint_type& /*endpoint*/, boost::system::error_code& ec) {
-        ec = boost::asio::error::operation_not_supported;
+        ec = ::webcpp::asio_backend::error::operation_not_supported;
         return {};
     }
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
@@ -231,17 +236,18 @@ public:
     auto async_resolve(std::string_view host, std::string_view service, flags resolve_flags,
                        ResolveToken&& token) {
         using input_allocator =
-            std::allocator_traits<boost::asio::associated_allocator_t<std::decay_t<ResolveToken>>>::
-                template rebind_alloc<char>;
+            std::allocator_traits<::webcpp::asio_backend::associated_allocator_t<
+                std::decay_t<ResolveToken>>>::template rebind_alloc<char>;
         using input_string = std::basic_string<char, std::char_traits<char>, input_allocator>;
-        const input_allocator allocator(boost::asio::get_associated_allocator(token));
-        return boost::asio::async_initiate<ResolveToken,
-                                           void(boost::system::error_code, results_type)>(
+        const input_allocator allocator(::webcpp::asio_backend::get_associated_allocator(token));
+        return ::webcpp::asio_backend::async_initiate<ResolveToken, void(boost::system::error_code,
+                                                                         results_type)>(
             [this](auto handler, const input_string& name, const input_string& port, flags mode) {
                 boost::system::error_code ec;
                 auto result = resolve(name, port, mode, ec);
                 webcpp::asio::detail::post_completion(
-                    executor_, boost::asio::append(std::move(handler), ec, std::move(result)));
+                    executor_,
+                    ::webcpp::asio_backend::append(std::move(handler), ec, std::move(result)));
             },
             token, input_string(host, allocator), input_string(service, allocator), resolve_flags);
     }
@@ -255,13 +261,14 @@ public:
     */
     template <class ResolveToken>
     auto async_resolve(const endpoint_type& endpoint, ResolveToken&& token) {
-        return boost::asio::async_initiate<ResolveToken,
-                                           void(boost::system::error_code, results_type)>(
+        return ::webcpp::asio_backend::async_initiate<ResolveToken, void(boost::system::error_code,
+                                                                         results_type)>(
             [this](auto handler, const endpoint_type& peer) {
                 boost::system::error_code ec;
                 auto result = resolve(peer, ec);
                 webcpp::asio::detail::post_completion(
-                    executor_, boost::asio::append(std::move(handler), ec, std::move(result)));
+                    executor_,
+                    ::webcpp::asio_backend::append(std::move(handler), ec, std::move(result)));
             },
             token, endpoint);
     }

@@ -7,7 +7,7 @@
 // Continuous ready work exposes whether the page gets animation opportunities.
 #include <webcpp/asio.hpp>
 
-#include <boost/asio/post.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <chrono>
 #include <cstddef>
@@ -27,7 +27,7 @@ struct spinner {
 void spin(spinner const* state) {
     ++state->handlers;
     if (std::chrono::steady_clock::now() < state->deadline) {
-        boost::asio::post(state->io, std::bind_front(&spin, state));
+        webcpp::asio::post(state->io, std::bind_front(&spin, state));
     }
 }
 
@@ -38,7 +38,7 @@ int main() {
     std::size_t handlers = 0;
     auto const deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     spinner const state{.io = io, .deadline = deadline, .handlers = handlers};
-    boost::asio::post(io, std::bind_front(&spin, &state));
+    webcpp::asio::post(io, std::bind_front(&spin, &state));
     std::puts("spinning");
     io.run();  // lint-run: the page yields after each bounded turn
     std::printf("done %zu\n", handlers);

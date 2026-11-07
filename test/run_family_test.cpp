@@ -14,12 +14,12 @@
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/steady_timer.hpp>
 
-#include "page_timeout.hpp"
+#include <webcpp/test/page_timeout.hpp>
 
 #include <webcpp/test/exit_status.hpp>
 
-#include <boost/asio/post.hpp>
 #include <boost/core/lightweight_test.hpp>
+#include <webcpp/asio/post.hpp>
 
 #include <chrono>
 #include <cstddef>
@@ -41,7 +41,7 @@ void stop_then_post(webcpp::asio::io_context* io, std::size_t* count, std::size_
     if (++*count == stop_at) {
         io->stop();
     }
-    boost::asio::post(*io, std::bind_front(&stop_then_post, io, count, stop_at));
+    webcpp::asio::post(*io, std::bind_front(&stop_then_post, io, count, stop_at));
 }
 
 /** Posts itself until it stops the context at stop_at, counting its runs. */
@@ -51,14 +51,14 @@ void spin(webcpp::asio::io_context* io, std::size_t* count, std::size_t stop_at)
         io->stop();
         return;
     }
-    boost::asio::post(*io, std::bind_front(&spin, io, count, stop_at));
+    webcpp::asio::post(*io, std::bind_front(&spin, io, count, stop_at));
 }
 
 void run_returns_out_of_work_with_the_handlers_run() {
     webcpp::asio::io_context io;
     int ran = 0;
     for (int i = 0; i < 3; ++i) {
-        boost::asio::post(io, [&ran] { ++ran; });
+        webcpp::asio::post(io, [&ran] { ++ran; });
     }
     BOOST_TEST_EQ(io.run(), 3U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(ran, 3);
@@ -68,8 +68,8 @@ void run_returns_out_of_work_with_the_handlers_run() {
 void run_one_runs_one() {
     webcpp::asio::io_context io;
     int ran = 0;
-    boost::asio::post(io, [&ran] { ++ran; });
-    boost::asio::post(io, [&ran] { ++ran; });
+    webcpp::asio::post(io, [&ran] { ++ran; });
+    webcpp::asio::post(io, [&ran] { ++ran; });
     BOOST_TEST_EQ(io.run_one(), 1U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(ran, 1);
     BOOST_TEST_EQ(io.run(), 1U);  // lint-run: the test's event loop
@@ -89,7 +89,7 @@ void the_timed_forms_return_at_their_deadline() {
     webcpp::asio::steady_timer later(io, 10s);
     bool cancelled = false;
     later.async_wait([&cancelled](boost::system::error_code ec) {
-        cancelled = ec == boost::asio::error::operation_aborted;
+        cancelled = ec == webcpp::asio::error::operation_aborted;
     });
     BOOST_TEST_EQ(io.run_for(50ms), 0U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(io.run_until(std::chrono::steady_clock::now() + 50ms), 0U);
@@ -104,7 +104,7 @@ void the_timed_forms_return_at_their_deadline() {
 void stop_and_restart() {
     webcpp::asio::io_context io;
     int ran = 0;
-    boost::asio::post(io, [&] {
+    webcpp::asio::post(io, [&] {
         ++ran;
         io.stop();
     });
@@ -112,7 +112,7 @@ void stop_and_restart() {
     BOOST_TEST(io.stopped());
     // IOCP may dispatch earlier queued completions before its stop packet.
     // Post after the stopped run to test restart without assuming that ordering.
-    boost::asio::post(io, [&ran] { ++ran; });
+    webcpp::asio::post(io, [&ran] { ++ran; });
     BOOST_TEST_EQ(io.run(), 0U);  // lint-run: a stopped context must not dispatch the new work
     BOOST_TEST_EQ(ran, 1);
     io.restart();
@@ -125,7 +125,7 @@ void a_deadline_already_passed_runs_nothing() {
     webcpp::asio::io_context io;
     int ran = 0;
     for (int i = 0; i < 3; ++i) {
-        boost::asio::post(io, [&ran] { ++ran; });
+        webcpp::asio::post(io, [&ran] { ++ran; });
     }
     BOOST_TEST_EQ(io.run_for(0ms), 0U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(io.run_until(std::chrono::steady_clock::now() - 1s), 0U);
@@ -136,9 +136,12 @@ void a_deadline_already_passed_runs_nothing() {
 
 // Every turn reaches the limit and yields, and the deadline still ends the run.
 void a_deadline_ends_a_run_whose_handlers_are_always_ready() {
-    webcpp::asio::io_context io(webcpp::asio::io_context_options{.max_handlers_per_turn = 100});
+    webcpp::asio::io_context io;
+#ifndef WEBCPP_TARGET_NATIVE
+    io.max_handlers_per_turn(100);
+#endif
     std::size_t count = 0;
-    boost::asio::post(io, std::bind_front(&spin, &io, &count, never));
+    webcpp::asio::post(io, std::bind_front(&spin, &io, &count, never));
     const auto start = std::chrono::steady_clock::now();
     const std::size_t ran = io.run_for(100ms);  // lint-run: the test's event loop
     const auto took = std::chrono::steady_clock::now() - start;
@@ -154,10 +157,13 @@ void a_deadline_ends_a_run_whose_handlers_are_always_ready() {
 // MessageChannel message, which the yield counter sees). The handler posts itself again after
 // its stop, so the context still has work: only the stopped() check ends the run.
 void a_stop_at_the_limit_returns_at_once() {
-    webcpp::asio::io_context io(webcpp::asio::io_context_options{.max_handlers_per_turn = 10});
+    webcpp::asio::io_context io;
+#ifndef WEBCPP_TARGET_NATIVE
+    io.max_handlers_per_turn(10);
+#endif
     std::size_t count = 0;
     const webcpp::test::yield_counter yields;
-    boost::asio::post(io, std::bind_front(&stop_then_post, &io, &count, std::size_t{10}));
+    webcpp::asio::post(io, std::bind_front(&stop_then_post, &io, &count, std::size_t{10}));
     BOOST_TEST_EQ(io.run(), 10U);  // lint-run: the test's event loop
     BOOST_TEST_EQ(count, 10U);
     BOOST_TEST_EQ(yields.count(), 0);
@@ -165,9 +171,12 @@ void a_stop_at_the_limit_returns_at_once() {
 
 // A limit of 0 is taken as 1, which still runs every handler.
 void a_limit_of_zero_still_runs() {
-    webcpp::asio::io_context io(webcpp::asio::io_context_options{.max_handlers_per_turn = 0});
+    webcpp::asio::io_context io;
+#ifndef WEBCPP_TARGET_NATIVE
+    io.max_handlers_per_turn(0);
+#endif
     std::size_t count = 0;
-    boost::asio::post(io, std::bind_front(&spin, &io, &count, std::size_t{50}));
+    webcpp::asio::post(io, std::bind_front(&spin, &io, &count, std::size_t{50}));
     BOOST_TEST_EQ(io.run(), 50U);  // lint-run: the test's event loop
 }
 

@@ -20,8 +20,9 @@ acquiring a network resource.
 Opening an already open object reports `already_open`. With the default
 transport, network operations return `operation_not_supported`: synchronous
 calls return immediately, and asynchronous calls post their completion.
-The `error_code&` overloads do not throw; throwing overloads are present only
-with exceptions enabled. Queries such as `is_open` describe the local object.
+These browser adapters offer `error_code&` overloads; their throwing overloads
+are present only with exceptions enabled. Native and WASI overload sets retain
+upstream semantics. Queries such as `is_open` describe the local object.
 
 === How-to: provide a transport
 
@@ -95,8 +96,9 @@ include::{examples}/asio_resolver.expected[]
 
 === Explanation: TLS settings
 
-Native and WASIp2/P3 `ssl` names are Boost's, with OpenSSL explicitly linked as described
-in <<asio-tls>>. In the browser, `ssl::context` records method, verification,
+Native `ssl` names are the actual Boost types. WASIp2/P3 select the shipped,
+namespace-isolated Asio SSL backend. Both require OpenSSL explicitly linked as
+described in <<asio-tls>>. In the browser, `ssl::context` records method, verification,
 options, additional roots and client-credential requests. It does not read
 files, parse certificates, implement TLS or execute verification callbacks.
 A browser stream adapter must check this record against its capabilities

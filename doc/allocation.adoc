@@ -10,14 +10,16 @@
 The application supplies an allocator to the `io_context` through its
 `std::allocator_arg` constructor. Boost.Asio uses it for the context's
 services and their I/O state. On Emscripten the bridge's registration map
-uses the context's allocator too. On Windows, a checked Boost 1.92 overlay
-forwards that allocator into IOCP's internal worker and timer thread state.
-This includes the first timer operation, without warming up its thread or
-allowing an extra global allocation.
+uses the context's allocator too. Native types use unmodified Boost.Asio,
+including its platform-specific allocation limitations. In Boost 1.92 the
+Windows IOCP worker and lazy timer thread do not forward the context allocator
+for all of their state. The earlier WebCPP Windows patch is not selected by
+this distribution. Native identity does not establish an all-platform zero
+global-allocation guarantee.
 
 An asynchronous operation uses its completion handler's associated
 allocator. Giving an allocator to the context does not associate it with
-all handlers: bind it to each operation with `boost::asio::bind_allocator`.
+all handlers: bind it to each operation with `webcpp::asio::bind_allocator`.
 The following compiled test binds a timer wait and ten posts, and on
 Emscripten the handlers posted by two bridge deliveries:
 
@@ -33,9 +35,36 @@ that can be shared between processes merely by placing it in shared memory.
 [#asio-allocation-runtime]
 === Runtime allocations
 
+[#asio-allocation-failures]
+==== Failures while converting errors or parsing addresses
+
+With compiler exceptions enabled, the shipped WebAssembly backend preserves
+the explicit error channels of these allocating utility functions:
+
+* `disposition_traits<error_code>::to_exception_ptr` captures a failure while
+  constructing the `system_error`, including `std::bad_alloc`, in the returned
+  exception pointer. A success error code still produces an empty pointer.
+* The `string_view` and `error_code` overloads of `ip::make_address`,
+  `ip::make_address_v4` and `ip::make_address_v6` report `error::no_memory` when
+  constructing their temporary string fails. Their declarations remain `noexcept`.
+
+These are corrections to the shipped Wasm implementation. Native builds retain
+the original Boost 1.92 types and implementation, which can terminate on those
+allocation failures before the caller receives an error. With compiler exceptions
+disabled, allocation failure remains fatal; selecting an `error_code` overload
+does not make such a build recover from exhausted memory.
+
+The browser allocation regression injects these failures before measuring stream
+allocations. Separate WASI probes exercise the same public functions. They do
+not establish recovery from every allocation failure in Asio or its runtimes.
+
+==== Allocations outside handler routing
+
 The allocator contract does not cover these known allocations outside an
 operation's associated allocator:
 
+* Native Boost 1.92's Windows IOCP worker and timer-thread state, as described
+  above. A macOS allocation result does not validate the Windows backend.
 * Emscripten's `select` allocates its poll array with `calloc` on each call.
 * Asyncify allocates its unwind data when a call suspends.
 * Boost.Asio's `basic_resolver_results` allocates its result entries with
