@@ -24,6 +24,15 @@ Use <<asio-quick-start>> and <<asio-timers-example>> as executable starting
 points. Native and Node runs do not establish browser rendering behaviour;
 use a real browser when your contract depends on page events or animation.
 
+For resolver cancellation, distinguish a pending lookup from a result already
+delivered by `poll_one()`. A fast host may complete a localhost lookup during
+that first call; cancelling afterwards cannot retract the successful callback.
+The WASI resolver test accepts that ordering, and `resolver_immediate` repeats
+it with an immediately returned host result. `resolver_progress` separately
+holds a WASIp3 lookup pending and checks resolver-wide cancellation,
+per-operation cancellation, context shutdown and allocation release. It does
+not use localhost latency as proof that cancellation reached pending work.
+
 include::example-matrix.adoc[]
 
 The shared

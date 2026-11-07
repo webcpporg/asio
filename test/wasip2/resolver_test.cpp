@@ -82,25 +82,39 @@ void initiation_and_cancellation() {
     BOOST_TEST_EQ(completed, 4);
 }
 
+void cancellation_after_poll() {
+    namespace asio = webcpp::asio;
+    using tcp = webcpp::asio::ip::tcp;
+    webcpp::asio::io_context context;
+    tcp::resolver resolver(context);
+    int completed = 0;
+    bool cancellation_requested = false;
+    resolver.async_resolve(
+        "localhost", "80",
+        [&](boost::system::error_code ec, const tcp::resolver::results_type& result) {
+            if (cancellation_requested) {
+                BOOST_TEST_EQ(ec, asio::error::operation_aborted);
+                BOOST_TEST(result.empty());
+            } else {
+                BOOST_TEST(!ec);
+                BOOST_TEST(!result.empty());
+            }
+            ++completed;
+        });
+    // A ready host result may be delivered by this same call.
+    BOOST_TEST_EQ(context.poll_one(), 1U);
+    cancellation_requested = true;
+    resolver.cancel();
+    context.run();  // lint-run: cancel only a lookup still pending after the first context turn
+    BOOST_TEST_EQ(completed, 1);
+}
+
 void resources_and_errors() {
     namespace asio = webcpp::asio;
     using tcp = webcpp::asio::ip::tcp;
     webcpp::asio::io_context context;
     tcp::resolver resolver(context);
     int completed = 0;
-    resolver.async_resolve(
-        "localhost", "80",
-        [&](boost::system::error_code ec, const tcp::resolver::results_type& result) {
-            BOOST_TEST_EQ(ec, asio::error::operation_aborted);
-            BOOST_TEST(result.empty());
-            ++completed;
-        });
-    BOOST_TEST_EQ(context.poll_one(), 1U);  // Start the native lookup, leave its completion queued.
-    resolver.cancel();
-    context.run();  // lint-run: cancel after registration with the pollable reactor
-    BOOST_TEST_EQ(completed, 1);
-
-    context.restart();
     resolver.async_resolve(
         "localhost", "80", tcp::resolver::canonical_name,
         [&](boost::system::error_code ec, const tcp::resolver::results_type& result) {
@@ -109,7 +123,7 @@ void resources_and_errors() {
             ++completed;
         });
     context.run();  // lint-run: unsupported flags fail deliberately and asynchronously
-    BOOST_TEST_EQ(completed, 2);
+    BOOST_TEST_EQ(completed, 1);
     context.restart();
     counts allocations;
     resolver.async_resolve(
@@ -125,7 +139,7 @@ void resources_and_errors() {
                 ++completed;
             }));
     context.run();  // lint-run: verify associated allocation and deallocation before completion
-    BOOST_TEST_EQ(completed, 3);
+    BOOST_TEST_EQ(completed, 2);
 
     context.restart();
     resolver.async_resolve(
@@ -136,20 +150,36 @@ void resources_and_errors() {
             ++completed;
         });
     context.run();  // lint-run: malformed names report a value without an initiation-time failure
-    BOOST_TEST_EQ(completed, 4);
+    BOOST_TEST_EQ(completed, 3);
+}
+
+void context_shutdown() {
+    using tcp = webcpp::asio::ip::tcp;
+    bool abandoning = false;
+    int delivered = 0;
     {
         webcpp::asio::io_context abandoned;
         tcp::resolver pending(abandoned);
-        pending.async_resolve("localhost", "80",
-                              [&](auto, const auto&) { BOOST_ERROR("abandoned callback"); });
+        pending.async_resolve(
+            "localhost", "80",
+            [&](boost::system::error_code ec, const tcp::resolver::results_type& result) {
+                BOOST_TEST(!abandoning);
+                BOOST_TEST(!ec);
+                BOOST_TEST(!result.empty());
+                ++delivered;
+            });
         BOOST_TEST_EQ(abandoned.poll_one(), 1U);
+        abandoning = true;
     }
+    BOOST_TEST_LE(delivered, 1);
 }
 
 }  // namespace
 
 int main() {
     initiation_and_cancellation();
+    cancellation_after_poll();
     resources_and_errors();
+    context_shutdown();
     return webcpp::test::exit_status(boost::report_errors());
 }

@@ -94,6 +94,7 @@ void pending_cancellation(bool per_operation) {
                 })));
     BOOST_TEST_EQ(context.poll_one(), 1U);
     BOOST_TEST(state().pending_handle != 0);
+    BOOST_TEST_EQ(completed, 0);
     if (per_operation) {
         cancellation.emit(asio::cancellation_type::all);
     } else {
