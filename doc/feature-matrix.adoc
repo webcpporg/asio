@@ -17,8 +17,8 @@ The 2026-11-06 distribution migration changes type selection and source ownershi
 The cells below retain their original evidence date; they do not certify the
 current unsubmitted candidate. Use <<asio-distribution>> for current build rules
 and link:{webcpp-libs}/cobalt/{webcpp-page}#cobalt-testing[Cobalt's current validation status].
-The old `/webcpp/asio//cobalt` target is now a compatibility alias for
-`/webcpp/cobalt//cobalt`. Portable consumers use `webcpp::cobalt` names.
+Cobalt is linked through `/webcpp/cobalt//cobalt`; Asio declares no Cobalt
+target. Portable consumers use `webcpp::cobalt` names.
 Do not infer that an Asio feature has also been tested through a Cobalt wrapper
 or completion token.
 
@@ -312,7 +312,7 @@ EH-off APIs does not establish universal exception-free safety. The thread
 coroutine also has internal exception-handling paths that require a dedicated
 failure-path audit without EH. Native I/O rows are subject to the OS and Boost
 feature macros. Cobalt's SSL wrapper is supplied by the optional
-`/webcpp/asio//cobalt_ssl` target; plain Cobalt remains independent of OpenSSL.
+`/webcpp/cobalt//cobalt_ssl` target; plain Cobalt remains independent of OpenSSL.
 
 The M thread test creates a Cobalt thread coroutine and awaits its completion.
 It does not establish correctness of arbitrary concurrent coroutine composition.
@@ -389,7 +389,7 @@ policy remain application/runtime requirements.
 [#asio-feature-cobalt-wasip3]
 ==== Cobalt: WASIp3
 
-The public dependency `/webcpp/asio//cobalt` builds and runs in all three
+The public dependency `/webcpp/cobalt//cobalt` builds and runs in all three
 available profiles. M/EH on remains X because SDK 34.0 lacks that runtime.
 EH-off tests do not remove the pending-task move restriction in issue 287.
 
@@ -526,7 +526,7 @@ Result adapters do not repair this internal path. Other coroutine families
 still need their own success, error and cancellation tests.
 | Cobalt `io::ssl::stream`
 | Available through an optional target with a checked Boost 1.92 patch
-| `/webcpp/asio//cobalt_ssl` adds the wrapper, state/callback corrections and
+| `/webcpp/cobalt//cobalt_ssl` adds the wrapper, state/callback corrections and
 `native_ssl_handle()` extension. Native, P2 S and supported P3 profiles are
 available; browser TLS remains host-owned. See
 <<asio-cobalt-ssl>> for trust configuration and the STARTTLS contract.

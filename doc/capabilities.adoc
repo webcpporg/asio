@@ -149,7 +149,7 @@ suspend through wasi-libc and the host's Component Model implementation.
 The public Cobalt target builds its static archive with checked compatibility
 headers and sources on WASIp3. Timers, TCP/UDP and cancellation are exercised
 through both Asio completion tokens and Cobalt's own wrappers. The optional
-`/webcpp/asio//cobalt_ssl` target adds Cobalt's SSL wrapper with verified TLS
+`/webcpp/cobalt//cobalt_ssl` target adds Cobalt's SSL wrapper with verified TLS
 and handshake/transfer cancellation, including partial composed operations.
 Truncated and cancelled shutdown are also tested; see <<asio-cobalt-ssl>>. See
 <<asio-feature-cobalt-build-block>> for integration details and

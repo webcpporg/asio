@@ -26,8 +26,8 @@ application still writes `co_main`; the runner owns `main`.
 
 Select `/webcpp/cobalt//cobalt` for an application defining `co_main`, or
 `/webcpp/cobalt//core` when the application supplies `main` and drives its own
-context. The old `/webcpp/asio//cobalt` name is a compatibility alias. Do not
-also link a system Cobalt archive or another runner.
+context. Asio declares no Cobalt target of its own. Do not also link a system
+Cobalt archive or another runner.
 
 The link:{webcpp-libs}/cobalt/{webcpp-page}#cobalt-building-external[external build recipe]
 lists the shipped sources and dependencies for another build system. Apply
@@ -41,8 +41,7 @@ error handling does not repair that pending-coroutine move path.
 === Use the corrected SSL stream
 
 Include `webcpp/cobalt/io/ssl.hpp`. Select `/webcpp/cobalt//cobalt_ssl` with the
-runner or `/webcpp/cobalt//io_ssl` with a custom main. The old
-`/webcpp/asio//cobalt_ssl` name is a compatibility alias. These optional targets
+runner or `/webcpp/cobalt//io_ssl` with a custom main. These optional targets
 share Asio's source-built OpenSSL and CA provider; plain Cobalt does not link TLS.
 Browser HTTPS/WSS instead uses host TLS and its certificate policy.
 

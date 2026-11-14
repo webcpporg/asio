@@ -101,11 +101,6 @@ alias asio : : : : <include>include <library>/boost//headers
   <toolset>emscripten:<tag>@webcpp%suspend-tag ;
 # end::asio[]
 
-# Compatibility names retain the independent Cobalt integration.
-# tag::cobalt[]
-alias cobalt : : : : <library>/webcpp/cobalt//cobalt ;
-# end::cobalt[]
-
 # tag::openssl[]
 rule openssl-linked ( properties * )
 {
@@ -135,7 +130,3 @@ explicit openssl-tests ;
 alias tls : : : : <library>asio <library>openssl
   <library>/webcpp/third_party//ca_certificates ;
 # end::tls[]
-
-# tag::cobalt-ssl[]
-alias cobalt_ssl : : : : <library>/webcpp/cobalt//cobalt_ssl ;
-# end::cobalt-ssl[]

@@ -14,6 +14,7 @@ Changes prepared for the first WebCPP release.
 === Unreleased
 
 // tag::unreleased[]
+* *Breaking change:* Removed `/webcpp/asio//cobalt` and `cobalt_ssl`; link `/webcpp/cobalt//cobalt` or `cobalt_ssl`.
 * Fixed browser turn budgets across timer waits so worker proxy messages can run.
 * Fixed browser and WASIp2 timer test dependencies and the unbounded backend control.
 * Improved exception analysis of system executor initialization without changing fatal behavior.
