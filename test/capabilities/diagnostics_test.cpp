@@ -10,8 +10,7 @@
 // expected-error@webcpp/asio/config.hpp:* {{requires /webcpp/asio//openssl or /webcpp/asio//tls}}
 #include <webcpp/asio/config.hpp>
 #elif defined(WEBCPP_TEST_DISABLED_TLS)
-// expected-error@webcpp/asio/ssl.hpp:* {{needs OpenSSL on native and WASI targets, and it is not
-// linked}}
+// expected-error@webcpp/asio/ssl.hpp:* {{needs OpenSSL on native and WASI targets}}
 #include <webcpp/asio/ssl.hpp>
 #elif defined(WEBCPP_TEST_BROWSER_HEADER)
 // expected-error@webcpp/asio/browser/bridge.hpp:* {{requires the Emscripten browser bridge}}

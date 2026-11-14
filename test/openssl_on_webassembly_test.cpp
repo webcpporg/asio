@@ -4,6 +4,5 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // https://www.boost.org/LICENSE_1_0.txt)
 
-// expected-error@*:* {{is named in a build for Emscripten, whose browser profile does not link
-// OpenSSL}}
+// expected-error@*:* {{whose browser profile does not link OpenSSL}}
 #include "../src/openssl_on_webassembly.hpp"
