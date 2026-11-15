@@ -34,13 +34,15 @@ include $(ASIO_SOURCE_DIR)/sources.jam ;
 # build: asyncify_stack measured at most 1,168 bytes there and 388 in
 # release (848 and 304 without exceptions), and with 2048 no test of the
 # asyncify lane trapped in either build, so that rule alone would now give
-# 4096. The size stays 8192: it is the default and the floor that the
-# libraries built on asio and their programs are tested and measured
-# against, and the half of it a suspension of asio's leaves is for the
-# program's own frames, whose depth asio cannot know. A smaller size would
+# 4096. The owner decided on 2026-11-15 that it stays 8192. Programs ship
+# release builds, where the deepest suspension of the libraries built on
+# asio wrote 564 bytes (trystero's room test; asio's 388), so that the rest
+# is left to the program's own frames, whose depth asio cannot know; debug,
+# for development and the tests, reached 2,344 (the same test), within the
+# half asyncify_stack asks. 8192 is also the default and the floor those
+# libraries and their programs are tested against, and a smaller size would
 # make a program whose frames fit only the larger stack trap at run time,
-# with no warning before; it would be a change of its own, measured across
-# those libraries.
+# with no warning before.
 # The test asyncify_stack measures each build on every run, and fails when
 # a suspension of the run family leaves less than half of the stack; a new
 # way to suspend, such as a coroutine's, is measured there.

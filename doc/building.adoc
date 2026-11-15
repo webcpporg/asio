@@ -204,10 +204,12 @@ suspension wrote 1,168 bytes there, against 388 in a `release` build,
 compiled and linked with `-O3`. The size, 8192 bytes, was set on
 2026-10-11, when b2 linked a `release` build without optimization, then the
 deepest build, whose deepest suspension in the tests wrote 3,540 bytes.
-asio keeps it: it is the size the libraries built on asio and their
-programs are tested against, and a smaller one would make a program whose
-frames fit only the larger stack trap. More than half of the stack is so
-left to the program's own frames, whose depth asio cannot know.
+asio keeps it, as decided on 2026-11-15: programs ship `release` builds,
+where the deepest suspension of the libraries built on asio wrote 564 bytes
+(trystero's room test), so that nearly all of the stack is left to the
+program's own frames, whose depth asio cannot know; it is the size those
+libraries and their programs are tested against, and a smaller one would
+make a program whose frames fit only the larger stack trap.
 
 A program that calls `run` deep in its code, or whose frames above `run`
 are large, measures its own suspensions the same way and asks for more

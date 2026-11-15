@@ -50,11 +50,15 @@ Do not infer the full application matrix from a timer or TLS witness.
   compiled and linked at `-O0`: the run family's deepest path wrote 1,168
   bytes there and 388 in release (848 and 304 without exceptions), and with
   2048 bytes no test of the asyncify lane trapped in either build, so that
-  the 2026-10-11 rule alone would now give 4096. The size stays 8192, the
-  default and the floor that the libraries built on asio and their programs
-  are tested and measured against; lowering it is a change of its own, for
-  the owner, measured across those libraries, since a program whose frames
-  above `run` fit only the larger stack would trap. The asyncify lane builds
+  the 2026-10-11 rule alone would now give 4096. The owner decided on
+  2026-11-15 that it stays 8192: programs ship release builds, where the
+  deepest suspension of the libraries built on asio wrote 564 bytes
+  (trystero's room test), leaving the rest to the program's own frames;
+  debug, for development and the tests, reached 2,344, within the half
+  `asyncify_stack` asks; and 8192 is the default and the floor those
+  libraries and their programs are tested against, so that a smaller size
+  would make a program whose frames above `run` fit only the larger stack
+  trap. The asyncify lane builds
   debug alone, so the measurement covers release itself: the bytes are read
   from Asyncify's own data when an unwind stops, and `asyncify_stack` does
   it in debug and in release, for every suspension of the run family,
