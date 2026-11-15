@@ -87,7 +87,8 @@ inline boost::system::error_code make_error_code(tls_context_error value) noexce
  @return The context, or a tls_context_error; browser targets return unsupported_target.
  @see "How-to: configure trusted certificate authorities", in the guide.
 */
-inline boost::system::result<ssl::context> make_tls_client_context(std::string_view ca_pem) {
+[[nodiscard]] inline boost::system::result<ssl::context> make_tls_client_context(
+    std::string_view ca_pem) {
 #ifdef WEBCPP_TARGET_EMSCRIPTEN
     (void)ca_pem;
     return make_error_code(tls_context_error::unsupported_target);
@@ -166,7 +167,7 @@ inline boost::system::result<ssl::context> make_tls_client_context(std::string_v
  @return The context, or a tls_context_error; browser targets return unsupported_target.
  @see "How-to: configure trusted certificate authorities", in the guide.
 */
-inline boost::system::result<ssl::context> make_tls_client_context() {
+[[nodiscard]] inline boost::system::result<ssl::context> make_tls_client_context() {
 #ifdef WEBCPP_TARGET_EMSCRIPTEN
     return make_error_code(tls_context_error::unsupported_target);
 #else
