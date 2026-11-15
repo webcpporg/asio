@@ -112,10 +112,13 @@ b2 toolset=emscripten libs/cobalt/test//cobalt_asyncify
 ----
 
 The historical 2026-10-14 Asyncify probe measured a maximum of 1,088 bytes in
-Release with the default link, 384 with an optimized link, and 1,032 in Debug.
-These describe the earlier source revision. They are suspension storage, not
-binary size or a bound on arbitrary application call depth. Current migration
-measurements must be recorded separately; the configured stack remains 8,192 bytes.
+Release, then linked without optimization, 384 in Release linked with `-O3`,
+and 1,032 in Debug. These describe the earlier source revision. Since
+2026-11-15 a Release build links at `-O3`, and Cobalt's `cobalt_stack` probe
+measured at most 384 bytes in Release and 1,036 in Debug with exceptions,
+232 and 704 without them, on that day, with Emscripten 6.0.11. They are
+suspension storage, not binary size or a bound on arbitrary application call
+depth; the configured stack remains 8,192 bytes.
 
 [#asio-cobalt-sizes]
 === Historical reference: release binary sizes

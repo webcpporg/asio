@@ -43,20 +43,24 @@ Do not infer the full application matrix from a timer or TLS witness.
 - **Asyncify's stack is measured, not guessed.** `-sASYNCIFY_STACK_SIZE`
   is 8192 unless a program raises it with `<asyncify-stack-size>`, declared
   in `build.jam`: twice 4096, the smallest power of two with which every
-  test passed in every build b2 links today (2026-10-11, Emscripten 6.0.11).
-  The deepest is release, compiled with `-O3` and linked without
-  optimization, as b2's emscripten toolset links it: 3,540 bytes in
-  `bridge_asyncify`, against 1,272 in a debug build. Linked with `-O3`, the
-  deepest test wrote 416 and the run family's deepest path 384, against
-  2,404 linked without. The asyncify lane builds debug alone, so the
-  measurement covers the other builds itself: the bytes are read from
-  Asyncify's own data when an unwind stops, and `asyncify_stack` does it in
-  debug, release and release linked with `-O3`, for every suspension of the
-  run family, failing when one leaves less than half of the stack. A change
-  that adds a way to suspend (a coroutine's, a promise's) measures it there,
-  and a test that overflows traps with `RuntimeError: unreachable`, every
-  time. When b2's release link gets its `-O`, measure again: the deepest
-  build becomes debug's.
+  test passed in every build b2 linked on 2026-10-11 (Emscripten 6.0.11),
+  when the deepest was release, compiled with `-O3` and linked at `-O0`:
+  3,540 bytes in `bridge_asyncify`, against 1,272 in a debug build. Since
+  2026-11-15 b2 links release at `-O3`, and the deepest build is debug,
+  compiled and linked at `-O0`: the run family's deepest path wrote 1,168
+  bytes there and 388 in release (848 and 304 without exceptions), and with
+  2048 bytes no test of the asyncify lane trapped in either build, so that
+  the 2026-10-11 rule alone would now give 4096. The size stays 8192, the
+  default and the floor that the libraries built on asio and their programs
+  are tested and measured against; lowering it is a change of its own, for
+  the owner, measured across those libraries, since a program whose frames
+  above `run` fit only the larger stack would trap. The asyncify lane builds
+  debug alone, so the measurement covers release itself: the bytes are read
+  from Asyncify's own data when an unwind stops, and `asyncify_stack` does
+  it in debug and in release, for every suspension of the run family,
+  failing when one leaves less than half of the stack. A change that adds a
+  way to suspend (a coroutine's, a promise's) measures it there, and a test
+  that overflows traps with `RuntimeError: unreachable`, every time.
 - **The stack test must reach the intended wait.** Its reactor cases hold
   work until a JavaScript macrotask posts the completing handler, delay entry
   by 25 ms and require a nonzero-timeout poll. An already-expired C++ timer
@@ -64,8 +68,10 @@ Do not infer the full application matrix from a timer or TLS witness.
   test reads `doPollAsync` as well as Asyncify's private runtime; a runtime
   change that removes either observation must fail rather than skip it.
   The 2026-10-14 re-review measured maxima of 1164/844 bytes in debug,
-  2896/1940 in release and 384/288 in release linked with `-O3`, with/without
-  exceptions respectively. `run_until` has its own yield measurement too.
+  2896/1940 in release, then linked at `-O0`, and 384/288 in release linked
+  with `-O3`, with/without exceptions respectively; on 2026-11-15, with
+  release linked at `-O3`, 1168/848 in debug and 388/304 in release.
+  `run_until` has its own yield measurement too.
 - **The run family is called on `main`'s stack alone**, or on the stack of
   another export the program lists for suspension. Anywhere else its first
   suspension fails: under JSPI it throws a `SuspendError`, and under
@@ -148,16 +154,23 @@ remains applicable without exceptions.
 The Cobalt stack probe measures real Asyncify unwinds from the runner through
 the yield, a Cobalt timer wait and an Asio timer wait. The timer waits cannot
 expire: only a JavaScript macrotask posts their cancellation, so the test must
-reach a blocking reactor poll. Measurements on 2026-10-14, Emscripten 6.0.11:
+reach a blocking reactor poll. Measurements with Emscripten 6.0.11 on
+2026-10-14, when b2 linked a release build at `-O0` and the probe also built
+release linked with `-O3`, and on 2026-11-15, once b2 linked release at
+`-O3`, which left the probe a debug build and a release one:
 
-| Build | Exceptions | Yield bytes | Cobalt wait bytes | Asio wait bytes |
-| --- | --- | ---: | ---: | ---: |
-| Debug | on | 1016 | 1032 | 1032 |
-| Debug | off | 684 | 700 | 700 |
-| Release, default link | on | 968 | 1088 | 1088 |
-| Release, default link | off | 748 | 956 | 956 |
-| Release, link -O3 | on | 376 | 384 | 384 |
-| Release, link -O3 | off | 228 | 228 | 228 |
+| Date | Build | Exceptions | Yield bytes | Cobalt wait bytes | Asio wait bytes |
+| --- | --- | --- | ---: | ---: | ---: |
+| 2026-10-14 | Debug | on | 1016 | 1032 | 1032 |
+| 2026-10-14 | Debug | off | 684 | 700 | 700 |
+| 2026-10-14 | Release, link -O0 | on | 968 | 1088 | 1088 |
+| 2026-10-14 | Release, link -O0 | off | 748 | 956 | 956 |
+| 2026-10-14 | Release, link -O3 | on | 376 | 384 | 384 |
+| 2026-10-14 | Release, link -O3 | off | 228 | 228 | 228 |
+| 2026-11-15 | Debug | on | 1020 | 1036 | 1036 |
+| 2026-11-15 | Debug | off | 688 | 704 | 704 |
+| 2026-11-15 | Release | on | 376 | 384 | 384 |
+| 2026-11-15 | Release | off | 232 | 232 | 232 |
 
 The existing 8192-byte stack remains sufficient for these paths with more than
 half free. These measurements are suspension storage, not binary sizes or a

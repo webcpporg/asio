@@ -102,13 +102,14 @@ for local test in $(browser-tests)
     .asyncify += $(test)_asyncify $(test)_asyncify_no_exceptions ;
 }
 
-# An optimized JSPI link must retain the native stack helpers used by the
-# bridge's JavaScript. Debug runtime dependencies can hide missing exports.
+# The bridge's JavaScript calls native stack helpers that a release link, at
+# -O3, drops unless asio exports them (build.jam). A debug link, at -O0,
+# keeps more of the runtime, which can hide a missing one, and the emscripten
+# lane builds debug, b2's default: these build the bridge in release there.
 for local handling in on off
 {
-    webcpp.run bridge_optimized_link_exceptions_$(handling) : bridge_test.cpp
-      : <variant>release <linkflags>-O3 <exception-handling>$(handling)
-      : emscripten ;
+    webcpp.run bridge_release_exceptions_$(handling) : bridge_test.cpp
+      : <variant>release <exception-handling>$(handling) : emscripten ;
 }
 
 # Through the bridge, a program can neither deliver an event outside the
@@ -183,14 +184,11 @@ webcpp.run exceptions_asyncify : exceptions_test.cpp
 
 # Each suspension of the run family under Asyncify leaves half of the stack
 # Asyncify saves it in, measured exactly, with exceptions and without them,
-# in each build a program can get: debug; release, compiled with -O3 and
-# linked as b2's emscripten toolset links it, without optimization, which
-# Asyncify instruments unoptimized; and release linked with -O3, as a
-# product's link would be.
-.asyncify-stack-builds = debug release optimized_link ;
+# in each build a program can get, whatever variant the lane builds: debug,
+# compiled and linked at -O0, the deepest, and release, at -O3.
+.asyncify-stack-builds = debug release ;
 .asyncify-stack-debug = <variant>debug ;
 .asyncify-stack-release = <variant>release ;
-.asyncify-stack-optimized_link = <variant>release <linkflags>-O3 ;
 for local build in $(.asyncify-stack-builds)
 {
     for local handling in on off

@@ -91,12 +91,13 @@ b2 toolset=emscripten libs/asio/test libs/asio/example
 asyncify::
 A lane of asio's own, on emscripten: every browser test again under
 Asyncify, the other suspension variant. Generate the size table separately
-in optimized release mode, then execute the guide examples under Asyncify:
+in release, which compiles and links at `-O3`, then execute the guide
+examples under Asyncify:
 +
 [source,bash]
 ----
 b2 toolset=emscripten libs/asio/test//asyncify
-b2 -a toolset=emscripten variant=release linkflags=-O3 libs/asio/example//asyncify
+b2 -a toolset=emscripten variant=release libs/asio/example//asyncify
 b2 toolset=emscripten webcpp-suspend=asyncify libs/asio/example
 ----
 
@@ -212,12 +213,14 @@ for profile in o2 o3 os oz o3-lto oz-lto; do
 done
 ----
 
-`variant=release` supplies `NDEBUG` and disables debug symbols. The explicit
-`cxxflags` selects the optimization level instead of the release default
-`-O3`; the same level must be passed through `linkflags` for Emscripten's
-final WebAssembly and JavaScript optimization. The current b2 toolset does
-not forward it automatically. Keep separate build directories: free-form
-flags do not select separate output paths in b2.
+`variant=release` supplies `NDEBUG`, disables debug symbols, and compiles
+and links at `-O3`: the superproject gives an Emscripten link its compile's
+level of optimization, which b2's toolset alone does not. The explicit
+`cxxflags` selects another level for the compile, and the same level passed
+through `linkflags` selects it for Emscripten's final WebAssembly and
+JavaScript optimization, since `em++` keeps the last level it is given.
+Keep separate build directories: free-form flags do not select separate
+output paths in b2.
 
 `-O2` and `-O3` favor execution performance; `-Os` and `-Oz` favor smaller
 code. `-flto` enables link-time optimization across translation units and
