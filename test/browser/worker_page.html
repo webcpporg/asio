@@ -16,7 +16,8 @@ const report = (window.report = {lines: [], variant: new URLSearchParams(locatio
     isolated: crossOriginIsolated, status: null, warnings: [], polls: []})
 window.Module = {
     preRun: [() => {
-        if (new URLSearchParams(location.search).get('script').includes('worker_return')) return
+        // Neither program polls, as run.mjs expects; a release link drops doPollAsync from such a program.
+        if (/worker_return|move_failure/.test(new URLSearchParams(location.search).get('script'))) return
         if (typeof doPollAsync !== 'function') throw new Error('missing pinned SDK doPollAsync')
         const original = doPollAsync
         doPollAsync = (descriptors, count, timeout) => {

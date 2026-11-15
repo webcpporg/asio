@@ -198,13 +198,18 @@ enough". The trap is certain, at every suspension that deep, but only
 there. So asio does not keep Emscripten's default: it sets the size to at
 least twice the deepest suspension its tests reach, measured exactly, as
 the bytes each unwind wrote, read from Asyncify's own data when the unwind
-stops. In the measurements of 2026-10-11, the deepest build was one compiled
-with optimization and linked without it, as b2's `release` variant links on emscripten:
-its deepest suspension in the tests wrote 3,540 bytes, against 1,272 in a
-`debug` build. Linked with optimization, a suspension writes a sixth or
-less of what it writes linked without: 416 bytes at most in the tests, and 384
-for the run family's deepest path, against 2,404. Half of the stack is so
-left to the program's own frames, whose depth asio cannot know.
+stops. The deepest build is `debug`, compiled and linked without
+optimization: in the measurements of 2026-11-15, the run family's deepest
+suspension wrote 1,168 bytes there, against 388 in a `release` build,
+compiled and linked with `-O3`. The size, 8192 bytes, was set on
+2026-10-11, when b2 linked a `release` build without optimization, then the
+deepest build, whose deepest suspension in the tests wrote 3,540 bytes.
+asio keeps it, as decided on 2026-11-15: programs ship `release` builds,
+where the deepest suspension of the libraries built on asio wrote 564 bytes
+(trystero's room test), so that nearly all of the stack is left to the
+program's own frames, whose depth asio cannot know; it is the size those
+libraries and their programs are tested against, and a smaller one would
+make a program whose frames fit only the larger stack trap.
 
 A program that calls `run` deep in its code, or whose frames above `run`
 are large, measures its own suspensions the same way and asks for more
@@ -223,8 +228,8 @@ Nothing of the program runs afterwards: no destructor or `atexit` handler,
 no timer or event of asio's; only JavaScript of the page's own that calls
 an export could still enter it.
 
-_Held by_ `asyncify_stack`, with exceptions and without them, in debug,
-in release and in release linked with `-O3`, which measures every
+_Held by_ `asyncify_stack`, with exceptions and without them, in debug
+and in release, whatever variant the build asks for, which measures every
 suspension of the run family, the reactor's wait and the yield under each
 member that makes one, inside a `try` and a `catch` block too, and fails
 when one of them leaves less than half of the stack, or when the reading
@@ -246,20 +251,26 @@ nonblocking poll: that poll suspends too, but its shorter stack is not
 evidence for the waiting path. The yield cases cover `run`, `run_for` and
 `run_until` separately.
 
-On 2026-10-14, with Emscripten 6.0.11 and Node 26.7.0, the corrected
-`asyncify_stack` test measured these maxima from scratch, in bytes:
+With Emscripten 6.0.11, the corrected `asyncify_stack` test measured these
+maxima from scratch, in bytes: on 2026-10-14, with Node 26.7.0, when b2
+linked a `release` build without optimization and the test built a release
+one linked with `-O3` besides, and on 2026-11-15, with Node 26.13.0, once
+b2 linked a `release` build with `-O3`:
 
-[cols="2,1,1",options="header"]
+[cols="1,2,1,1",options="header"]
 |===
-| Build | Exceptions on | Exceptions off
-| Debug | 1164 | 844
-| Release, unoptimized link | 2896 | 1940
-| Release, link with `-O3` | 384 | 288
+| Date | Build | Exceptions on | Exceptions off
+| 2026-10-14 | Debug | 1164 | 844
+| 2026-10-14 | Release, linked without optimization | 2896 | 1940
+| 2026-10-14 | Release, linked with `-O3` | 384 | 288
+| 2026-11-15 | Debug | 1168 | 848
+| 2026-11-15 | Release, linked with `-O3` | 388 | 304
 |===
 
 Each of the eleven paths with exceptions and nine without stayed below
-4096 bytes, half of the configured 8192. These are measurements of the
-run-family test, not a bound on a user's own call frames.
+4096 bytes, half of the configured 8192, in every build. These are
+measurements of the run-family test, not a bound on a user's own call
+frames.
 
 The artifacts are named and placed as Boost's own build names and places
 them: one directory level per toolset, variant and property that is not
