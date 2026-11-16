@@ -1,0 +1,3 @@
+{
+    "nodiscard-results": "a dropped result, a TLS client context's, would pass as a context that trusts its authorities"
+}
