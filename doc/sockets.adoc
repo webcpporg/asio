@@ -70,9 +70,18 @@ and service, an unspecified IPv4 address and the service port. This is not a
 DNS lookup. A browser stream can retain the name without rewriting a client's
 resolve step. A plain socket still refuses connecting to this entry.
 
+The results hold that entry in place, so that resolving, copying and posting
+them allocate nothing. Their type is the page's own, under Boost's names:
+`ip::basic_resolver_results`, a forward range of at most one
+`ip::basic_resolver_entry`, with Boost's members, whose names are returned as
+copies, in an allocator's string if one is given. Two results are equal when
+their entries are. A host longer than 254 bytes, DNS's 253 and a final dot,
+names nothing DNS would find, and reports `host_not_found`.
+
 An empty service means port 0. Decimal services accept 0 through 65535;
 `http` and `ws` select 80, and `https` and `wss` select 443. Named services
 are refused with `numeric_service`. Other services report `service_not_found`.
+A decimal service keeps its leading zeros, however many.
 Reverse resolution reports `operation_not_supported`. Async completion is
 posted; cancel does not retract a result already computed at initiation.
 See <<asio-invariant-13>>.
