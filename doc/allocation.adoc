@@ -67,8 +67,10 @@ operation's associated allocator:
   above. A macOS allocation result does not validate the Windows backend.
 * Emscripten's `select` allocates its poll array with `calloc` on each call.
 * Asyncify allocates its unwind data when a call suspends.
-* Boost.Asio's `basic_resolver_results` allocates its result entries with
-  `new`. The measured operation scenario above does not resolve a name.
+* Boost.Asio's `basic_resolver_results`, natively and on WASI, allocates its
+  result entries with `new`. The measured operation scenario above does not
+  resolve a name. A page's results hold their one entry in place and allocate
+  nothing, which the browser allocation test measures.
   Forward asynchronous resolution owns copies of its input names through the
   initiating token's associated allocator, preserving temporary input lifetimes.
   Bind the allocator when creating a deferred operation; binding one only when

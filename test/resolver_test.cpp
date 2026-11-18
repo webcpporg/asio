@@ -7,12 +7,19 @@
 #include <array>
 #include <boost/core/lightweight_test.hpp>
 #include <boost/system/system_error.hpp>
+#include <cstddef>
 #include <cstdint>
+#include <iterator>
+#include <memory_resource>
+#include <ranges>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <webcpp/asio/deferred.hpp>
 #include <webcpp/asio/io_context.hpp>
 #include <webcpp/asio/ip/basic_resolver.hpp>
+#include <webcpp/asio/ip/basic_resolver_entry.hpp>
+#include <webcpp/asio/ip/basic_resolver_results.hpp>
 #include <webcpp/asio/ip/tcp.hpp>
 #include <webcpp/asio/ip/udp.hpp>
 #include <webcpp/test/exit_status.hpp>
@@ -135,10 +142,93 @@ void asynchronous_results() {
     io.run();  // lint-run: the resolver test drains posted completions
     BOOST_TEST_EQ(calls, 4U);
 }
+
+/** The page's results hold their one entry, under the names Boost gives the native ones. */
+void results_hold_their_entry() {
+    using results_type = resolver::results_type;
+    static_assert(std::is_same_v<results_type,
+                                 webcpp::asio::ip::basic_resolver_results<webcpp::asio::ip::tcp>>);
+    static_assert(std::is_same_v<results_type::value_type,
+                                 webcpp::asio::ip::basic_resolver_entry<webcpp::asio::ip::tcp>>);
+    static_assert(std::is_same_v<webcpp::asio::ip::udp::resolver::results_type,
+                                 webcpp::asio::ip::basic_resolver_results<webcpp::asio::ip::udp>>);
+    static_assert(std::forward_iterator<results_type::const_iterator>);
+    static_assert(std::ranges::forward_range<const results_type>);
+    static_assert(std::is_nothrow_copy_constructible_v<results_type>);
+    webcpp::asio::io_context io;
+    resolver r(io);
+    const results_type none;
+    BOOST_TEST(none.empty());
+    BOOST_TEST_EQ(none.size(), 0U);
+    BOOST_TEST_EQ(none.max_size(), 1U);
+    BOOST_TEST(none.begin() == none.end());
+
+    // The longest name DNS has, 253 bytes and the final dot, and a service of any length.
+    boost::system::error_code ec;
+    const std::string longest = std::string(253, 'a') + '.';
+    const std::string padded = std::string(100, '0') + "443";
+    auto results = r.resolve(longest, padded, ec);
+    BOOST_TEST(!ec);
+    check_entry(results, longest, padded, 443);
+    check_entry(r.resolve("h", "000", ec), "h", "000", 0);
+    BOOST_TEST(!ec);
+    std::size_t visited = 0;
+    for (const auto& entry : results) {
+        const webcpp::asio::ip::tcp::endpoint endpoint = entry;
+        BOOST_TEST_EQ(endpoint.port(), 443);
+        ++visited;
+    }
+    BOOST_TEST_EQ(visited, 1U);
+    BOOST_TEST_EQ(std::distance(results.cbegin(), results.cend()), 1);
+
+    // A copy is its own: equal to its source, and unchanged when the source changes.
+    auto copy = results;
+    BOOST_TEST(copy == results);
+    results = r.resolve("other.example", "80", ec);
+    BOOST_TEST(copy != results);
+    check_entry(copy, longest, padded, 443);
+    auto moved = std::move(copy);
+    check_entry(moved, longest, padded, 443);
+    moved.swap(results);
+    check_entry(moved, "other.example", "80", 80);
+    check_entry(results, longest, padded, 443);
+
+    // The names are copied into the caller's allocator.
+    std::array<std::byte, 1024> storage{};
+    std::pmr::monotonic_buffer_resource arena(storage.data(), storage.size(),
+                                              std::pmr::null_memory_resource());
+    const std::pmr::polymorphic_allocator<char> allocator(&arena);
+    BOOST_TEST(results.begin()->host_name(allocator) == std::string_view(longest));
+    BOOST_TEST(results.begin()->service_name(allocator) == std::string_view(padded));
+
+    // A longer host is no name DNS would find, whichever way it is resolved.
+    const std::string too_long = longest + 'a';
+    BOOST_TEST(r.resolve(too_long, "80", ec).empty());
+    BOOST_TEST(ec == webcpp::asio::error::host_not_found);
+    unsigned calls = 0;
+    r.async_resolve(too_long, "80",
+                    [&](boost::system::error_code posted, const results_type& found) {
+                        BOOST_TEST(posted == webcpp::asio::error::host_not_found);
+                        BOOST_TEST(found.empty());
+                        ++calls;
+                    });
+    io.run();  // lint-run: the resolver test drains the posted refusal
+    BOOST_TEST_EQ(calls, 1U);
+#ifndef WEBCPP_ASIO_NO_EXCEPTIONS
+    bool caught = false;
+    try {
+        (void)r.resolve(too_long, "80");
+    } catch (const boost::system::system_error& error) {
+        caught = error.code() == webcpp::asio::error::host_not_found;
+    }
+    BOOST_TEST(caught);
+#endif
+}
 }  // namespace
 
 int main() {
     services_and_errors();
     asynchronous_results();
+    results_hold_their_entry();
     return webcpp::test::exit_status(boost::report_errors());
 }

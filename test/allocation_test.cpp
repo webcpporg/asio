@@ -645,7 +645,7 @@ void resolver_inputs_use_the_associated_allocator() {
             webcpp::asio::bind_allocator(counted<void>(&given), webcpp::asio::deferred));
     }();
     report("resolver deferred captures", given - before);
-    // No result entry exists yet: Boost's result storage would allocate globally.
+    // No result entry exists yet: the deferred operation holds its copied inputs alone.
     BOOST_TEST_GT(given, before);
     BOOST_TEST_EQ(operator_new_calls, 0U);
     BOOST_TEST_EQ(c_allocations, 0U);
@@ -667,6 +667,50 @@ void resolver_inputs_use_the_associated_allocator() {
     io.run();  // lint-run: a deferred resolution keeps its copied inputs until initiation
     BOOST_TEST(correct);
     BOOST_TEST_EQ(completions, 2U);
+}
+
+/** A page's results hold their entry: resolving, copying and posting them allocate nothing. */
+void page_resolver_results_allocate_nothing() {
+    using resolver = webcpp::asio::ip::tcp::resolver;
+    const std::string host = std::string(253, 'h') + '.';
+    const std::string service = std::string(100, '0') + "443";
+    webcpp::asio::io_context io;
+    resolver names(io);
+    bool correct = false;
+    {
+        const allocation_window window;
+        boost::system::error_code ec;
+        const auto results = names.resolve(host, service, ec);
+        const auto copy = results;
+        correct =
+            !ec && copy == results && copy.size() == 1 && copy.begin()->endpoint().port() == 443;
+    }
+    report("page resolver results");
+    BOOST_TEST(correct);
+    BOOST_TEST_EQ(operator_new_calls, 0U);
+    BOOST_TEST_EQ(c_allocations, 0U);
+    BOOST_TEST_EQ(aligned_allocations, 0U);
+
+    // Posted, the results travel in the handler, whose storage is the bound allocator's.
+    std::size_t given = 0;
+    webcpp::asio::io_context counted_io(std::allocator_arg, counted<void>(&given));
+    resolver posted(counted_io);
+    correct = false;
+    {
+        const allocation_window window;
+        auto check = [&](boost::system::error_code ec, const resolver::results_type& results) {
+            correct = !ec && results.size() == 1 && results.begin()->endpoint().port() == 443;
+        };
+        posted.async_resolve(host, service,
+                             webcpp::asio::bind_allocator(counted<void>(&given), check));
+        counted_io.run();  // lint-run: observes the posted results inside the window
+    }
+    report("page resolver posted results", given);
+    BOOST_TEST(correct);
+    BOOST_TEST_GT(given, 0U);
+    BOOST_TEST_EQ(operator_new_calls, 0U);
+    BOOST_TEST_EQ(c_allocations, 0U);
+    BOOST_TEST_EQ(aligned_allocations, 0U);
 }
 
 /** Each delivered event posts through its associated allocator, never runs inline. */
@@ -1068,6 +1112,7 @@ int main() {
 #ifdef __EMSCRIPTEN__
     tls_host_storage_uses_the_resource();
     resolver_inputs_use_the_associated_allocator();
+    page_resolver_results_allocate_nothing();
 #endif
     the_counters_see_an_unbound_handler();
 #if defined(WEBCPP_TEST_ASIO_COUNTS_C_ALLOCATIONS) && defined(__APPLE__) && !defined(__EMSCRIPTEN__)

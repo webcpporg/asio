@@ -28,7 +28,6 @@ using basic_resolver = ::webcpp::asio_backend::ip::basic_resolver<InternetProtoc
 #include WEBCPP_ASIO_BACKEND_HEADER(async_result.hpp)  // lint-world: completion token initiation
 #include WEBCPP_ASIO_BACKEND_HEADER(error.hpp)         // lint-world: resolver error values
 #include WEBCPP_ASIO_BACKEND_HEADER(ip/address_v4.hpp)  // lint-world: an unspecified address without DNS
-#include WEBCPP_ASIO_BACKEND_HEADER(ip/basic_resolver_results.hpp)  // lint-world: Boost resolver result entries
 #include WEBCPP_ASIO_BACKEND_HEADER(ip/resolver_base.hpp)  // lint-world: Boost resolver flags
 #include <boost/system/system_error.hpp>
 #include <boost/throw_exception.hpp>
@@ -41,6 +40,7 @@ using basic_resolver = ::webcpp::asio_backend::ip::basic_resolver<InternetProtoc
 #include <type_traits>
 #include <utility>
 #include <webcpp/asio/detail/post_completion.hpp>
+#include <webcpp/asio/ip/basic_resolver_results.hpp>
 
 namespace webcpp::asio::ip::detail {
 /** Maps an empty, numeric or supported named service to its port. */
@@ -89,8 +89,8 @@ public:
     using protocol_type = InternetProtocol;
     /** The protocol endpoint type. */
     using endpoint_type = InternetProtocol::endpoint;
-    /** Boost's sequence of resolver entries. */
-    using results_type = ::webcpp::asio_backend::ip::basic_resolver_results<InternetProtocol>;
+    /** The resolution's one entry, held in place, under the name of Boost's results. */
+    using results_type = basic_resolver_results<InternetProtocol>;
 
     /**
      Constructs a resolver on executor.
@@ -120,9 +120,9 @@ public:
 
     /**
      Constructs an entry retaining host and service, with an unspecified address.
-     @param host The host name retained verbatim.
+     @param host The host name retained verbatim, of at most 254 bytes.
      @param service An empty, numeric or supported named service.
-     @param ec Receives success or service_not_found.
+     @param ec Receives success, service_not_found, or host_not_found for a longer host.
      @return One entry on success, otherwise an empty sequence.
     */
     results_type resolve(std::string_view host, std::string_view service,
@@ -132,10 +132,10 @@ public:
 
     /**
      Constructs a forward result under the service parsing flags.
-     @param host The host name retained verbatim.
+     @param host The host name retained verbatim, of at most 254 bytes: DNS's 253 and a final dot.
      @param service The service retained verbatim.
      @param resolve_flags Only numeric_service affects parsing.
-     @param ec Receives success or service_not_found.
+     @param ec Receives success, service_not_found, or host_not_found for a longer host.
      @return One entry on success, otherwise an empty sequence.
     */
     // Preserve Boost's non-static member interface.
@@ -147,10 +147,14 @@ public:
             ec = ::webcpp::asio_backend::error::service_not_found;
             return {};
         }
+        if (host.size() > results_type::value_type::max_host_name_size) {
+            // No name DNS knows is longer; the results hold the host in place.
+            ec = ::webcpp::asio_backend::error::host_not_found;
+            return {};
+        }
         ec.clear();
-        return results_type::create(
-            endpoint_type(::webcpp::asio_backend::ip::address_v4::any(), *port), std::string(host),
-            std::string(service));
+        return results_type(endpoint_type(::webcpp::asio_backend::ip::address_v4::any(), *port),
+                            host, service);
     }
 
     /**
@@ -166,7 +170,7 @@ public:
     }
 #ifndef WEBCPP_ASIO_NO_EXCEPTIONS
     /**
-     Constructs a forward result, throwing on an unsupported service.
+     Constructs a forward result, throwing on an unsupported service or a longer host.
      @param host The original host.
      @param service The original service.
      @return One resolver entry.
@@ -176,7 +180,7 @@ public:
     }
 
     /**
-     Constructs a forward result with flags, throwing on an unsupported service.
+     Constructs a forward result with flags, throwing on an unsupported service or a longer host.
      @param host The original host.
      @param service The original service.
      @param resolve_flags The service parsing flags.

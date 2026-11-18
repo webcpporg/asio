@@ -652,6 +652,8 @@
     "detail/wasi_pollable_descriptor.hpp",
     "io_context.hpp",
     "ip/basic_resolver.hpp",
+    "ip/basic_resolver_entry.hpp",
+    "ip/basic_resolver_results.hpp",
     "ip/tcp.hpp",
     "ip/udp.hpp",
     "ssl.hpp",

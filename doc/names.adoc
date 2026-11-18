@@ -46,6 +46,11 @@ the shipped implementation, with browser-specific extensions where required:
   transport provides it, and the resolver completes with the entries the
   browser streams of webcpp's beast library accept.
 
+| `ip::basic_resolver_results`, `ip::basic_resolver_entry`
+| Aliases of Boost's.
+| Class templates of asio's with Boost's interfaces: the results hold their
+  one entry in place, and allocate nothing.
+
 | `ssl`: `context`, `stream_base`, `verify_*`, `host_name_verification`
 | Aliases of Boost's, in `<webcpp/asio/ssl.hpp>`, which brings OpenSSL
   natively, so that `<webcpp/asio.hpp>` leaves it out.
